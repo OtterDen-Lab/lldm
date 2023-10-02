@@ -7,7 +7,7 @@
 # Current Issues:
 # 1. GameMaster sometimes asks player for input, which derails Chronicler
 # 2. Chronicler SYSTEM prompt probably needs more refinement
-# 3. Since SDPrompter takes in a Chronicler summary as input, sometiems junk data ends up in the prompt.
+# 3. Since SDPrompter takes in a Chronicler summary as input, sometimes junk data ends up in the prompt.
 # But visually, this is often invisible.
 
 from datetime import datetime
@@ -20,6 +20,7 @@ import StableDiffusion
 
 # openai.api_key = os.getenv("")
 # Using Sam Ogden's provided API Key for LLGM
+# noinspection SpellCheckingInspection
 openai.api_key = "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"
 MODEL = "gpt-3.5-turbo"
 
@@ -65,7 +66,7 @@ if not os.path.exists(f"GPT/Campaigns/{campaign}"):
 
 # Instance Logs (Campaign-specific ChatCompletion Dumps)
 PATH_OUTPUT_GAMEMASTER           = f"GPT/Campaigns/{campaign}/OUTPUT_GAMEMASTER.txt"
-#PATH_OUTPUT_SDPROMPTER           = f"GPT/Campaigns/{campaign}/OUTPUT_SDPROMPTER.txt"
+# PATH_OUTPUT_SDPROMPTER           = f"GPT/Campaigns/{campaign}/OUTPUT_SDPROMPTER.txt"
 PATH_OUTPUT_CHRONICLER           = f"GPT/Campaigns/{campaign}/OUTPUT_CHRONICLER.txt"
 # NOTE: Chronicler output is overwritten (summary-of-summary to preserve tokens)
 PATH_OUTPUT_STABLEDIFFUSION      = f"StableDiffusion/Output/{campaign}/"
@@ -94,24 +95,43 @@ write(PATH_LOG_CHRONICLER, "")
 
 # ================================ Functions: =======================================
 
+# ChatCompletion Method (So IDE will stop yelling at me for duplicated code)
+
+def chat_complete(context_file, user_input):
+    completion = openai.ChatCompletion.create(
+        model=MODEL,
+        messages=[
+            {"role": "system", "content": context_file},
+            {"role": "user", "content": user_input}
+        ]
+    )
+    return completion
+
+
+def chat_complete_assistant(context_file, user_input, assistant_pretext):
+    completion = openai.ChatCompletion.create(
+        model=MODEL,
+        messages=[
+            {"role": "system", "content": context_file},
+            {"role": "assistant", "content": assistant_pretext},
+            {"role": "user", "content": user_input}
+        ]
+    )
+    return completion
+
 
 def chronicler(gm_entry):
     print("[CHRONICLER]:", end=" ")
 
     # Send GameChronicler the response, to have it create a new summary.
-    completion = openai.ChatCompletion.create(
-        model=MODEL,
-        messages=[
-            {"role": "system", "content": CONTEXT_CHRONICLER},
-            {"role": "user", "content": gm_entry}
-        ]
-    )
+    completion = chat_complete(CONTEXT_CHRONICLER, gm_entry)
+
     # Dump Log to file
     append(PATH_LOG_CHRONICLER, str(completion))
 
     # Update the summary
-    write(PATH_OUTPUT_CHRONICLER,str(completion.choices[0].message.content))
-    #print(str(completion.choices[0].message.content))
+    write(PATH_OUTPUT_CHRONICLER, str(completion.choices[0].message.content))
+    # print(str(completion.choices[0].message.content))
     print("...done!")
     return 0
 
@@ -125,14 +145,8 @@ def gamemaster(user_input):
     summarized_history = read(PATH_OUTPUT_CHRONICLER)
 
     # Complete the ChatCompletion
-    completion = openai.ChatCompletion.create(
-        model=MODEL,
-        messages=[
-            {"role": "system", "content": CONTEXT_GAMEMASTER},
-            {"role": "assistant", "content": summarized_history},
-            {"role": "user", "content": user_input}
-        ]
-    )
+    completion = chat_complete_assistant(CONTEXT_GAMEMASTER, user_input, summarized_history)
+
     # Dump Log into file
     append(PATH_LOG_GAMEMASTER, str(completion))
 
@@ -155,13 +169,8 @@ def sdprompter():
     # Fetch Chronicled Summary (WIP: Use JSON Location when mature)
     summary = read(PATH_OUTPUT_CHRONICLER)
 
-    completion = openai.ChatCompletion.create(
-        model=MODEL,
-        messages=[
-            {"role": "system", "content": CONTEXT_SDPROMTER},
-            {"role": "user", "content": summary}
-        ]
-    )
+    completion = chat_complete(CONTEXT_SDPROMTER, summary)
+
     # Dump Log into file
     append(PATH_LOG_SDPROMPTER, str(completion))
 
@@ -179,7 +188,6 @@ def sdprompter():
 # ===================================================================================
 
 
-
 # Print Greeting
 print("Hello, and welcome to Ray's LLGM Prototype. \n"
       "I will be serving as your DM this session. \n"
@@ -192,7 +200,7 @@ print("Hello, and welcome to Ray's LLGM Prototype. \n"
 # Evaluate Input
 #   Reroute to GAMEMASTER
 #   Reroute to SDPROMPTER
-#       Load Prompt from disk (OUTPUT_CHRONICLER?
+#       Load Prompt from disk (OUTPUT_CHRONICLER)?
 
 
 userInput = str(input())
