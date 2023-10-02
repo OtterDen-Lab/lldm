@@ -19,6 +19,7 @@ from FileControl import *
 import StableDiffusion
 
 # openai.api_key = os.getenv("")
+# Using Sam Ogden's provided API Key for LLGM
 openai.api_key = "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"
 MODEL = "gpt-3.5-turbo"
 
