@@ -46,8 +46,13 @@ MODEL = "gpt-3.5-turbo"
 #   Formatter   Log
 #   Chronicler  Log
 
+# TESTING DATA SAMPLE DRAGONBORN SORCERER
+PATH_RESOURCE_SAMPLE_CHARACTER   = "GPT/System/Dragon_JSON.txt"
+
+
 # Universal (Hard-Coded Static Config File Locations)
 PATH_CONTEXT_GAMEMASTER          = "GPT/System/GameAnalyst.txt"
+PATH_CONTEXT_GAMESETUP           = "GPT/System/GameSetup.txt"
 PATH_CONTEXT_SDPROMTER           = "GPT/System/SDPrompter.txt"
 PATH_CONTEXT_CHRONICLER          = "GPT/System/Chronicler.txt"
 
@@ -78,11 +83,12 @@ PATH_LOG_CHRONICLER              = f"GPT/Campaigns/{campaign}/LOG_CHRONICLER.txt
 
 # -------------------------------------- Context_Vars: --------------------------------------
 # Load contexts from disk
+CONTEXT_GAMESETUP    =   read(PATH_CONTEXT_GAMESETUP)
 CONTEXT_GAMEMASTER   =   read(PATH_CONTEXT_GAMEMASTER)
 CONTEXT_SDPROMTER    =   read(PATH_CONTEXT_SDPROMTER)
 CONTEXT_CHRONICLER   =   read(PATH_CONTEXT_CHRONICLER)
 
-
+RESOURCE_SAMPLE_CHARACTER = read(PATH_RESOURCE_SAMPLE_CHARACTER)
 # ------------------------------- Initialize Outputs & Logs: --------------------------------
 
 
@@ -186,15 +192,8 @@ def sdprompter():
 
 
 # ===================================================================================
-
-
-# Print Greeting
-print("Hello, and welcome to Ray's LLGM Prototype. \n"
-      "I will be serving as your DM this session. \n"
-      "Type \"Print Environ\" to generate an image \n"
-      "Type \"exit\" to stop this program.")
-
-
+#                              Main Function
+# ===================================================================================
 # Main Loop Structure:
 # Ask for input
 # Evaluate Input
@@ -202,15 +201,27 @@ print("Hello, and welcome to Ray's LLGM Prototype. \n"
 #   Reroute to SDPROMPTER
 #       Load Prompt from disk (OUTPUT_CHRONICLER)?
 
+def main():
+    # Print Greeting
+    #           "Type \"Print Environ\" to generate an image \n"
+    print("Hello, and welcome to Ray's LLGM Prototype.\n"
+          "I will be serving as your DM this session.\n"
+          "Type \"exit\" to stop this program.\n")
 
-userInput = str(input())
+    # Character Creation: Basic 5E using imported 5E-compliant JSON
+    completion = chat_complete(CONTEXT_GAMESETUP, RESOURCE_SAMPLE_CHARACTER)
+    print(completion.choices[0].message.content)
 
-while userInput != "exit":
-    match userInput:
-        case "Print Environ":
-            sdprompter()
+    user_input = str(input())
+    while user_input != "exit":
+        match user_input:
+            case "Print Environ":
+                sdprompter()
+            case _:
+                gamemaster(user_input)
+        user_input = str(input())
+    print("Goodbye")
 
-        case _:
-            gamemaster(userInput)
-    userInput = str(input())
-print("Goodbye")
+
+if __name__ == "__main__":
+    main()
