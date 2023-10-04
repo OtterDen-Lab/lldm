@@ -5,7 +5,7 @@ import io
 import base64
 from PIL import Image, PngImagePlugin
 
-from FileControl import *
+from helpers.FileControl import *
 import __main__ as GPT
 
 

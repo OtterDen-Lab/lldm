@@ -1,8 +1,7 @@
-# Ray's .gitignore for LLGM:
+# Ray's .gitignore for LLDM:
 
 # Ignore generated campaigns & images
-.GPT/*
-.StableDiffusion/Output/*
+
 
 # Public .gitignore for Jetbrains below:
 

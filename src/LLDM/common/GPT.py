@@ -15,11 +15,11 @@ import os
 import openai
 import json
 
-from FileControl import *
+from helpers.FileControl import *
 import StableDiffusion
 
 # openai.api_key = os.getenv("")
-# Using Sam Ogden's provided API Key for LLGM
+# Using Sam Ogden's provided API Key for LLDM
 # noinspection SpellCheckingInspection
 openai.api_key = "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"
 MODEL = "gpt-3.5-turbo"
@@ -37,7 +37,7 @@ MODEL = "gpt-3.5-turbo"
 #       SDPrompter (Prompt)
 #
 # Outputs
-#   LLGM Narration
+#   LLDM Narration
 #   Stable Diffusion Image
 #   
 #
@@ -47,46 +47,47 @@ MODEL = "gpt-3.5-turbo"
 #   Chronicler  Log
 
 # TESTING DATA SAMPLE DRAGONBORN SORCERER
-PATH_RESOURCE_SAMPLE_CHARACTER   = "GPT/System/Dragon_JSON.txt"
+PATH_RESOURCE_SAMPLE_CHARACTER   = "../resources/SampleJSON/Dragon_JSON.txt"
 
 
 # Universal (Hard-Coded Static Config File Locations)
-PATH_CONTEXT_GAMEMASTER          = "GPT/System/GameAnalyst.txt"
-PATH_CONTEXT_GAMESETUP           = "GPT/System/GameSetup.txt"
-PATH_CONTEXT_SDPROMTER           = "GPT/System/SDPrompter.txt"
-PATH_CONTEXT_CHRONICLER          = "GPT/System/Chronicler.txt"
+PATH_CONTEXT_GAMEMASTER          = "../resources/GPT/GameAnalyst.txt"
+PATH_CONTEXT_GAMESETUP           = "../resources/GPT/GameSetup.txt"
+PATH_CONTEXT_SDPROMTER           = "../resources/GPT/SDPrompter.txt"
+PATH_CONTEXT_CHRONICLER          = "../resources/GPT/Chronicler.txt"
 
-PATH_SDCONFIG_NEGATIVE           = "StableDiffusion/Input/NegativePrompt.txt"
-PATH_SDCONFIG_CONFIG             = "StableDiffusion/Input/Payload.txt"
+PATH_SDCONFIG_NEGATIVE           = "../resources/StableDiffusion/NegativePrompt.txt"
+PATH_SDCONFIG_CONFIG             = "../resources/StableDiffusion/Payload.txt"
 
 # Temp/Overwritten
-PATH_SDCONFIG_PROMPT             = "StableDiffusion/Input/Prompt.txt"
+PATH_SDCONFIG_PROMPT             = "../resources/StableDiffusion/Prompt.txt"
 PATH_INPUT_USER                  = "GPT/Input/User_input.txt"
 
 # Use time of creation as placeholder campaign name
 campaign = str(datetime.now().strftime("%m-%d-%Y (%I.%M.%S %p)"))
-if not os.path.exists(f"GPT/Campaigns/{campaign}"):
-    os.makedirs(f'GPT/Campaigns/{campaign}')
+if not os.path.exists(f"../Output/Campaigns/{campaign}"):
+    os.makedirs(f'../Output/Campaigns/{campaign}')
 
 
 # Instance Logs (Campaign-specific ChatCompletion Dumps)
-PATH_OUTPUT_GAMEMASTER           = f"GPT/Campaigns/{campaign}/OUTPUT_GAMEMASTER.txt"
-# PATH_OUTPUT_SDPROMPTER           = f"GPT/Campaigns/{campaign}/OUTPUT_SDPROMPTER.txt"
-PATH_OUTPUT_CHRONICLER           = f"GPT/Campaigns/{campaign}/OUTPUT_CHRONICLER.txt"
+PATH_OUTPUT_GAMEMASTER           = f"../Output/Campaigns/{campaign}/OUTPUT_GAMEMASTER.txt"
+# PATH_OUTPUT_SDPROMPTER           = f"../Output/Campaigns/{campaign}/OUTPUT_SDPROMPTER.txt"
+PATH_OUTPUT_CHRONICLER           = f"../Output/Campaigns/{campaign}/OUTPUT_CHRONICLER.txt"
 # NOTE: Chronicler output is overwritten (summary-of-summary to preserve tokens)
-PATH_OUTPUT_STABLEDIFFUSION      = f"StableDiffusion/Output/{campaign}/"
+PATH_OUTPUT_STABLEDIFFUSION      = f"../Output/Campaigns/{campaign}/Images/"
 
-PATH_LOG_GAMEMASTER              = f"GPT/Campaigns/{campaign}/LOG_GAMEMASTER.txt"
-PATH_LOG_SDPROMPTER              = f"GPT/Campaigns/{campaign}/LOG_SDPROMPTER.txt"
-PATH_LOG_CHRONICLER              = f"GPT/Campaigns/{campaign}/LOG_CHRONICLER.txt"
+PATH_LOG_GAMEMASTER              = f"../Output/Campaigns/{campaign}/LOG_GAMEMASTER.txt"
+PATH_LOG_SDPROMPTER              = f"../Output/Campaigns/{campaign}/LOG_SDPROMPTER.txt"
+PATH_LOG_CHRONICLER              = f"../Output/Campaigns/{campaign}/LOG_CHRONICLER.txt"
 
+# To-Do, convert "../Output/Campaigns/{campaign}" to a variable (same with similar)
 
 # -------------------------------------- Context_Vars: --------------------------------------
 # Load contexts from disk
-CONTEXT_GAMESETUP    =   read(PATH_CONTEXT_GAMESETUP)
-CONTEXT_GAMEMASTER   =   read(PATH_CONTEXT_GAMEMASTER)
-CONTEXT_SDPROMTER    =   read(PATH_CONTEXT_SDPROMTER)
-CONTEXT_CHRONICLER   =   read(PATH_CONTEXT_CHRONICLER)
+CONTEXT_GAMESETUP    = read(PATH_CONTEXT_GAMESETUP)
+CONTEXT_GAMEMASTER   = read(PATH_CONTEXT_GAMEMASTER)
+CONTEXT_SDPROMTER    = read(PATH_CONTEXT_SDPROMTER)
+CONTEXT_CHRONICLER   = read(PATH_CONTEXT_CHRONICLER)
 
 RESOURCE_SAMPLE_CHARACTER = read(PATH_RESOURCE_SAMPLE_CHARACTER)
 # ------------------------------- Initialize Outputs & Logs: --------------------------------
@@ -204,7 +205,7 @@ def sdprompter():
 def main():
     # Print Greeting
     #           "Type \"Print Environ\" to generate an image \n"
-    print("Hello, and welcome to Ray's LLGM Prototype.\n"
+    print("Hello, and welcome to Ray's LLDM Prototype.\n"
           "I will be serving as your DM this session.\n"
           "Type \"exit\" to stop this program.\n")
 
