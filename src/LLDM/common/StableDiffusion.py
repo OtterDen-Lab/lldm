@@ -6,7 +6,7 @@ import base64
 from PIL import Image, PngImagePlugin
 
 from helpers.FileControl import *
-import __main__ as GPT
+
 
 
 def generate():
@@ -14,8 +14,9 @@ def generate():
     url = "http://127.0.0.1:7860"
     #url = "https://664176ef9c42434e22.gradio.live"
     # Read from file input
-    prompt = read(GPT.PATH_SDCONFIG_PROMPT)
-    negativePrompt = read(GPT.PATH_SDCONFIG_NEGATIVE)
+    from LLDM.common.GPT import PATH_SDCONFIG_PROMPT, PATH_SDCONFIG_NEGATIVE, PATH_OUTPUT_STABLEDIFFUSION
+    prompt = read(PATH_SDCONFIG_PROMPT)
+    negativePrompt = read(PATH_SDCONFIG_NEGATIVE)
 
     payload = {
         "seed": -1,
@@ -42,11 +43,16 @@ def generate():
         pnginfo = PngImagePlugin.PngInfo()
         pnginfo.add_text("parameters", response2.json().get("info"))
 
-        if not os.path.exists(GPT.PATH_OUTPUT_STABLEDIFFUSION):
-            os.makedirs(GPT.PATH_OUTPUT_STABLEDIFFUSION)
+        if not os.path.exists(PATH_OUTPUT_STABLEDIFFUSION):
+            os.makedirs(PATH_OUTPUT_STABLEDIFFUSION)
 
-        image.save(uniquify(f'{GPT.PATH_OUTPUT_STABLEDIFFUSION}output.png'), pnginfo=pnginfo)
-        image.show()
+        img_path = uniquify(f'{PATH_OUTPUT_STABLEDIFFUSION}output.png')
+        image.save(img_path, pnginfo=pnginfo)
+        # image.show()
+        static_img_path = uniquify(f'src/LLDM/common/static/images/output.png')
+        image.save(static_img_path, pnginfo=pnginfo)
+
+        return static_img_path.replace('src/LLDM/common/static/images/', '')
 
 
 #

@@ -16,7 +16,7 @@ import openai
 import json
 
 from helpers.FileControl import *
-import StableDiffusion
+from LLDM.common.StableDiffusion import generate
 
 # openai.api_key = os.getenv("")
 # Using Sam Ogden's provided API Key for LLDM
@@ -47,38 +47,39 @@ MODEL = "gpt-3.5-turbo"
 #   Chronicler  Log
 
 # TESTING DATA SAMPLE DRAGONBORN SORCERER
-PATH_RESOURCE_SAMPLE_CHARACTER   = "../resources/SampleJSON/Dragon_JSON.txt"
+PATH_RESOURCE_SAMPLE_CHARACTER   = "src/LLDM/resources/SampleJSON/Dragon_JSON.txt"
+PATH_RESOURCE_CHARACTERS         = "src/LLDM/resources/SampleJSON"
 
 
 # Universal (Hard-Coded Static Config File Locations)
-PATH_CONTEXT_GAMEMASTER          = "../resources/GPT/GameAnalyst.txt"
-PATH_CONTEXT_GAMESETUP           = "../resources/GPT/GameSetup.txt"
-PATH_CONTEXT_SDPROMTER           = "../resources/GPT/SDPrompter.txt"
-PATH_CONTEXT_CHRONICLER          = "../resources/GPT/Chronicler.txt"
+PATH_CONTEXT_GAMEMASTER          = "src/LLDM/resources/GPT/GameAnalyst.txt"
+PATH_CONTEXT_GAMESETUP           = "src/LLDM/resources/GPT/GameSetup.txt"
+PATH_CONTEXT_SDPROMTER           = "src/LLDM/resources/GPT/SDPrompter.txt"
+PATH_CONTEXT_CHRONICLER          = "src/LLDM/resources/GPT/Chronicler.txt"
 
-PATH_SDCONFIG_NEGATIVE           = "../resources/StableDiffusion/NegativePrompt.txt"
-PATH_SDCONFIG_CONFIG             = "../resources/StableDiffusion/Payload.txt"
+PATH_SDCONFIG_NEGATIVE           = "src/LLDM/resources/StableDiffusion/NegativePrompt.txt"
+PATH_SDCONFIG_CONFIG             = "src/LLDM/resources/StableDiffusion/Payload.txt"
 
 # Temp/Overwritten
-PATH_SDCONFIG_PROMPT             = "../resources/StableDiffusion/Prompt.txt"
-PATH_INPUT_USER                  = "GPT/Input/User_input.txt"
+PATH_SDCONFIG_PROMPT             = "src/LLDM/resources/StableDiffusion/Prompt.txt"
+PATH_INPUT_USER                  = "src/LLDM/resources/Input/User_input.txt"
 
 # Use time of creation as placeholder campaign name
 campaign = str(datetime.now().strftime("%m-%d-%Y (%I.%M.%S %p)"))
-if not os.path.exists(f"../Output/Campaigns/{campaign}"):
-    os.makedirs(f'../Output/Campaigns/{campaign}')
+if not os.path.exists(f"src/LLDM/Output/Campaigns/{campaign}"):
+    os.makedirs(f'src/LLDM/Output/Campaigns/{campaign}')
 
 
 # Instance Logs (Campaign-specific ChatCompletion Dumps)
-PATH_OUTPUT_GAMEMASTER           = f"../Output/Campaigns/{campaign}/OUTPUT_GAMEMASTER.txt"
+PATH_OUTPUT_GAMEMASTER           = f"src/LLDM/Output/Campaigns/{campaign}/OUTPUT_GAMEMASTER.txt"
 # PATH_OUTPUT_SDPROMPTER           = f"../Output/Campaigns/{campaign}/OUTPUT_SDPROMPTER.txt"
-PATH_OUTPUT_CHRONICLER           = f"../Output/Campaigns/{campaign}/OUTPUT_CHRONICLER.txt"
+PATH_OUTPUT_CHRONICLER           = f"src/LLDM/Output/Campaigns/{campaign}/OUTPUT_CHRONICLER.txt"
 # NOTE: Chronicler output is overwritten (summary-of-summary to preserve tokens)
-PATH_OUTPUT_STABLEDIFFUSION      = f"../Output/Campaigns/{campaign}/Images/"
+PATH_OUTPUT_STABLEDIFFUSION      = f"src/LLDM/Output/Campaigns/{campaign}/Images/"
 
-PATH_LOG_GAMEMASTER              = f"../Output/Campaigns/{campaign}/LOG_GAMEMASTER.txt"
-PATH_LOG_SDPROMPTER              = f"../Output/Campaigns/{campaign}/LOG_SDPROMPTER.txt"
-PATH_LOG_CHRONICLER              = f"../Output/Campaigns/{campaign}/LOG_CHRONICLER.txt"
+PATH_LOG_GAMEMASTER              = f"src/LLDM/Output/Campaigns/{campaign}/LOG_GAMEMASTER.txt"
+PATH_LOG_SDPROMPTER              = f"src/LLDM/Output/Campaigns/{campaign}/LOG_SDPROMPTER.txt"
+PATH_LOG_CHRONICLER              = f"src/LLDM/Output/Campaigns/{campaign}/LOG_CHRONICLER.txt"
 
 # To-Do, convert "../Output/Campaigns/{campaign}" to a variable (same with similar)
 
@@ -160,14 +161,14 @@ def gamemaster(user_input):
     # Test GPT-JSON message structure
     # First, convert the message into a string, then trim the newlines.
     gpt_json = json.loads(str(completion.choices[0].message.content).replace("\n", ""))
+    print(str(gpt_json["response"]))
 
     # Store natural-language response
     append(PATH_OUTPUT_GAMEMASTER, str(gpt_json["response"]))
-    print(str(gpt_json["response"]))
 
     # Call Chronicler to update history
     chronicler(gpt_json["response"])
-    return 0
+    return str(gpt_json["response"])
 
 
 def sdprompter():
@@ -185,12 +186,10 @@ def sdprompter():
 
     # Forward output to prompt location for StableDiffusion
     write(PATH_SDCONFIG_PROMPT, str(completion.choices[0].message.content))
-    print(str(completion.choices[0].message.content))
 
     # Invoke the local StableDiffusion instance to create an image based on the prompt
-    StableDiffusion.generate()
-    return 0
-
+    print(str(completion.choices[0].message.content))
+    return generate()
 
 # ===================================================================================
 #                              Main Function
@@ -224,5 +223,19 @@ def main():
     print("Goodbye")
 
 
-if __name__ == "__main__":
-    main()
+def process_input(user_input):
+    match user_input:
+        case "exit":
+            raise Exception("Exited (using text)!")
+        case _:
+            return gamemaster(user_input)
+
+
+def place_character(character_path):
+    completion = chat_complete(CONTEXT_GAMESETUP, read(character_path))
+    chronicler(completion.choices[0].message.content)
+    return completion.choices[0].message.content
+
+
+def print_image():
+    return sdprompter()

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LLDM Flask WebApp</title>
+</head>
+<body>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Julius+Sans+One">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto">
+    <style>
+        body {
+            background: url({{url_for('static', filename='images/'+filename)}}) no-repeat center center fixed;
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;
+        }
+        h1 {
+            background-color: black;
+            color: white;
+        }
+
+        #center {
+            text-align: center;
+            text-shadow: 1px 1px 2px black;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            font-family: inherit;
+            font-weight: 500;
+            line-height: 1.2;
+            color: #fff;
+        }
+        h4 {
+            display: block;
+            margin-block-start: 1.33em;
+            margin-block-end: 0em;
+            margin-inline-start: 0px;
+            margin-inline-end: 0px;
+
+            font-size: 78px;
+            font-weight: 700;
+            font-family: 'Cinzel Decorative', cursive;
+        }
+        h5 {
+            display: block;
+            margin-block-start: 0em;
+            margin-block-end: 0em;
+            margin-inline-start: 0px;
+            margin-inline-end: 0px;
+            font-size: 60px;
+            font-weight: 500;
+            font-family: 'Julius Sans One', sans-serif;
+        }
+        .start_btn a {
+            display: inline-block;
+            margin-top: 18px;
+            letter-spacing: 2px;
+            padding: 9px 18px;
+
+            font-family: 'Julius Sans One', sans-serif;
+            border: 4px double #9c8f8f;
+            background-color: rgba(0, 0, 0, 0.40);
+            outline: none;
+
+            color: #fff;
+            font-size: 20px;
+            text-decoration: none;
+        }
+        a:hover{
+            opacity: 0.5;
+        }
+    </style>
+
+
+    <h1> LLDM Web Application! </h1>
+    <div id="center">
+        <h4>LLDM</h4>
+        <h5>Large Language <br> Dungeon Master</h5>
+        <div class="start_btn">
+            <a href="/startup/">Begin</a>
+        </div>
+    </div>
+
+
+{#    #}
+{#    {% if name %}#}
+{#      <h1>Hello {{ name }}!</h1>#}
+{#    {% else %}#}
+{#      <h1>Hello, World!</h1>#}
+{#    {% endif %}#}
+</body>
+</html>
