@@ -1,9 +1,9 @@
 # DO NOT TOUCH THESE IMPORTS UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING: THE ORDER MATTERS!!!!!
-from LLDM.GPT       import *
-from LLDM.Campaign  import Campaign
-from LLDM.Character import Character
-from LLDM.Quest     import Quest
-from LLDM.World     import World
+from GPT       import *
+from Campaign  import Campaign
+from Character import Character
+from Quest     import Quest
+from World     import World
 
 
 # Example Usage:

@@ -3,7 +3,7 @@
 import openai
 import json
 
-from LLDM.StableDiffusion import generate
+from StableDiffusion import generate
 
 # openai.api_key = os.getenv("")
 # Using Sam Ogden's provided API Key for LLDM

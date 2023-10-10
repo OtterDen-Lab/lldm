@@ -1,6 +1,6 @@
 import json
 
-from LLDM.helpers.FileControl import *
+from helpers.FileControl import *
 
 
 class Character:

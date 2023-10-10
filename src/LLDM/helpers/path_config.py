@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from LLDM.helpers.FileControl import *
+from .FileControl import *
 
 # Package Directory  (LLDM < helpers < path_config.py)
 LLDM_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
