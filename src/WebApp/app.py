@@ -14,6 +14,7 @@ PATH_PLAYER_CHARACTER = PATH_RESOURCE_CHARACTERS + "/PC"
 
 app = Flask(__name__)
 app.secret_key = 'some_secret_key'  # for flash messages
+
 background_image_filename = random.choice(os.listdir(WEB_APP_IMAGES))
 print(f"Background Image: {background_image_filename}")
 

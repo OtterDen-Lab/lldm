@@ -10,8 +10,10 @@ print(f"__FILE__: {os.path.abspath(__file__)}")
 print(f"LLDM_DIR: {LLDM_DIR}")
 
 # External Package Directories (Like 'static' for the WebApp
-WEB_APP_IMAGES = os.path.join(os.path.dirname(LLDM_DIR), "WebApp", "static", "images")
 WEB_APP_TEMPLATES = os.path.join(os.path.dirname(LLDM_DIR), "WebApp", "templates")
+WEB_APP_IMAGES    = os.path.join(os.path.dirname(LLDM_DIR), "WebApp", "static", "images")
+if not os.path.exists(WEB_APP_IMAGES):
+    os.makedirs(WEB_APP_IMAGES)
 
 # Resources Directory (Contains all the GPT/SD inputs)
 RESOURCES_DIR = os.path.join(LLDM_DIR, "resources")
