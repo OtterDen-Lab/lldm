@@ -1,9 +1,10 @@
 ﻿from .helpers.path_config import *
+from .StableDiffusion import generate
 
 import openai
 import json
 
-from .StableDiffusion import generate
+
 
 # openai.api_key = os.getenv("")
 # Using Sam Ogden's provided API Key for LLDM
@@ -115,9 +116,9 @@ def place_character(character_path):
 
 def place_player(Character):
     print("[GameSetup]:", end=" ")
-    completion = chat_complete(CONTEXT_GAMESETUP, str(Character.JSON))
+    completion = chat_complete(CONTEXT_GAMESETUP, str(Character))
     chronicler(completion.choices[0].message.content)
-    return completion.choices[0].message.content
+    return str(completion.choices[0].message.content)
 
 
 def print_image():

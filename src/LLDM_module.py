@@ -1,9 +1,9 @@
 # DO NOT TOUCH THESE IMPORTS UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING: THE ORDER MATTERS!!!!!
-from GPT       import *
-from Campaign  import Campaign
-from Character import Character
-from Quest     import Quest
-from World     import World
+from LLDM.GPT       import *
+from LLDM.Campaign  import Campaign
+from LLDM.Character import Character
+from LLDM.Quest     import Quest
+from LLDM.World     import World
 
 
 # Example Usage:
@@ -24,6 +24,9 @@ player_character = Character(PATH_RESOURCE_SAMPLE_CHARACTER)
 
 print(f"Adding [{player_character.JSON['name']}] to Party\n")
 campaign.add_character(player_character)
+print(f"Character: {player_character}")
+
+# raise Exception("DEBUG QUIT")
 
 print("[DEBUG] Fast-tracking Campaign Generation...")
 print("Stage 2: World Generation")

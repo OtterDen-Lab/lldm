@@ -6,6 +6,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 
 from LLDM.GPT import *
 from LLDM.helpers.JSONControl import *
+from LLDM.Character import Character
 
 # PATH_BACKGROUND_IMAGES = "src/LLDM/common/static/images"
 PATH_UPLOAD_FOLDER = PATH_RESOURCE_CHARACTERS
@@ -98,6 +99,9 @@ def chat():
             print(message)
     else:
         print("Skipped Profile: Unexpected results expected!")
+        character = Character(PATH_RESOURCE_SAMPLE_CHARACTER)
+        print(f"(APP) Character: {character}")
+        message = place_player(character)
 
     return render_template('chat.html', filename=background_image_filename, character=character, message=message)
 
