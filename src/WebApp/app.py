@@ -4,9 +4,8 @@
 import random
 from flask import Flask, render_template, request, redirect, url_for, flash
 
-from LLDM.helpers.JSONControl import extract_pdf_fields
 from LLDM.GPT import *
-
+from LLDM.helpers.JSONControl import *
 
 # PATH_BACKGROUND_IMAGES = "src/LLDM/common/static/images"
 PATH_UPLOAD_FOLDER = PATH_RESOURCE_CHARACTERS
@@ -104,4 +103,8 @@ def chat():
 
 
 if __name__ == '__main__':
+    app.run()
+
+
+def start():
     app.run()
