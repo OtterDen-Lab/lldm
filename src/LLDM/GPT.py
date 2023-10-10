@@ -1,9 +1,9 @@
-﻿from helpers.path_config import *
+﻿from .helpers.path_config import *
 
 import openai
 import json
 
-from StableDiffusion import generate
+from .StableDiffusion import generate
 
 # openai.api_key = os.getenv("")
 # Using Sam Ogden's provided API Key for LLDM

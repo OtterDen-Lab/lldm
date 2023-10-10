@@ -1,19 +1,21 @@
-import os
-import random
+# from LLDM.GPT import *
+# from LLDM.helpers.JSONControl import *
 
-from LLDM.helpers.FileControl import *
-from LLDM.helpers import JSONControl
-from LLDM import GPT
+import random
 from flask import Flask, render_template, request, redirect, url_for, flash
 
-PATH_BACKGROUND_IMAGES = "src/LLDM/common/static/images"
-PATH_UPLOAD_FOLDER = GPT.PATH_RESOURCE_CHARACTERS
-PATH_PLAYER_CHARACTER = GPT.PATH_RESOURCE_CHARACTERS + "/PC"
+from LLDM.helpers.JSONControl import extract_pdf_fields
+from LLDM.GPT import *
+
+
+# PATH_BACKGROUND_IMAGES = "src/LLDM/common/static/images"
+PATH_UPLOAD_FOLDER = PATH_RESOURCE_CHARACTERS
+PATH_PLAYER_CHARACTER = PATH_RESOURCE_CHARACTERS + "/PC"
 
 app = Flask(__name__)
 app.secret_key = 'some_secret_key'  # for flash messages
-background_image_filename = random.choice(os.listdir(PATH_BACKGROUND_IMAGES))
-
+background_image_filename = random.choice(os.listdir(WEB_APP_IMAGES))
+print(f"Background Image: {background_image_filename}")
 
 ALLOWED_EXTENSIONS = {'pdf'}
 
@@ -26,7 +28,7 @@ def allowed_file(filename):
 
 @app.route('/startup/')
 def character_creation():
-    return render_template('templates/character_creation.html', filename=background_image_filename)
+    return render_template('character_creation.html', filename=background_image_filename)
 
 
 @app.route('/startup/', methods=['POST'])
@@ -49,7 +51,7 @@ def upload_file():
         file.save(filepath)
         flash('File successfully uploaded')
         print("Writing JSON to " + PATH_PLAYER_CHARACTER+"/"+json_filename)
-        write(PATH_PLAYER_CHARACTER +"/" + json_filename, JSONControl.extract_pdf_fields(filepath))
+        write(PATH_PLAYER_CHARACTER +"/" + json_filename, extract_pdf_fields(filepath))
         return redirect(url_for('chat'))
 
     else:
@@ -60,10 +62,10 @@ def upload_file():
 @app.route('/')
 def index():
     global background_image_filename
-    files = [f for f in os.listdir(PATH_BACKGROUND_IMAGES) if f != background_image_filename]
+    files = [f for f in os.listdir(WEB_APP_IMAGES) if f != background_image_filename]
     new_random_file = random.choice(files)
     background_image_filename = new_random_file
-    return render_template('templates/home.html', filename=background_image_filename)
+    return render_template('home.html', filename=background_image_filename)
 
 
 # @app.route('/chat/')
@@ -81,12 +83,10 @@ def chat():
         user_input = request.form['user_input']
         if user_input == "Print Environ":
             print("Sending request to GPT")
-            novel_image_path = GPT.print_image()
-            print("Novel Image at: " + novel_image_path)
-            background_image_filename = novel_image_path
+            background_image_filename = print_image()
         else:
             print("Sending request to GPT")
-            message = GPT.process_input(user_input)
+            message = process_input(user_input)
             print(message)
     elif len(os.listdir(PATH_PLAYER_CHARACTER)) > 0:
         # Fix this so file-names are easier to get / the onus of proper file naming is not on this function
@@ -95,12 +95,12 @@ def chat():
             path_of_character = PATH_PLAYER_CHARACTER + "/" + chars[0]
             character = read(path_of_character)
             print("Sending request to GPT")
-            message = GPT.place_character(path_of_character)
+            message = place_character(path_of_character)
             print(message)
     else:
         print("Skipped Profile: Unexpected results expected!")
 
-    return render_template('templates/chat.html', filename=background_image_filename, character=character, message=message)
+    return render_template('chat.html', filename=background_image_filename, character=character, message=message)
 
 
 if __name__ == '__main__':

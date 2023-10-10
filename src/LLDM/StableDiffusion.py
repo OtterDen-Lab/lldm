@@ -5,7 +5,7 @@ import io
 import base64
 from PIL import Image, PngImagePlugin
 
-from helpers.path_config import *
+from .helpers.path_config import *
 
 
 def generate():
@@ -47,7 +47,9 @@ def generate():
         static_img_path = uniquify(os.path.join(WEB_APP_IMAGES, "output.png"))
         image.save(static_img_path, pnginfo=pnginfo)
 
-        return static_img_path.replace(WEB_APP_IMAGES, '')
+        # print(f"Image Output Path: {static_img_path}")
+        # print(f"Image Filename: {os.path.basename(static_img_path)}")
+        return os.path.basename(static_img_path)
 
 
 def uniquify(path):
