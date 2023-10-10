@@ -5,8 +5,7 @@ import io
 import base64
 from PIL import Image, PngImagePlugin
 
-from helpers.FileControl import *
-
+from helpers.path_config import *
 
 
 def generate():
@@ -14,9 +13,8 @@ def generate():
     url = "http://127.0.0.1:7860"
     #url = "https://664176ef9c42434e22.gradio.live"
     # Read from file input
-    from LLDM.common.GPT import PATH_SDCONFIG_PROMPT, PATH_SDCONFIG_NEGATIVE, PATH_OUTPUT_STABLEDIFFUSION
     prompt = read(PATH_SDCONFIG_PROMPT)
-    negativePrompt = read(PATH_SDCONFIG_NEGATIVE)
+    negative_prompt = read(PATH_SDCONFIG_NEGATIVE)
 
     payload = {
         "seed": -1,
@@ -25,7 +23,7 @@ def generate():
         "cfg_scale": 7,
         "sampler_name": "DDIM",
         "sampler_index": "DDIM",
-        "negative_prompt": negativePrompt,
+        "negative_prompt": negative_prompt,
     }
 
     response = requests.post(url=f'{url}/sdapi/v1/txt2img', json=payload)
@@ -43,22 +41,13 @@ def generate():
         pnginfo = PngImagePlugin.PngInfo()
         pnginfo.add_text("parameters", response2.json().get("info"))
 
-        if not os.path.exists(PATH_OUTPUT_STABLEDIFFUSION):
-            os.makedirs(PATH_OUTPUT_STABLEDIFFUSION)
-
-        img_path = uniquify(f'{PATH_OUTPUT_STABLEDIFFUSION}output.png')
+        img_path = uniquify(os.path.join(PATH_OUTPUT_STABLEDIFFUSION, "output.png"))
         image.save(img_path, pnginfo=pnginfo)
         # image.show()
-        static_img_path = uniquify(f'src/LLDM/common/static/images/output.png')
+        static_img_path = uniquify(os.path.join(WEB_APP_IMAGES, "output.png"))
         image.save(static_img_path, pnginfo=pnginfo)
 
-        return static_img_path.replace('src/LLDM/common/static/images/', '')
-
-
-#
-# if __name__ == '__main__':
-#     generate()
-#
+        return static_img_path.replace(WEB_APP_IMAGES, '')
 
 
 def uniquify(path):
