@@ -1,5 +1,5 @@
-from LLDM.helpers import helper_functions
-from LLDM import Character
+from LLDM.Character import Character
+from LLDM.World import World
 
 
 class Battle():
@@ -18,42 +18,48 @@ class Battle():
     self.order = []
 
   def _start_battle_helper_(self):
-    self.turn_order()
+    self._turn_order_()
     self.turn = 1
     self.battle_result = "unknown"
     self.character_index = 0
 
+  def _turn_order_(self):
+    self._assign_initiative_(self.enemy_list)
+    self._assign_initiative_(self.players_list)
+    self.order = sorted(self.order, key=lambda x: x[0])
+
+  # TODO: Make an initiative stat for characters as a modifier
+  # TODO: Figure out who should go first if the number is the same between characters
   def _assign_initiative_(self, team):
     for character in team:
-      print("Roll initiative for " + character.get_name() + "and enter here: ")
+      print("Roll initiative for " + character.JSON['name'] + "and enter here: ")
       init_num = int(input())
       while (init_num < 1 or init_num > 20):
         print("Invalid number, please input again.")
-        print("\nRoll initiative for " + character.get_name() + "and enter here: ")
+        print("\nRoll initiative for " + character.JSON['name'] + "and enter here: ")
         init_num = int(input())
 
       ## Use this instead if the computer is rolling the dice
       # init_num = helper_functions.roll_skill_check(character, "initiative", False)
       self.order.append((init_num, character))
 
-  def turn_order(self):
-    self._assign_initiative_(self.enemyList)
-    self._assign_initiative_(self.playersList)
-    self.order = sorted(self.order, key=lambda x: x[0])
-
+  
   
   def start_battle(self):
     print("Starting Battle\n")
     self._start_battle_helper_()
     
-    print("Battle beginning at turn " + self.turn)
+    print(f"Battle beginning at turn {self.turn}")
     while (self.enemy_alive_count > 0 and self.player_alive_count > 0):
-      self.current_turn(self.order[character_index])
+      self.current_turn(self.order[self.character_index][1])
 
-      character_index = (character_index + 1) % len(self.order)
-      if (character_index == 0): 
+      self.character_index = (self.character_index + 1) % len(self.order)
+      if (self.character_index == 0): 
         self.turn += 1
-        print("Turn complete. Starting Turn " + self.turn)
+        print(f"Turn complete. Starting Turn {self.turn}")
+
+        # For debug purposes, only one turn happens, otherwise infinite
+        break
     
     print("Battle Complete\n")
 
@@ -69,12 +75,12 @@ class Battle():
 
   def current_turn(self, character):
     # For Jalen to implement
-    print("It is currently " + character.get_name() + "'s time to act!")
+    print("It is currently " + character.JSON['name'] + "'s time to act!")
 
 
 
     # Update character info here
-    print("End of " + character.get_name() + "'s turn")
+    print("End of " + character.JSON['name'] + "'s turn\n")
 
 
 
@@ -108,5 +114,6 @@ class Battle():
   def action_skill(self):
     pass
 
+  # Primarily for anger or fear leading to possible run away
   def check_motivation(self):
     pass
