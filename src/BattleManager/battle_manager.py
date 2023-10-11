@@ -1,4 +1,5 @@
 from LLDM.helpers import helper_functions
+from LLDM import Character
 
 
 class Battle():
