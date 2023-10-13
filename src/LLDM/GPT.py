@@ -5,7 +5,6 @@ import openai
 import json
 
 
-
 # openai.api_key = os.getenv("")
 # Using Sam Ogden's provided API Key for LLDM
 # noinspection SpellCheckingInspection
