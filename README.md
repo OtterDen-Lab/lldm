@@ -1,4 +1,4 @@
-# LLGM-Proof-of-Concept
+# LLDM-Proof-of-Concept
  ### Roll for Initiative!
  Secret Prototype 1 made in ~1 week? *(like 3 days, really)*
 ## Requirements: Working Internet Connection
