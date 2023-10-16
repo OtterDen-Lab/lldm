@@ -58,8 +58,7 @@ class Battle():
         self.turn += 1
         print(f"Turn complete. Starting Turn {self.turn}")
 
-        # For debug purposes, only one turn happens, otherwise infinite
-        break
+        break # For debug purposes, only one turn happens, otherwise infinite
     
     print("Battle Complete\n")
 
@@ -77,9 +76,20 @@ class Battle():
     # For Jalen to implement
     print("It is currently " + character.JSON['name'] + "'s time to act!")
 
+    # TODO: Code all the necessary queries for a given player's turn
+    # TODO: If it is an enemy's turn, auto generate information from GPT
+    
+
+    # TODO: Figure out how much action text there will be from the user. If it's an enemy, we would need to generate this information somehow.
+    action_text = ""
+    self.query_turn_story(action_text)
+
+    # TODO: Update JSON Database based off keywords in action_text?
 
 
-    # Update character info here
+    # Update Character Annotations / Attributes
+    # attributes.update_attributes(character)
+
     print("End of " + character.JSON['name'] + "'s turn\n")
 
 
@@ -116,4 +126,12 @@ class Battle():
 
   # Primarily for anger or fear leading to possible run away
   def check_motivation(self):
+    pass
+
+  # For Jalen
+  def query_turn_story(self, action_text):
+    # TODO: Query GPT for an explanation given information from the turn player
+
+    # TODO: Update Vector DB with Chat GPT's summary:
+
     pass
