@@ -1,0 +1,182 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "character.json",
+    "title": "D&D 5e Character",
+    "description": "JSON Schema for D&D 5e Character data. Sample can be found in sampleJSON, npc_behavior is also this but without the nickname and player aspects",
+    "type": "object",
+    "allOf": [{
+            "$ref": "creature.json"
+        }],
+    "required": ["player", "race"],
+    "properties": {
+        "nickname": {
+            "type": "string"
+        },
+        "player": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "default": "NPC"
+                },
+                "id": {
+                    "type": "string",
+                    "description": "Wizards' DCI or other identifier."
+                }
+            }
+        },
+        "xp": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0
+        },
+        "race": {
+            "$ref": "race.json"
+        },
+        "classes": {
+            "type": "array",
+            "items": {
+                "$ref": "class.json"
+            }
+        },
+        "background": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "option": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string",
+                    "input": "textarea"
+                },
+                "source": {
+                    "$ref": "source.json"
+                }
+            }
+        },
+        "details": {
+            "type": "object",
+            "properties": {
+                "age": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "eyes": {
+                    "type": "string"
+                },
+                "hair": {
+                    "type": "string"
+                },
+                "skin": {
+                    "type": "string"
+                },
+                "weight": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "height": {
+                    "type": "string"
+                },
+                "personality": {
+                    "type": "string"
+                },
+                "ideal": {
+                    "type": "string"
+                },
+                "bond": {
+                    "type": "string"
+                },
+                "flaw": {
+                    "type": "string"
+                },
+                "backstory": {
+                    "type": "string",
+                    "input": "textarea"
+                },
+                "physical": {
+                    "type": "string"
+                }
+            }
+        },
+        "weapon_proficiencies": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "examples": ["Simple Weapons", "Martial Weapons"]
+            }
+        },
+        "armor_proficiencies": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "examples": ["Light Armor", "Medium Armor", "Heavy Armor", "Shields"]
+            }
+        },
+        "tool_proficiencies": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "examples": ["Artisan's Tools", "Disguise Kit"]
+            }
+        },
+        "feats": {
+            "type": "array",
+            "items": {
+                "$ref": "feat.json"
+            }
+        },
+        "spells": {
+            "type": "array",
+            "items": {
+                "$ref": "spell.json"
+            }
+        },
+        "weapons": {
+            "type": "array",
+            "items": {
+                "$ref": "weapon.json"
+            }
+        },
+        "equipment": {
+            "type": "array",
+            "items": {
+                "$ref": "equipment.json"
+            }
+        },
+        "treasure": {
+            "type": "object",
+            "properties": {
+                "pp": {
+                    "type": "number",
+                    "default": 0,
+                    "description": "Platinum"
+                },
+                "ep": {
+                    "type": "number",
+                    "default": 0,
+                    "description": "Electrum"
+                },
+                "gp": {
+                    "type": "number",
+                    "default": 0,
+                    "description": "Gold"
+                },
+                "sp": {
+                    "type": "number",
+                    "default": 0,
+                    "description": "Silver"
+                },
+                "cp": {
+                    "type": "number",
+                    "default": 0,
+                    "description": "Copper"
+                }
+            }
+        }
+    }
+}
