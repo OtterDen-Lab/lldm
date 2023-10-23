@@ -1,0 +1,101 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "weapon.json",
+    "title": "JSON Schema for D&D 5e weapon.",
+    "description": "This schema describes a weapon. Extends item.schema.json",
+    "type": "object",
+    "allOf": [{
+            "$ref": "item.json"
+        }],
+    "required": ["damage"],
+    "properties": {
+        "category": {
+            "type": "string",
+            "default": "",
+            "emu": ["", "Improvised", "Simple", "Martial"]
+        },
+        "damage": {
+            "type": "object",
+            "properties": {
+                "dice": {
+                    "$ref": "dice.json"
+                },
+                "type": {
+                    "$ref": "damage_type.json"
+                }
+            }
+        },
+        "versatile_damage": {
+            "type": "object",
+            "properties": {
+                "dice": {
+                    "$ref": "dice.json"
+                }
+            }
+        },
+        "range": {
+            "type": "object",
+            "properties": {
+                "normal": {"type": "integer", "default": 5},
+                "long": {"type": "integer", "default": 0}
+            }
+        },
+        "throw_range": {
+            "type": "object",
+            "properties": {
+                "normal": {"type": "integer", "default": 0},
+                "long": {"type": "integer", "default": 0}
+            }
+        },
+
+        "properties": {
+            "type": "object",
+            "properties": {
+                "Ammunition": {
+                    "type": "string",
+                    "default": ""
+                },
+                "Finesse": {
+                    "type": "boolean",
+                    "default": "false"
+                },
+                "Heavy": {
+                    "type": "boolean",
+                    "default": "false"
+                },
+                "Light": {
+                    "type": "boolean",
+                    "default": "false"
+                },
+                "Loading": {
+                    "type": "boolean",
+                    "default": "false"
+                },
+                "Monk": {
+                    "type": "boolean",
+                    "default": "false"
+                },
+                "Reach":{
+                    "type": "boolean",
+                    "default": "false"
+                },
+                "Thrown":{
+                    "type": "boolean",
+                    "default": "false"
+                },
+                "TwoHanded":{
+                    "type": "boolean",
+                    "default": "false"
+                },
+                "Versatile":{
+                    "type": "boolean",
+                    "default": "false"
+                }
+            }
+        },
+        "equipped": {
+            "type": "boolean",
+            "default": "false"
+        }
+    }
+}

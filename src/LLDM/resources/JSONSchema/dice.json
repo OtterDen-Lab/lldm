@@ -1,0 +1,25 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "dice.json",
+    "title": "JSON Schema for dice.",
+    "description": "This schema describes the dice, by number of sides, used in D&D.",
+    "type": "object",
+    "properties": {
+        "sides": {
+            "type": "integer",
+            "default": 4,
+            "$comment": "d1 is included for rolls that auto = 1.",
+            "enum": [1, 4, 6, 8, 10, 12, 20, 100]
+        },
+        "count": {
+            "type": "integer",
+            "default": 1,
+            "minimum": 1,
+            "maximum": 60
+        },
+        "mod": {
+            "type": "integer",
+            "default": 0
+        }
+    }
+}
