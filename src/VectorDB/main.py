@@ -1,173 +1,118 @@
 import logging
 logging.basicConfig(level=logging.INFO)
 import unittest
-
-
+import numpy as np
 import pinecone_helper
 import openai_helper
-# import json_schema_helper
+
+def run_function(cond, func, *args, **kwargs):
+    if cond:
+        func(*args, **kwargs)
 
 if __name__ == "__main__":
     try:
+
         logging.info("Initializing Pinecone.")
         pinecone_helper.initialize_pinecone()
         index_name = "llgm"
         id = "eastridge_village_description"
-        string = "Excalibur is a legendary sword found in Arthurian legends. It's a magical weapon."
-        string2 = "Builder's Shield is a magical shield embowed with the power of creation and offers the ultimate utility."
-        string3 = "eastridge village by the waterfall"
-        dimension = 1536  # Update this to match the dimension of your embeddings
+        excalibur_string = "Excalibur is a legendary sword found in Arthurian legends."
+        builder_string = "Builder's Shield is a magical shield."
+        eastridge_string = "eastridge village by the waterfall"
+        excalibur_metadata = {"schema_type": "item", "item_type": "weapon"}
+        builder_metadata = {"schema_type": "item", "item_type": "shield"}
+        eastridge_metadata = {"schema_type": "location", "location_type": "village"}
+        dimension = 1536
         context_vector_id = "context_vector"
-        logging.info(f"\nInitializing index '{index_name}'...")
-        pinecone_helper.ensure_index_exists(index_name, dimension=dimension)
 
-        #   Begin test code here    ------------
-        print("\nBegin Testing\n")
+        logging.info(f"Initializing index '{index_name}'...")
+        pinecone_helper.ensure_index_exists(index_name, dimension)
 
-        # print("Testing delete all vectors functions")
-        # pinecone_helper.delete_all_vectors(index_name)  #   CAREFUL DELETES ALL VECTORS
+        print("Begin Testing\n")
 
-
-        # # Sample D&D item based on the item.schema.json
-        # sample_item = {
-        #     "id": 1,
-        #     "name": "Excalibur",
-        #     "weight": 10,
-        #     "description": "A legendary sword.",
-        #     "magic": True,
-        #     "source": {
-        #         "text": "Arthurian Legends",
-        #         "note": "From ancient mythology",
-        #         "href": "https://example.com/arthurian-legends"
-        #     }
-        # }
-
-        #   Test out delete_all_except_ids function
-        pinecone_helper.delete_all_vectors_except(index_name, dimension, context_vector_id)
-
-
-        # # Store the sample item in vectordb
-        pinecone_helper.store_strings_in_pinecone(index_name, id, string3)
-        pinecone_helper.store_strings_in_pinecone(index_name, ["item_2", "item_3"], [string, string2])
-        # pinecone_helper.store_strings_in_pinecone(index_name, "item_3", string)
-
-        # context_vector_status = pinecone_helper.ensure_context_vector_exists(index_name, dimension, context_vector_id, "I am context vector for story telling history.")
-        # print("\ncontext_vector_status", context_vector_status, "\n")
+        # Conditionally run delete_all_vectors
+        run_function(False, pinecone_helper.delete_all_vectors, index_name)
+      
+        # Conditionally run delete_all_except_ids
+        run_function(True, pinecone_helper.delete_all_vectors_except, index_name, dimension, [context_vector_id])
 
 
 
 
-        
-        # # Retrieve the sample item from vectordb by its ID
-        # retrieved_item = json_schema_helper.retrieve_json_from_vectordb(1, "item", "some_index_name")
-        # print("Retrieved item:")
-        # json_schema_helper.print_json(retrieved_item)
+        # Store vectors with metadata
+        print("Testing ensure_context_vector_exists...")
+        context_vector_status = pinecone_helper.ensure_context_vector_exists(index_name, dimension, context_vector_id, "I am context vector for story telling history.")
+        print(f"context_vector_status: {context_vector_status}\n")
 
 
+        # Store vectors with metadata
+        print("Testing store_strings_in_pinecone...")
+        metadata_result = pinecone_helper.store_strings_in_pinecone(index_name, id, eastridge_string, eastridge_metadata)
+        print(f"\nMetadata storage result: {metadata_result}\n")      #not printing anything something is wrong here?
+
+        # #   Check if None is returned in metadata_result may not be necesarry if returning true or false from the function
+        # if metadata_result is None:
+        #     logging.error("Metadata storage returned None. Something went wrong.")
+
+        # # # Update metadata for an context vector
+        # # print("Testing update_metadata...")
+        # # new_metadata = {"schema_type": "location", "location_type": "updated_village"}      #   works I think
+        # # update_metadata_result = pinecone_helper.update_metadata(index_name, context_vector_id, new_metadata)
+        # # print(f"Metadata update result: {update_metadata_result}\n")
 
 
+        # # Update metadata for an existing vector
+        # print("Testing update_metadata...")
+        # new_metadata = {"schema_type": "location", "location_type": "updated_village"}      #   works I think
+        # update_metadata_result = pinecone_helper.update_metadata(index_name, id, new_metadata)
+        # print(f"Metadata update result: {update_metadata_result}\n")
 
-        #   End test code here  ------------
-        print("\End Json Testing\n")
-
-        # ids_to_delete = [
-        #      'id: 1, name: Excalibur, weight: 10, description: A legendary sword, '
-            
-        # ]
-
-        # pinecone_helper.delete_vectors(index_name, ids_to_delete)
-        # print("Deleted ")
-
-
-
-        # sentence = "eastridge village by the waterfall"
-        # # word = "eastridge village"
-        word = "eastridge village"
-        # # word = "Excalibur"
-        # flattened_json = "id: 1, name: Excalibur, weight: 10, description: A legendary sword, magic: True, source_text: Arthurian Legends, source_note: From ancient mythology, source_href: https://example.com/arthurian-legends"
-
-
-        # logging.info(f"\nGenerating embedding for sentence: {sentence}")
-        # embedded_sentence = openai_helper.generate_embeddings(sentence)
-        logging.info(f"\nGenerating embedding for word: {word}")
-        embedded_word = openai_helper.generate_embeddings(word)
-
-        # # After generating embeddings
-        # if embedded_sentence is not None and embedded_word is not None:
-        #     logging.info(f"\nSuccessfully generated embeddings.")
-        #     logging.info(f"Type of embedded_sentence: {type(embedded_sentence)}, first few elements: {embedded_sentence[:10]}")
-        #     logging.info(f"Type of embedded_word: {type(embedded_word)}, first few elements: {embedded_word[:10]}")
-
-        #     #   Store a description of eastridge village in the vectordb
-        #     print("\n\n")
-        #     logging.info(f"\nStoring embeddings in vector database...")
-        #     ids = [sentence]
-        #     vectors = [embedded_sentence]
-        #     pinecone_helper.store_vectors_in_pinecone(index_name, ids, vectors)
-
-        #   Query the database for the words eastridge village
-        print("\n\n")
-        logging.info(f"\nQuerying database for: {word}...")
-        pinecone_helper.query_index(index_name, embedded_word, top_k=5)
-
-        #     #   Test the delete function on eastridge village description
-        #     print("\n\n")
-        #     # Test the delete_vectors function
-        #     delete_ids = ["eastridge_village_by_the_waterfall_id"]
-        #     pinecone_helper.delete_vectors(index_name, delete_ids)
-        #     logging.info(f"\nDeleted vectors with IDs: {delete_ids}")
-
-
-        #     # #   Test the update_vector function
-        #     # print("\n\n")
-        #     # update_id = "eastridge_village_id"
-        #     # new_vector = [0.1] * dimension  # Replace with the new vector you want to use
-        #     # pinecone_helper.update_vector(index_name, update_id, new_vector)
-        #     # logging.info(f"\nUpdated vector with ID: {update_id}")
-
-
-        #     #   Query Database again for the word after the delete function has been run.
-        #     print("\n\n")
-        #     logging.info(f"\nQuerying database for: {word}...")
-        #     pinecone_helper.query_index(index_name, embedded_word, top_k=5)
-
-        #     # print("\n\n")
-        #     # # Display the entire vector database if it's not empty
-        #     # all_vectors = pinecone_helper.get_all_vectors(index_name)
-        #     # if all_vectors is not None:
-        #     #     logging.info("\nDisplaying the entire vector database:")
-        #     #     for id, vector in all_vectors.items():
-        #     #         logging.info(f"ID: {id}, Vector: {vector[:10]}")
-        #     # else:
-        #     #     logging.error("Failed to retrieve vectors from the database.")
-
-
+        # # Check if fetch_metadata exists in pinecone_helper
+        # if hasattr(pinecone_helper, 'fetch_metadata'):
+        #     print("Testing fetch_metadata...")
+        #     fetched_metadata = pinecone_helper.fetch_metadata(index_name, [id])
+        #     print(f"Fetched metadata: {fetched_metadata}\n")
         # else:
-        #     logging.error("One or both embeddings failed to generate.")
-        #     exit(1)
+        #     print("fetch_metadata function not found in pinecone_helper.\n")
+
+
+
+        #   Need to test Query Function
+        query_string = "Eastridge village garden"
+        embedding = openai_helper.generate_embeddings(query_string)
+
+        query_results = pinecone_helper.query_index(index_name, embedding, top_k=10, threshold=0.5)
+        print("Query Results: ", query_results)
+
+
+
+
+
+
+
+
+         # Step 2: Create a test vector
+        # test_id = "test_vector"
+        # input_string = "Sample input string"
+        # initial_vector = np.random.rand(1536).tolist()  # Assuming dimension is 1536
+        # pinecone_helper.store_vectors_in_pinecone(index_name, [test_id], [initial_vector], input_string)  #   Works
+
+        # # Step 3: Update vector
+        # new_vector = np.random.rand(1536).tolist()
+        # # pinecone_helper.update_vector(index_name, test_id, new_vector)    #   Works
+
+        # # Step 4: Update vector and metadata
+        # new_metadata = {"field1": "new_value", "field2": "another_value"}
+        # pinecone_helper.update_vector_and_metadata(index_name, test_id, new_vector, new_metadata)   #   Works
+
+        #   make sure the input string is working for these update and store vector functions 
+
+
+
+
+
+        print("\nEnd Testing\n")
 
     except Exception as e:
-        logging.error(f"An error occurred: {e}")
+        logging.error(f"An error occurred: {e}, Type: {type(e)}")
         exit(1)
-
-
-
-        #   I need functions that will print out the entire vectordb
-        #   I need functions that will print out all data in vectordb that match a string query
-        #   I need functions that will print out all data in vectordb that has a id that contains a given string
-        #   I need functions that will delete an entire docarray object scope based on its id from the vectordb
-        #   I need functions that will delete all data in the vectordb
-        #   I need functions that will delete all data in the vectordb that matches a given string for its vectors id
-        #   I need functions that will query the vectordb for all matches of given string in vectors id
-        #   I need functions that will query for an entire docarray object based on id matching for vector ids
-        #   I need functions that will update an entire docarray object in the vectordb with new information
-        #   I need functions that will update a vector embedding given its id and an updated embedding  (may not be needed or possible)
-
-        #   I need functions for storing large amounts of data into the vectordb either as strings json or docarray
-
-
-
-
-        #   I have functions that will store a docarray into a vectordb
-        #   I have functions that create embeddings from strings 
-        #   I have docarrays that deal with embeddings internally 
