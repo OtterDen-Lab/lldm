@@ -371,7 +371,7 @@ def ensure_context_vector_exists(index_name: str, dimension: int,   context_vect
 
 
 # Filters query results based on metadata key-value pairs
-def filter_by_metadata(results, key, value):    #   Untested
+def filter_by_metadata(results, key, value):    #   Works
     try:
         print("Filtering by metadata...")
         return [res for res in results if res['metadata'].get(key) == value]
@@ -379,28 +379,48 @@ def filter_by_metadata(results, key, value):    #   Untested
         print(f"Error filtering by metadata: {e}")
 
 
-
-# Update metadata for a batch of vectors by IDs
-def batch_update_metadata(index_name, ids, new_metadatas):  #   Untested
-    try:
-        print("Batch updating metadata...")
-        index = pinecone.Index(index_name)
-        vectors = index.fetch(ids=ids)['vectors']
-        upsert_data = [{"id": vec['id'], "values": vec['values'], "metadata": meta} for vec, meta in zip(vectors, new_metadatas)]
-        index.upsert(upsert_data)
-    except Exception as e:
-        print(f"Error in batch update of metadata: {e}")
-
-
-
 # Executes a query, returns results filtered by metadata key-value pairs
-def advanced_search(index_name, query_vector, key, value, top_k=10):    #   Untested
+def advanced_search(index_name, query_vector, key, value, top_k=10, threshold=0.7): #   Works
     try:
         print("Performing advanced search...")
         index = pinecone.Index(index_name)
         results = index.query(queries=[query_vector], top_k=top_k, include_metadata=True)['results'][0]['matches']
-        return filter_by_metadata(results, key, value)
+        
+        # Filter results by threshold and metadata
+        filtered_results = [res for res in results if res['score'] >= threshold]
+        filtered_results = filter_by_metadata(filtered_results, key, value)
+        
+        return filtered_results
     except Exception as e:
         print(f"Error in advanced search: {e}")
 
+
+
+def update_metadata_pair(index_name, ids, key, value):  #   Works
+    if not isinstance(ids, list):
+        ids = [ids]
+    
+    index = pinecone.Index(index_name)
+    vectors = index.fetch(ids=ids)['vectors']
+
+    for id in ids:
+        existing_metadata = vectors[id]['metadata']
+        existing_metadata[key] = value
+        upsert_data = {"id": id, "values": vectors[id]['values'], "metadata": existing_metadata}
+        index.upsert([upsert_data])
+
+
+def remove_metadata_pair(index_name, ids, key): #   Works
+    if not isinstance(ids, list):
+        ids = [ids]
+
+    index = pinecone.Index(index_name)
+    vectors = index.fetch(ids=ids)['vectors']
+
+    for id in ids:
+        existing_metadata = vectors[id]['metadata']
+        if key in existing_metadata:
+            del existing_metadata[key]
+        upsert_data = {"id": id, "values": vectors[id]['values'], "metadata": existing_metadata}
+        index.upsert([upsert_data])
 

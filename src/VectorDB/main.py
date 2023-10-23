@@ -48,7 +48,11 @@ if __name__ == "__main__":
         # Store vectors with metadata
         print("Testing store_strings_in_pinecone...")
         metadata_result = pinecone_helper.store_strings_in_pinecone(index_name, id, eastridge_string, eastridge_metadata)
-        print(f"\nMetadata storage result: {metadata_result}\n")      #not printing anything something is wrong here?
+        print(f"\nMetadata storage result: {metadata_result}\n")     
+
+        print("Testing store_strings_in_pinecone...")
+        metadata_result = pinecone_helper.store_strings_in_pinecone(index_name, "Excalibur", excalibur_string, excalibur_metadata)
+        print(f"\nMetadata storage result: {metadata_result}\n")     
 
         # #   Check if None is returned in metadata_result may not be necesarry if returning true or false from the function
         # if metadata_result is None:
@@ -78,16 +82,35 @@ if __name__ == "__main__":
 
 
         #   Need to test Query Function
-        query_string = "Eastridge village garden"
+        query_string = "Village"
         embedding = openai_helper.generate_embeddings(query_string)
 
         query_results = pinecone_helper.query_index(index_name, embedding, top_k=10, threshold=0.5)
         print("Query Results: ", query_results)
 
 
+        # # Filter the results based on 1 metadata pair
+        # filtered_results = pinecone_helper.filter_by_metadata(query_results, 'item_type', 'weapon')
+        
+        # print(f"Filtered results: {filtered_results}")
+
+
+        # Metadata key-value pair for filtering
+        key = 'item_type'
+        value = 'weapon'
+
+        # Perform advanced search and get filtered results
+        filtered_results = pinecone_helper.advanced_search(index_name, embedding, key, value, top_k=10, threshold=0.7)
+        
+        print(f"Filtered results from advanced search: {filtered_results}")
 
 
 
+        # # Add or update a metadata pair for multiple IDs    Works
+        # pinecone_helper.update_metadata_pair(index_name, ['eastridge_village_description', context_vector_id], 'location_type', 'Castle')
+
+        # # Remove a metadata pair for a single ID    Works
+        # pinecone_helper.remove_metadata_pair(index_name, 'eastridge_village_description', 'location_type')
 
 
 
