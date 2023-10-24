@@ -1,8 +1,8 @@
 import unittest
 
 from LLDM.helpers.path_config import *
-from LLDM.Character import Character
-from LLDM.World import World
+from LLDM.Objects.Character import Character
+from LLDM.Objects.WorldArchitecture import World
 from battle_manager import Battle
 
 # Test that Character class loads info correctly
@@ -20,7 +20,7 @@ class Mock_test_1(unittest.TestCase):
     def test_battle_init(self):
         self.assertEqual(1, self.battle.player_alive_count)
         self.assertEqual(1, self.battle.enemy_alive_count)
-        self.assertEqual("testWorld", self.battle.location_obj.name)
+        self.assertEqual("testWorld", self.battle.location_obj._name)
 
     # Check that Battle object can run to completion
     def test_battle_finish(self):
