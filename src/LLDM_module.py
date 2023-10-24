@@ -1,9 +1,9 @@
 # DO NOT TOUCH THESE IMPORTS UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING: THE ORDER MATTERS!!!!!
 from LLDM.GPT       import *
-from LLDM.Campaign  import Campaign
-from LLDM.Character import Character
-from LLDM.Quest     import Quest
-from LLDM.World     import World
+from LLDM.Objects.Campaign import Campaign
+from LLDM.Objects.Character import Character
+from LLDM.Objects.Quest import Quest
+from LLDM.Objects.WorldArchitecture import *
 
 
 # Example Usage:
@@ -30,6 +30,12 @@ print(f"Character: {player_character}")
 
 print("[DEBUG] Fast-tracking Campaign Generation...")
 print("Stage 2: World Generation")
+world1 = World("Azeroth", "A planet under construction", [])
+continent1 = Continent("Eastern Kingdoms", "Landmass on the right", [])
+continent2 = Continent("Kalimdor", "Landmass on the left", [])
+world1.add_continent([continent1, continent2])
+campaign.world = world1
+
 print(f"Campaign Setup Complete:\n {campaign} \n")
 
 print("Stage 3: ChatGPT Narration")
