@@ -3,6 +3,9 @@
 # Ignore generated campaigns & images
 
 
+# Mock Test Output Ignores:
+/Output/
+
 # Public .gitignore for Jetbrains below:
 
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
