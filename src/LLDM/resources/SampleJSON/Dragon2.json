@@ -1,7 +1,8 @@
 {
-    "name": "Argent",
+    "name": "Grey",
     "player": {
-        "name": "Ray"
+        "name": "Ray",
+        "entity": "mob"
     },
     "race": {
         "name": "Dragonborn",
@@ -56,11 +57,18 @@
     },
     "ability_scores": {
         "str": 10,
+        "str_mod": 0,
         "dex": 13,
+        "dex_mod": 1,
         "con": 14,
+        "con_mod": 2,
         "int": 10,
+        "int_mod": 0,
         "wis": 12,
-        "cha": 16
+        "wis_mod": 1,
+        "cha": 16,
+        "cha_mod": 3,
+        "init_mod": {"$ref": "#/dex_mod"}
     },
     "skills": {
         "Arcana": true,
