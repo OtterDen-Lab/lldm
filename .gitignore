@@ -4,7 +4,7 @@
 
 
 # Mock Test Output Ignores:
-/Output/
+src/LLDM/Output/
 
 # Public .gitignore for Jetbrains below:
 
