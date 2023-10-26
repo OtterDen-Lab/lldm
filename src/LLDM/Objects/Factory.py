@@ -10,13 +10,15 @@ from LLDM.Objects.WorldArchitecture import *
 
 # Map Class names to their respective Types, to be used by the Factory to create instances based on dict keys
 CLASS_MAP = {
-    'CityDistrict': CityDistrict,
-    'Building': Building,
-    'City': City,
-    'Site': Site,
-    'Region': Region,
+    'World': World,
     'Continent': Continent,
-    'World': World
+    'Region': Region,
+    'Site': Site,
+    'City': City,
+    'Building': Building,
+    'CityDistrict': CityDistrict,
+    'Party': Party,
+    'Character': Character
 }
 
 
