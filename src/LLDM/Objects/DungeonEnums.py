@@ -1,87 +1,56 @@
+import json
 from enum import Enum
 
-
-class Backgrounds(Enum):
-    Acolyte = {'name': 'Acolyte'}
-    Athlete = {'name': 'Athlete'}
-    Charlatan = {'name': 'Charlatan'}
-    Criminal = {'name': 'Criminal'}
-    Entertainer = {'name': 'Entertainer'}
-    Folk_Hero = {'name': 'Folk Hero'}
-    Gladiator = {'name': 'Gladiator'}
-    Guild_Artisan = {'name': 'Guild Artisan'}
-    Guild_Merchant = {'name': 'Guild Merchant'}
-    Hermit = {'name': 'Hermit'}
-    Knight = {'name': 'Knight'}
-    Noble = {'name': 'Noble'}
-    Outlander = {'name': 'Outlander'}
-    Sage = {'name': 'Sage'}
-    Sailor = {'name': 'Sailor'}
-    Soldier = {'name': 'Soldier'}
-
-# Hugely annoying subraces:
-# Races:
-# Hard mandatory subraces:
-# Elf:      High / Wood
-# Half-Elf: High / Wood
-# Gnomes: Forest / Rock
-# Halfling: Lightfoot / Stout
-# Dragonborn: Draconic Ancestries...
-# Tieflings: Bloodlines...so many bloodlines...
-
-# Humans: Normal / Variant
-
-# No Subraces:
-# Half-Orc
+Races = None
+Subraces = None
+Backgrounds = None
+Classes = None
+Subclasses = None
 
 
-class Races(Enum): # WIP subrace count
-    # No Subraces:
-    Half_Orc = {'name': 'Half Orc', 'size': 'MEDIUM', 'subraces': 0}
-    # Optional Subraces
-    Human = {'name': 'Human', 'size': 'MEDIUM', 'subraces': 0}
-    # Hard mandatory subraces
-    Gnome = {'name': 'Gnome', 'size': 'MEDIUM', 'subraces': 2}
-    Elf = {'name': 'Elf', 'size': 'MEDIUM', 'subraces': 2}
-    Half_Elf = {'name': 'Half_Elf', 'size': 'MEDIUM', 'subraces': 2}
-    Halfling = {'name': 'Halfling', 'size': 'MEDIUM', 'subraces': 2}
-
-    # Draconic Ancestries / Bloodlines
-    Dragonborn = {'size': 'MEDIUM', 'subraces': 0}
-    Tiefling = {'size': 'MEDIUM', 'subraces': 0}
+def init_backgrounds():
+    print("Initializing Enum: Background")
+    global Backgrounds
+    with open('background_data.json', "r") as file:
+        background_data = json.load(file)
+    background_dict = {record['name']: record for record in background_data}
+    Backgrounds = Enum('Backgrounds', background_dict)
 
 
-class Subraces(Enum):
-    Wood_Elf = {'parent': 'Elf', 'traits': []}
-    High_Elf = {'parent': 'Elf', 'traits': []}
-    Half_Wood_Elf = {'parent': 'Half_Elf', 'traits': []}
-    Half_High_Elf = {'parent': 'Half_Elf', 'traits': []}
-    Forest_Gnome = {'parent': 'Gnome', 'traits': []}
-    Rock_Gnome = {'parent': 'Gnome', 'traits': []}
-    Lightfoot_Halfling = {'parent': 'Halfling', 'traits': []}
-    Stout_Halfling = {'parent': 'Halfling', 'traits': []}
+def init_races():
+    print("Initializing Enum: Race")
+    global Races
+    with open('race_data.json', "r") as file:
+        race_data = json.load(file)
+    race_dict = {record['name']: record for record in race_data}
+    Races = Enum('Races', race_dict)
 
 
-# Class name, Hit dice, Spellcasting modifier
-class Classes(Enum):
-    Artificer = {'name': 'Artificer', 'hit_dice': 8, 'spellcasting_mod': 'INT', 'subclasses': 0}
-    Barbarian = {'name': 'Barbarian', 'hit_dice': 12, 'spellcasting_mod': None, 'subclasses': 0}
-    Bard = {'name': 'Bard', 'hit_dice': 8, 'spellcasting_mod': 'CHA', 'subclasses': 0}
-    Cleric = {'name': 'Cleric', 'hit_dice': 8, 'spellcasting_mod': 'WIS', 'subclasses': 0}
-    Druid = {'name': 'Druid', 'hit_dice': 8, 'spellcasting_mod': 'WIS', 'subclasses': 0}
-    Fighter = {'name': 'Fighter', 'hit_dice': 10, 'spellcasting_mod': None, 'subclasses': 1}
-    Monk = {'name': 'Monk', 'hit_dice': 8, 'spellcasting_mod': None, 'subclasses': 0}
-    Paladin = {'name': 'Paladin', 'hit_dice': 10, 'spellcasting_mod': 'CHA', 'subclasses': 0}
-    Ranger = {'name': 'Ranger', 'hit_dice': 10, 'spellcasting_mod': 'WIS', 'subclasses': 0}
-    Rogue = {'name': 'Rogue', 'hit_dice': 8, 'spellcasting_mod': None, 'subclasses': 1}
-    Sorcerer = {'name': 'Sorcerer', 'hit_dice': 6, 'spellcasting_mod': 'CHA', 'subclasses': 0}
-    Warlock = {'name': 'Warlock', 'hit_dice': 6, 'spellcasting_mod': 'CHA', 'subclasses': 0}
-    Wizard = {'name': 'Wizard', 'hit_dice': 8, 'spellcasting_mod': 'INT', 'subclasses': 0}
+def init_classes():
+    print("Initializing Enum: Class")
+    global Classes
+    with open('class_data.json', "r") as file:
+        class_data = json.load(file)
+    class_dict = {record['name']: record for record in class_data}
+    Classes = Enum('Classes', class_dict)
 
 
-class Subclasses(Enum):
-    Eldritch_Knight = {'name': 'Eldritch Knight', 'spellcast_mod': 'INT'}
-    Arcane_Trickster = {'name': 'Arcane Trickster', 'spellcast_mod': 'INT'}
+def init_subclasses():
+    print("Initializing Enum: Subclass")
+    global Subclasses
+    with open('subclass_data.json', "r") as file:
+        subclass_data = json.load(file)
+    subclass_dict = {record['name']: record for record in subclass_data}
+    Subclasses = Enum('Subclasses', subclass_dict)
+
+
+def init_subraces():
+    print("Initializing Enum: Subrace")
+    global Subraces
+    with open('subrace_data.json', "r") as file:
+        subrace_data = json.load(file)
+    subrace_dict = {record['name']: record for record in subrace_data}
+    Subraces = Enum('Subraces', subrace_dict)
 
 
 class Attributes(Enum):
@@ -100,4 +69,3 @@ class Size(Enum):
     LARGE = "LARGE"
     HUGE = "HUGE"
     GARGANTUAN = "GARGANTUAN"
-

@@ -1,0 +1,10 @@
+[
+    {"name": "Half Orc", "size": "MEDIUM", "subraces": 0},
+    {"name": "Human", "size": "MEDIUM", "subraces": 0},
+    {"name": "Gnome", "size": "MEDIUM", "subraces": 2},
+    {"name": "Elf", "size": "MEDIUM", "subraces": 2},
+    {"name": "Half Elf", "size": "MEDIUM", "subraces": 2},
+    {"name": "Halfling", "size": "MEDIUM", "subraces": 2},
+    {"name": "Dragonborn", "size": "MEDIUM", "subraces": 0},
+    {"name": "Tiefling", "size": "MEDIUM", "subraces": 0}
+]

@@ -1,0 +1,15 @@
+[
+  {"name": "Artificer", "hit_dice": 8, "spellcasting_mod": "INT", "subclasses": 0},
+  {"name": "Barbarian", "hit_dice": 12, "spellcasting_mod": null, "subclasses": 0},
+  {"name": "Bard", "hit_dice": 8, "spellcasting_mod": "CHA", "subclasses": 0},
+  {"name": "Cleric", "hit_dice": 8, "spellcasting_mod": "WIS", "subclasses": 0},
+  {"name": "Druid", "hit_dice": 8, "spellcasting_mod": "WIS", "subclasses": 0},
+  {"name": "Fighter", "hit_dice": 10, "spellcasting_mod": null, "subclasses": 1},
+  {"name": "Monk", "hit_dice": 8, "spellcasting_mod": null, "subclasses": 0},
+  {"name": "Paladin", "hit_dice": 10, "spellcasting_mod": "CHA", "subclasses": 0},
+  {"name": "Ranger", "hit_dice": 10, "spellcasting_mod": "WIS", "subclasses": 0},
+  {"name": "Rogue", "hit_dice": 8, "spellcasting_mod": null, "subclasses": 1},
+  {"name": "Sorcerer", "hit_dice": 6, "spellcasting_mod": "CHA", "subclasses": 0},
+  {"name": "Warlock", "hit_dice": 6, "spellcasting_mod": "CHA", "subclasses": 0},
+  {"name": "Wizard", "hit_dice": 8, "spellcasting_mod": "INT", "subclasses": 0}
+]

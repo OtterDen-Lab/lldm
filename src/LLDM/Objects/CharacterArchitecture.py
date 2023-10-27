@@ -1,7 +1,7 @@
 from enum import Enum
 
-from .PrettyPrinter import NestedFormatter
-from .DungeonEnums import Attributes, Size, Classes, Subclasses, Races, Subraces, Backgrounds
+from LLDM.Objects.PrettyPrinter import NestedFormatter
+from LLDM.Objects import DungeonEnums
 
 
 # This is a slightly different take on building hierarchies than the WorldArchitecture.
@@ -12,6 +12,7 @@ from .DungeonEnums import Attributes, Size, Classes, Subclasses, Races, Subraces
 # That doesn't mean I can't change the values of created objects, either: I can make and use getter/setters.
 
 # Note to self: Type checking in Python is stupid.
+
 
 # TODO: Create a Feature class to hold gameplay properties
 class Character(NestedFormatter):
@@ -68,14 +69,13 @@ class Character(NestedFormatter):
 
 
 class Background(NestedFormatter):
-    def __init__(self, background_name, origin=None, personality=None, ideals=None, bonds=None, flaws=None):
-        # TODO: Include description of background (in enum?)
-        background_enum = getattr(Backgrounds, background_name, None)
-        if background_enum is None:
-            raise ValueError("Invalid Background / Background not in Enum")
+    DungeonEnums.init_backgrounds()
 
-        record = background_enum.value
+    def __init__(self, background, origin=None, personality=None, ideals=None, bonds=None, flaws=None):
+        enum_member = _get_enum_member(background, DungeonEnums.Backgrounds)
+        record = enum_member.value
         self._name = record.get('name')
+        self._description = record.get('description')
 
         # TODO: Figure out where/how to implement these details
         if origin is not None:
@@ -91,53 +91,71 @@ class Background(NestedFormatter):
 
 
 class Race(NestedFormatter):
+    DungeonEnums.init_races()
+    DungeonEnums.init_subraces()
+    # Description, size, traits, actions, senses are all computed with name and subtype.
     # TODO: Include racial features
-    def __init__(self, race_name: str, subrace=None):
-        # Currently using a very complicated str->enum->record, but it'll be easy to adapt to Dict/JSOn if needed
-        # Description, size, traits, actions, senses are all computed with name and subtype.
-        race_enum = getattr(Races, race_name, None)
-        if race_enum is None:
-            raise ValueError("Invalid Race / Race not in Enum")
 
-        # grab the enum's value (a dictionary)
-        record = race_enum.value
+    def __init__(self, race, subrace=None):
+        enum_member = _get_enum_member(race, DungeonEnums.Races)
+        record = enum_member.value
         self._name = record.get('name')
+        self._subrace = None
         self._size = record.get('size')
 
         # Check if subrace is required
         if record.get('subraces') > 0:
-            if subrace is not None and subrace in Subraces:
-                # TODO: Include subrace features (remove 'name' and attach more date)
-                self._subrace = getattr(Subraces, subrace, None).value.get('name')
-            else:
-                raise ValueError("Subrace required but invalid / not found in Enum")
+            enum_member = _get_enum_member(subrace, DungeonEnums.Subraces)
+            record = enum_member.value
+            if self._name == record.get('parent'):
+                self._subrace = record.get('name')
+            # else:
+            #     raise ValueError(f"Invalid Subrace: {record.get('parent')} does not have a {record.get('name')}")
 
 
 class Class(NestedFormatter):
+    DungeonEnums.init_classes()
+    DungeonEnums.init_subclasses()
     # TODO: Include class features
-    def __init__(self, class_name: str, level, subclass=None):
+
+    def __init__(self, cls, level, subclass=None):
+        enum_member = _get_enum_member(cls, DungeonEnums.Classes)
+        record = enum_member.value
+        self._name = record.get('name')
+        self._sub_class = None
+        self._hit_die = record.get('hit_dice')
+        self._spell_casting_attr = record.get('spellcasting_mod')
+
         if 0 < level <= 20:
             self._level = level
         else:
             raise TypeError("Invalid Level / Not Integer between 1 and 20 inclusive")
 
-        # Set Class name, Hit Dice, and Spellcasting modifier based on Enum Dict
-        class_enum = getattr(Classes, class_name, None)
-        if class_enum is None:
-            raise ValueError("Invalid Class / Class not in Enum")
-
-        record = class_enum.value
-        self._name = record.get('name')
-        self._hit_die = record.get('hit_dice')
-        self._spell_casting_attr = record.get('spellcasting_mod')
-
         # TODO: Include subclass features (remove 'name' and attach more date)
         # Set Subclass name and based on Enum Dict, and look for Spellcasting modifier if None
         if record.get('subclasses') > 0 and subclass is not None:
-            if subclass in Subclasses:
-                record = getattr(Subclasses, subclass, None).value
-                self._name = record.get('name')
-                self._spell_casting_attr = record.get('spellcasting_mod')
-            else:
-                raise ValueError("Invalid Subclass / Subclass not in Enum")
+            enum_member = _get_enum_member(subclass, DungeonEnums.Subclasses)
+            record = enum_member.value
+            self._sub_class = record.get('name')
+            self._spell_casting_attr = record.get('spellcasting_mod')
 
+
+def _get_enum_member(obj, enum_class):
+    print(f'Creating [{enum_class}] with: [{type(obj)}]')
+    if isinstance(obj, str):
+        # print(f'Searching for Key:[{obj}] in: {enum_class.__members__}')
+        if enum_class[obj]:
+            print(f'Found: [{enum_class[obj]}] Containing: {enum_class[obj].value}')
+        return enum_class[obj]
+
+    elif isinstance(obj, Enum):
+        # print(f'Searching for Enum:[{obj}] in: {enum_class.__members__}')
+        if obj in enum_class:
+            print(f'Found: [{obj}] Containing: {obj.value}')
+            return obj
+
+    elif isinstance(obj, dict):
+        # print(f'Searching for Dict:[{obj}] in: {enum_class.__members__}')
+        raise NotImplementedError
+
+    raise ValueError("Invalid: Double-Check parameters for missing or NoneType values")
