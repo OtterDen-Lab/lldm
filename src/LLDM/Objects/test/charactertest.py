@@ -16,4 +16,5 @@ race = Race("Half-Elf", "Wood Elf Heritage")
 class1 = Class("Fighter", 2, DungeonEnums.Subclasses.Eldritch_Knight)
 background = Background("Sage")
 character = Character("Ray", race, class1, background)
+
 print(character)

@@ -1,6 +1,7 @@
 from json import JSONEncoder
 import json
 from LLDM.Objects.WorldArchitecture import *
+
 # from LLDM.Objects.WorldArchitecture import World, Continent, Region, City, Site, CityDistrict, Building
 #
 #
@@ -16,9 +17,9 @@ CLASS_MAP = {
     'Site': Site,
     'City': City,
     'Building': Building,
-    'CityDistrict': CityDistrict,
-    'Party': Party,
-    'Character': Character
+    'CityDistrict': CityDistrict
+    # 'Party': Party,
+    # 'Character': Character
 }
 
 
@@ -37,7 +38,7 @@ def json_to_obj(dct):
     return json.loads(dct, object_hook=custom_object_hook)
 
 
-# Factory to create instances of classes using class_name
+# Serializer to create instances of classes using class_name
 def class_factory(class_name, **kwargs):
     return CLASS_MAP[class_name](**kwargs)
 

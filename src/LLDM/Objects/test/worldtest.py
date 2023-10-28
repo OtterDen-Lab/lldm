@@ -1,4 +1,4 @@
-from LLDM.Objects.Factory import *
+from LLDM.Objects.ObjectSerializer import *
 from LLDM.Objects.WorldArchitecture import *
 
 # Main file to test Factory/World generation

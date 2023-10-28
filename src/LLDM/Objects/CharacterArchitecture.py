@@ -15,86 +15,41 @@ from LLDM.Objects import DungeonEnums
 #
 # Note to self: Type checking in Python is so stupid.
 #
+# Important: BATTLE DESIGN: I have purposefully omitted certain Setters.
+# You can only change the following:
+# Character name & Class level.
+# Future: Set character size as a new field, and then reset to immutable Race size.
 
 # TODO: Create a Feature class to hold gameplay properties
-class Character(NestedFormatter):
-    def __init__(self,
-                 name: str,
-                 raceObj,
-                 classObj,
-                 backgroundObj,
-                 # TODO: Continue creating more objects
-                 details=None,
-                 description=None,
-                 xp=None,
-                 gear_proficiency=None,  # weapon_profs=None,armor_profs=None,tool_profs=None,
-                 feats=None,
-                 spells=None,
-                 weapons=None,
-                 equipment=None,
-                 treasure=None
-                 ):
-
-        self._name = name
-        if isinstance(raceObj, Race):
-            self._race = raceObj
-        else:
-            raise TypeError(f"Invalid Race: {raceObj} is not of Type {Race} ")
-
-        if isinstance(classObj, Class):
-            self._class = classObj
-        else:
-            raise TypeError(f"Invalid Class: {classObj} is not of Type {Class} ")
-
-        if isinstance(backgroundObj, Background):
-            self._background = backgroundObj
-        else:
-            raise TypeError(f"Invalid Background: {backgroundObj} is not of Type {Background} ")
-
-        # TODO: Implement these incomplete fields
-        if description is not None:
-            self._description = description
-        if xp is not None:
-            self._xp = xp
-
-        if details is not None:
-            self._details = details
-        if gear_proficiency is not None:
-            self._gear_proficiency = gear_proficiency
-        if treasure is not None:
-            self._treasure = treasure
-
-        self.feats = feats if feats is not None else []
-        self.spells = spells if spells is not None else []
-        self.weapons = weapons if weapons is not None else []
-        self.equipment = equipment if equipment is not None else []
-
-
 class Background(NestedFormatter):
     DungeonEnums.load_enum('background_data.json', 'Backgrounds', 'name')
 
-    def __init__(self, background, origin=None, personality=None, ideals=None, bonds=None, flaws=None):
+    def __init__(self, background, origin: str = None, personality: str = None, ideals: str = None, bonds: str = None, flaws: str = None):
         enum_member = _get_enum_member(background, DungeonEnums.Backgrounds)
         record = enum_member.value
         self._name = record.get('name')
         self._description = record.get('description')
 
         # TODO: Figure out where/how to implement these details
-        if origin is not None:
-            self._origin = origin
-        if personality is not None:
-            self._personality = personality
-        if ideals is not None:
-            self._ideals = ideals
-        if bonds is not None:
-            self._bonds = bonds
-        if flaws is not None:
-            self._flaws = flaws
+        self._origin = origin
+        self._personality = personality
+        self._ideals = ideals
+        self._bonds = bonds
+        self._flaws = flaws
+
+    @property
+    def name(self):
+        return self.name
+
+    @property
+    def description(self):
+        return self._description
 
 
 class Race(NestedFormatter):
     DungeonEnums.load_enum('race_data.json', 'Races', 'name')
     DungeonEnums.load_enum('subrace_data.json', 'Subraces', 'name')
+
     # Description, size, traits, actions, senses are all computed with name and subtype.
     # TODO: Include racial features
 
@@ -107,42 +62,139 @@ class Race(NestedFormatter):
 
         # Check if subrace is required
         if record.get('subraces') > 0:
-            enum_member = _get_enum_member(subrace, DungeonEnums.Subraces)
-            record = enum_member.value
-            if self._name == record.get('parent'):
-                self._subrace = record.get('name')
+            sub_member = _get_enum_member(subrace, DungeonEnums.Subraces)
+            sub_record = sub_member.value
+            if self.name == sub_record.get('parent'):
+                self._subrace = sub_record.get('name')
             # else:
             #     raise ValueError(f"Invalid Subrace: {record.get('parent')} does not have a {record.get('name')}")
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def subrace(self):
+        return self._subrace
+
+    @property
+    def size(self):
+        return self._size
 
 
 class Class(NestedFormatter):
     DungeonEnums.load_enum('class_data.json', 'Classes', 'name')
     DungeonEnums.load_enum('subclass_data.json', 'Subclasses', 'name')
+
     # TODO: Include class features
 
-    def __init__(self, cls, level, subclass=None):
-        enum_member = _get_enum_member(cls, DungeonEnums.Classes)
+    def __init__(self, class_name, level: int, subclass=None):
+        enum_member = _get_enum_member(class_name, DungeonEnums.Classes)
         record = enum_member.value
-        self._name = record.get('name')
+        self.name = record.get('name')
         self._sub_class = None
+        self.level = level
         self._hit_die = record.get('hit_dice')
         self._spell_casting_attr = record.get('spellcasting_mod')
 
-        if 0 < level <= 20:
-            self._level = level
-        else:
-            raise TypeError("Invalid Level / Not Integer between 1 and 20 inclusive")
 
         # TODO: Include subclass features (remove 'name' and attach more date)
         # Set Subclass name and based on Enum Dict, and look for Spellcasting modifier if None
         if record.get('subclasses') > 0 and subclass is not None:
-            enum_member = _get_enum_member(subclass, DungeonEnums.Subclasses)
-            record = enum_member.value
-            self._sub_class = record.get('name')
-            self._spell_casting_attr = record.get('spellcasting_mod')
+            sub_member = _get_enum_member(subclass, DungeonEnums.Subclasses)
+            sub_record = sub_member.value
+            self._sub_class = sub_record.get('name')
+            self._spell_casting_attr = sub_record.get('spellcasting_mod')
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value: str):
+        self._name = value
+
+    @property
+    def level(self):
+        return self._level
+
+    @level.setter
+    def level(self, value: int):
+        if 0 < value <= 20:
+            self._level = value
+        else:
+            raise TypeError("Invalid Level / Not Integer between 1 and 20 inclusive")
+
+    @property
+    def sub_class(self):
+        return self._sub_class
+
+    @property
+    def hit_die(self):
+        return self._hit_die
+
+    @property
+    def spell_casting_attr(self):
+        return self._spell_casting_attr
 
 
-def _get_enum_member(obj, enum_class):
+class Character(NestedFormatter):
+    def __init__(self,
+                 name: str,
+                 raceObj: Race,
+                 classObj: Class,
+                 backgroundObj: Background,
+                 # TODO: Continue creating more objects
+                 details=None,
+                 description=None,
+                 xp=None,
+                 gear_proficiency=None,  # weapon_profs=None,armor_profs=None,tool_profs=None,
+                 feats=None,
+                 spells=None,
+                 weapons=None,
+                 equipment=None,
+                 treasure=None
+                 ):
+
+        self.name = name
+        self._race = raceObj
+        self._class = classObj
+        self._background = backgroundObj
+
+        # TODO: Implement these incomplete fields
+        self._description = description
+        self._xp = xp
+        self._details = details
+        self._gear_proficiency = gear_proficiency
+        self._treasure = treasure
+
+        self.feats = feats if feats is not None else []
+        self.spells = spells if spells is not None else []
+        self.weapons = weapons if weapons is not None else []
+        self.equipment = equipment if equipment is not None else []
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value: str):
+        self._name = value
+
+    @property
+    def race(self):
+        return self._race
+
+    @property
+    def class_(self):
+        return self._class
+
+    @property
+    def background(self):
+        return self._background
+
+
+def _get_enum_member(obj, enum_class: DungeonEnums):
     print(f'Creating [{enum_class}] with: [{type(obj)}]')
     if isinstance(obj, str):
         # print(f'Searching for [{obj}] in: {enum_class}')
