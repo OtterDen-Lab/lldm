@@ -1,28 +1,19 @@
 from LLDM.Objects import DungeonEnums
-from LLDM.Objects.CharacterArchitecture import Background, Class, Race
+from LLDM.Objects.CharacterArchitecture import Background, Class, Race, Character
 
-# acolyte_dict = {'name': 'Acolyte', 'description': 'a acolyte'}
 
-# background_str = Background("Acolyte")
-# print(background_str)
+# Staging ground to test Object creation.
+# Currently, handles Strings e.g. "Acolyte", and Enum Members e.g. DungeonEnums.Backgrounds.Acolyte
+# Spaces are supported in String, provided that they are also the same in their 'name' attribute.
+# e.g. "Eldritch Knight" and "Eldritch_Knight" and DungeonEnums.Subclasses.Eldritch_Knight ALL WORK
 #
-# background_hard = Background(DungeonEnums.Backgrounds.Acolyte)
-# print(background_hard)
-#
-race_str = Race("Elf", "Wood")
-print(race_str)
+# Notes:
+# Some 5e Races have required Subraces, and will error if left empty.
+# Classes do NOT require subclasses.
+# I've made name checking as robust as I can, but be careful with spaces & hyphens. ("Half-Elf" & "Wood Elf Heritage")
 
-race_hard = Race(DungeonEnums.Races.Elf, DungeonEnums.Subraces.Wood)
-print(race_hard)
-
-# class_str = Class("Fighter", 2, "Eldritch Knight")
-# print(class_str)
-
-# class_hard = Class("Artificer", 2)
-# print(class_hard)
-
-# race = Race("Human")
-# class1 = Class("Artificer", 1)
-# background = Background("Sage")
-# character = Character("test", race, class1, background)
-# print(character)
+race = Race("Half-Elf", "Wood Elf Heritage")
+class1 = Class("Fighter", 2, DungeonEnums.Subclasses.Eldritch_Knight)
+background = Background("Sage")
+character = Character("Ray", race, class1, background)
+print(character)

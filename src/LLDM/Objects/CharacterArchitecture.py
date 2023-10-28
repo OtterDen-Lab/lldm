@@ -6,18 +6,20 @@ from LLDM.Objects import DungeonEnums
 
 # This is a slightly different take on building hierarchies than the WorldArchitecture.
 # Each of these classes are far more rigid, but fleshed out:
-# By accessing Enums in DungeonEnums for data, I can setup a mock database to test values.
+# By accessing Enums in DungeonEnums for data, I can set up a mock database to test values.
 # One drawback is that Enums are immutable, meaning I can't create more classes or backgrounds on the fly.
 # It's likely the enums may be replaced by JSON/Dicts to gain that dynamic mutability, so I've made it easer to convert
 # That doesn't mean I can't change the values of created objects, either: I can make and use getter/setters.
-
-# Note to self: Type checking in Python is stupid.
-
+# WARNING!!!: TODO: Remove (or just move) hardcoded Enum Loading:
+#  DungeonEnums.load_enum('background_data.json', 'Backgrounds', 'name')
+#
+# Note to self: Type checking in Python is so stupid.
+#
 
 # TODO: Create a Feature class to hold gameplay properties
 class Character(NestedFormatter):
     def __init__(self,
-                 name,
+                 name: str,
                  raceObj,
                  classObj,
                  backgroundObj,
@@ -37,17 +39,17 @@ class Character(NestedFormatter):
         if isinstance(raceObj, Race):
             self._race = raceObj
         else:
-            raise TypeError("Invalid Race")
+            raise TypeError(f"Invalid Race: {raceObj} is not of Type {Race} ")
 
         if isinstance(classObj, Class):
             self._class = classObj
         else:
-            raise TypeError("Invalid Class")
+            raise TypeError(f"Invalid Class: {classObj} is not of Type {Class} ")
 
         if isinstance(backgroundObj, Background):
             self._background = backgroundObj
         else:
-            raise TypeError("Invalid Background")
+            raise TypeError(f"Invalid Background: {backgroundObj} is not of Type {Background} ")
 
         # TODO: Implement these incomplete fields
         if description is not None:
@@ -69,7 +71,7 @@ class Character(NestedFormatter):
 
 
 class Background(NestedFormatter):
-    DungeonEnums.init_backgrounds()
+    DungeonEnums.load_enum('background_data.json', 'Backgrounds', 'name')
 
     def __init__(self, background, origin=None, personality=None, ideals=None, bonds=None, flaws=None):
         enum_member = _get_enum_member(background, DungeonEnums.Backgrounds)
@@ -91,8 +93,8 @@ class Background(NestedFormatter):
 
 
 class Race(NestedFormatter):
-    DungeonEnums.init_races()
-    DungeonEnums.init_subraces()
+    DungeonEnums.load_enum('race_data.json', 'Races', 'name')
+    DungeonEnums.load_enum('subrace_data.json', 'Subraces', 'name')
     # Description, size, traits, actions, senses are all computed with name and subtype.
     # TODO: Include racial features
 
@@ -114,8 +116,8 @@ class Race(NestedFormatter):
 
 
 class Class(NestedFormatter):
-    DungeonEnums.init_classes()
-    DungeonEnums.init_subclasses()
+    DungeonEnums.load_enum('class_data.json', 'Classes', 'name')
+    DungeonEnums.load_enum('subclass_data.json', 'Subclasses', 'name')
     # TODO: Include class features
 
     def __init__(self, cls, level, subclass=None):
@@ -143,15 +145,21 @@ class Class(NestedFormatter):
 def _get_enum_member(obj, enum_class):
     print(f'Creating [{enum_class}] with: [{type(obj)}]')
     if isinstance(obj, str):
-        # print(f'Searching for Key:[{obj}] in: {enum_class.__members__}')
-        if enum_class[obj]:
-            print(f'Found: [{enum_class[obj]}] Containing: {enum_class[obj].value}')
-        return enum_class[obj]
+        # print(f'Searching for [{obj}] in: {enum_class}')
+        if obj in enum_class.__members__:
+            # print(f'Found: [{enum_class[obj]}] in Enums(Member Key) Containing: {enum_class[obj].value}')
+            return enum_class[obj]
+        else:
+            print(f'{obj} is not in {enum_class} as an Enum member key... is this a raw data value (name)?')
+            for member in enum_class.__members__.values():
+                if member.value['name'] == obj:
+                    # print(f'Found: [{member}] in raw dict data. Containing: {member.value}')
+                    return member
 
     elif isinstance(obj, Enum):
         # print(f'Searching for Enum:[{obj}] in: {enum_class.__members__}')
         if obj in enum_class:
-            print(f'Found: [{obj}] Containing: {obj.value}')
+            # print(f'Found: [{obj}] in Enums(Object). Containing: {obj.value}')
             return obj
 
     elif isinstance(obj, dict):
