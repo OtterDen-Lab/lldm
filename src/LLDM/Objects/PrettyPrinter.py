@@ -25,3 +25,17 @@ class PrettyPrinter(object):
         if not isinstance(value, str):
             raise ValueError("Expected a string for description.")
         self.description = value
+
+
+class NestedFormatter(object):
+    def __str__(self):
+        lines = [self.__class__.__name__ + ':']
+        for key, val in vars(self).items():
+            lines += '{}: {}'.format(key, val).split('\n')
+        return '\n    '.join(lines)
+
+    def __repr__(self):
+        lines = ['']
+        for key, val in vars(self).items():
+            lines += '{}: {}'.format(key, val).split('\n')
+        return '\n    '.join(lines)
