@@ -1,7 +1,20 @@
 from enum import Enum
 
 from LLDM.Objects.PrettyPrinter import NestedFormatter
-from LLDM.Objects import DungeonEnums
+
+
+from pymongo import MongoClient
+
+# Connection
+client = MongoClient('localhost', 8192)
+# Database
+db = client['LLDM']
+# Collections (= Tables)
+backgrounds = db['background']
+classes = db['class']
+subclasses = db['subclass']
+races = db['race']
+subraces = db['subrace']
 
 
 # This is a slightly different take on building hierarchies than the WorldArchitecture.
@@ -22,11 +35,8 @@ from LLDM.Objects import DungeonEnums
 
 # TODO: Create a Feature class to hold gameplay properties
 class Background(NestedFormatter):
-    DungeonEnums.load_enum('background_data.json', 'Backgrounds', 'name')
-
     def __init__(self, background, origin: str = None, personality: str = None, ideals: str = None, bonds: str = None, flaws: str = None):
-        enum_member = _get_enum_member(background, DungeonEnums.Backgrounds)
-        record = enum_member.value
+        record = backgrounds.find_one({"name": background})
         self._name = record.get('name')
         self._description = record.get('description')
 
@@ -47,23 +57,21 @@ class Background(NestedFormatter):
 
 
 class Race(NestedFormatter):
-    DungeonEnums.load_enum('race_data.json', 'Races', 'name')
-    DungeonEnums.load_enum('subrace_data.json', 'Subraces', 'name')
-
     # Description, size, traits, actions, senses are all computed with name and subtype.
     # TODO: Include racial features
 
     def __init__(self, race, subrace=None):
-        enum_member = _get_enum_member(race, DungeonEnums.Races)
-        record = enum_member.value
+        record = races.find_one({"name": race})
+        # for record in result:
+        #     print(record)
+        # record = enum_member.value
         self._name = record.get('name')
         self._subrace = None
         self._size = record.get('size')
 
         # Check if subrace is required
         if record.get('subraces') > 0:
-            sub_member = _get_enum_member(subrace, DungeonEnums.Subraces)
-            sub_record = sub_member.value
+            sub_record = subraces.find_one({"name": subrace})
             if self.name == sub_record.get('parent'):
                 self._subrace = sub_record.get('name')
             # else:
@@ -83,26 +91,19 @@ class Race(NestedFormatter):
 
 
 class Class(NestedFormatter):
-    DungeonEnums.load_enum('class_data.json', 'Classes', 'name')
-    DungeonEnums.load_enum('subclass_data.json', 'Subclasses', 'name')
-
     # TODO: Include class features
 
     def __init__(self, class_name, level: int, subclass=None):
-        enum_member = _get_enum_member(class_name, DungeonEnums.Classes)
-        record = enum_member.value
+        record = classes.find_one({"name": class_name})
         self.name = record.get('name')
         self._sub_class = None
         self.level = level
         self._hit_die = record.get('hit_dice')
         self._spell_casting_attr = record.get('spellcasting_mod')
 
-
         # TODO: Include subclass features (remove 'name' and attach more date)
-        # Set Subclass name and based on Enum Dict, and look for Spellcasting modifier if None
         if record.get('subclasses') > 0 and subclass is not None:
-            sub_member = _get_enum_member(subclass, DungeonEnums.Subclasses)
-            sub_record = sub_member.value
+            sub_record = subclasses.find_one({"name": subclass})
             self._sub_class = sub_record.get('name')
             self._spell_casting_attr = sub_record.get('spellcasting_mod')
 
@@ -193,29 +194,3 @@ class Character(NestedFormatter):
     def background(self):
         return self._background
 
-
-def _get_enum_member(obj, enum_class: DungeonEnums):
-    print(f'Creating [{enum_class}] with: [{type(obj)}]')
-    if isinstance(obj, str):
-        # print(f'Searching for [{obj}] in: {enum_class}')
-        if obj in enum_class.__members__:
-            # print(f'Found: [{enum_class[obj]}] in Enums(Member Key) Containing: {enum_class[obj].value}')
-            return enum_class[obj]
-        else:
-            print(f'{obj} is not in {enum_class} as an Enum member key... is this a raw data value (name)?')
-            for member in enum_class.__members__.values():
-                if member.value['name'] == obj:
-                    # print(f'Found: [{member}] in raw dict data. Containing: {member.value}')
-                    return member
-
-    elif isinstance(obj, Enum):
-        # print(f'Searching for Enum:[{obj}] in: {enum_class.__members__}')
-        if obj in enum_class:
-            # print(f'Found: [{obj}] in Enums(Object). Containing: {obj.value}')
-            return obj
-
-    elif isinstance(obj, dict):
-        # print(f'Searching for Dict:[{obj}] in: {enum_class.__members__}')
-        raise NotImplementedError
-
-    raise ValueError("Invalid: Double-Check parameters for missing or NoneType values")

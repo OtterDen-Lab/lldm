@@ -1,4 +1,3 @@
-from LLDM.Objects import DungeonEnums
 from LLDM.Objects.CharacterArchitecture import Background, Class, Race, Character
 
 
@@ -13,7 +12,7 @@ from LLDM.Objects.CharacterArchitecture import Background, Class, Race, Characte
 # I've made name checking as robust as I can, but be careful with spaces & hyphens. ("Half-Elf" & "Wood Elf Heritage")
 
 race = Race("Half-Elf", "Wood Elf Heritage")
-class1 = Class("Fighter", 2, DungeonEnums.Subclasses.Eldritch_Knight)
+class1 = Class("Fighter", 2, "Eldritch Knight")
 background = Background("Sage")
 character = Character("Ray", race, class1, background)
 
