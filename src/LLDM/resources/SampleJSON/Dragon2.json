@@ -164,5 +164,12 @@
             "components": ["S"],
             "school": "Divination"
         }
-    ]
+    ],
+    "Status Aliments": 
+        {
+            "Dodge": false,
+            "Ready": false
+        }
+
+    
 }
