@@ -72,15 +72,6 @@ class Battle():
         break #! For debug purposes, only one turn happens, otherwise infinite
     
     print("Battle Complete\n")
-
-    if (self.battle_result == "victory"):
-      self._victory_()
-    elif (self.battle_result == "defeat"):
-      self._defeat_()
-    elif (self.battle_result == "players flee"):
-      self._run_away_players_()
-    elif (self.battle_result == "enemies flee"):
-      self._run_away_enemies_()
     
 
   def current_turn(self, character):
