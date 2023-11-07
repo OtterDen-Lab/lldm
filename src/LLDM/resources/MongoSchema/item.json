@@ -1,0 +1,28 @@
+{
+  "$jsonSchema": {
+    "title": "Item",
+    "description": "Mongo Schema for all Items/Equipment/Inventory Bare-bones Vers.",
+    "required": [
+      "name",
+      "description",
+      "category"
+    ],
+    "properties": {
+      "name": {
+        "bsonType": "string"
+      },
+      "description": {
+        "bsonType": "string"
+      },
+      "category": {
+        "bsonType": "string",
+        "enum": [
+          "Consumable",
+          "Junk",
+          "Equipment",
+          "Weapon"
+        ]
+      }
+    }
+  }
+}

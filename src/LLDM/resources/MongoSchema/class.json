@@ -1,0 +1,36 @@
+{
+  "$jsonSchema": {
+    "title": "Class",
+    "description": "Mongo Schema for Class. Bare-bones Vers.",
+    "required": [
+      "name",
+      "hit_dice",
+      "subclasses"
+    ],
+    "properties": {
+      "name": {
+        "bsonType": "string"
+      },
+      "description": {
+        "bsonType": "string"
+      },
+      "hit_dice": {
+        "bsonType": "int",
+        "enum": [
+          1,
+          4,
+          6,
+          8,
+          10,
+          12
+        ]
+      },
+      "subclasses": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "string"
+        }
+      }
+    }
+  }
+}

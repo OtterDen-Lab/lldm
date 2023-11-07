@@ -1,5 +1,6 @@
 from enum import Enum
 
+from LLDM.Objects.ItemArchitecture import Item, Weapon
 from LLDM.Objects.PrettyPrinter import NestedFormatter
 
 
@@ -10,58 +11,101 @@ client = MongoClient('localhost', 8192)
 # Database
 db = client['LLDM']
 # Collections (= Tables)
-backgrounds = db['background']
-classes = db['class']
-subclasses = db['subclass']
-races = db['race']
-subraces = db['subrace']
+background_collection = db['background']
+class_collection = db['class']
+race_collection = db['race']
+character_collection = db['character']
 
 
-# This is a slightly different take on building hierarchies than the WorldArchitecture.
-# Each of these classes are far more rigid, but fleshed out:
-# By accessing Enums in DungeonEnums for data, I can set up a mock database to test values.
-# One drawback is that Enums are immutable, meaning I can't create more classes or backgrounds on the fly.
-# It's likely the enums may be replaced by JSON/Dicts to gain that dynamic mutability, so I've made it easer to convert
-# That doesn't mean I can't change the values of created objects, either: I can make and use getter/setters.
-# WARNING!!!: TODO: Remove (or just move) hardcoded Enum Loading:
-#  DungeonEnums.load_enum('background_data.json', 'Backgrounds', 'name')
-#
-# Note to self: Type checking in Python is so stupid.
-#
-# Important: BATTLE DESIGN: I have purposefully omitted certain Setters.
-# You can only change the following:
-# Character name & Class level.
-# Future: Set character size as a new field, and then reset to immutable Race size.
-
-# TODO: Create a Feature class to hold gameplay properties
 class Background(NestedFormatter):
-    def __init__(self, background, origin: str = None, personality: str = None, ideals: str = None, bonds: str = None, flaws: str = None):
-        record = backgrounds.find_one({"name": background})
-        self._name = record.get('name')
-        self._description = record.get('description')
+    def __init__(self, name, summary: str = None, personality: str = None, skills=None, motivations=None, bonds=None, flaws=None):
+        record = background_collection.find_one({"name": name})
+        self.name = record.get('name')
+        if summary is None:
+            self.summary = record.get('summary')
+        else:
+            self.summary = summary
 
-        # TODO: Figure out where/how to implement these details
-        self._origin = origin
-        self._personality = personality
-        self._ideals = ideals
-        self._bonds = bonds
-        self._flaws = flaws
+        self.personality = personality
+        self.skills = skills
+        self.motivations = motivations
+        self.bonds = bonds
+        self.flaws = flaws
 
     @property
     def name(self):
-        return self.name
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
 
     @property
-    def description(self):
-        return self._description
+    def summary(self):
+        return self._summary
+
+    @summary.setter
+    def summary(self, value):
+        self._summary = value
+
+    @property
+    def personality(self):
+        return self._personality
+
+    @personality.setter
+    def personality(self, value):
+        self._personality = value
+
+    @property
+    def skills(self):
+        return self._skills
+
+    @skills.setter
+    def skills(self, value):
+        self._skills = value
+
+    def add_skill(self, value: str):
+        self._skills.add(value)
+
+    @property
+    def motivations(self):
+        return self._motivations
+
+    @motivations.setter
+    def motivations(self, value):
+        self._motivations = value
+
+    def add_motivation(self, value: str):
+        self._motivations.add(value)
+
+    @property
+    def bonds(self):
+        return self._bonds
+
+    @bonds.setter
+    def bonds(self, value):
+        self._bonds = value
+
+    def add_bond(self, value: str):
+        self._bonds.add(value)
+
+    @property
+    def flaws(self):
+        return self._flaws
+
+    @flaws.setter
+    def flaws(self, value):
+        self._flaws = value
+
+    def add_flaw(self, value: str):
+        self._flaws.add(value)
 
 
 class Race(NestedFormatter):
     # Description, size, traits, actions, senses are all computed with name and subtype.
-    # TODO: Include racial features
 
     def __init__(self, race, subrace=None):
-        record = races.find_one({"name": race})
+        record = race_collection.find_one({"name": race})
         # for record in result:
         #     print(record)
         # record = enum_member.value
@@ -69,13 +113,9 @@ class Race(NestedFormatter):
         self._subrace = None
         self._size = record.get('size')
 
-        # Check if subrace is required
-        if record.get('subraces') > 0:
-            sub_record = subraces.find_one({"name": subrace})
-            if self.name == sub_record.get('parent'):
-                self._subrace = sub_record.get('name')
-            # else:
-            #     raise ValueError(f"Invalid Subrace: {record.get('parent')} does not have a {record.get('name')}")
+        # Check if subraces exist- if they do, try to set it to the parameter
+        if subrace in record.get('subraces'):
+            self._subrace = subrace
 
     @property
     def name(self):
@@ -91,29 +131,19 @@ class Race(NestedFormatter):
 
 
 class Class(NestedFormatter):
-    # TODO: Include class features
-
     def __init__(self, class_name, level: int, subclass=None):
-        record = classes.find_one({"name": class_name})
-        self.name = record.get('name')
+        record = class_collection.find_one({"name": class_name})
+        self._name = record.get('name')
         self._sub_class = None
         self.level = level
         self._hit_die = record.get('hit_dice')
-        self._spell_casting_attr = record.get('spellcasting_mod')
 
-        # TODO: Include subclass features (remove 'name' and attach more date)
-        if record.get('subclasses') > 0 and subclass is not None:
-            sub_record = subclasses.find_one({"name": subclass})
-            self._sub_class = sub_record.get('name')
-            self._spell_casting_attr = sub_record.get('spellcasting_mod')
+        if subclass is not None and subclass in record.get('subclasses'):
+            self._sub_class = subclass
 
     @property
     def name(self):
         return self._name
-
-    @name.setter
-    def name(self, value: str):
-        self._name = value
 
     @property
     def level(self):
@@ -134,63 +164,45 @@ class Class(NestedFormatter):
     def hit_die(self):
         return self._hit_die
 
-    @property
-    def spell_casting_attr(self):
-        return self._spell_casting_attr
+
+class Stats(NestedFormatter):
+    def __init__(self, classObj: Class, inventory):
+        self._speed = 30
+        self._max_health = classObj.hit_die
+        self._health = self._max_health
+        self._armor = 10
+
+
+class Condition(NestedFormatter):
+    def __init__(self, name: str, duration: int, effect: str = None):
+        self._name = name
+        self._duration = duration
+        self._effect = effect
 
 
 class Character(NestedFormatter):
-    def __init__(self,
-                 name: str,
-                 raceObj: Race,
-                 classObj: Class,
-                 backgroundObj: Background,
-                 # TODO: Continue creating more objects
-                 details=None,
-                 description=None,
-                 xp=None,
-                 gear_proficiency=None,  # weapon_profs=None,armor_profs=None,tool_profs=None,
-                 feats=None,
-                 spells=None,
-                 weapons=None,
-                 equipment=None,
-                 treasure=None
-                 ):
+    def __init__(self, name: str, race: Race, classes, background: Background, weapons=None, inventory=None, xp: int = None, gold: int = None):
+        # Mandatory
+        self._name = name  # String
+        self._race = race  # Race Object
+        self._background = background  # Background Object
+        self._classes = classes  # List of Class Objects
 
-        self.name = name
-        self._race = raceObj
-        self._class = classObj
-        self._background = backgroundObj
+        # Computed
+        self._stats = Stats(classes[0], inventory)
+        self._conditions = None
 
-        # TODO: Implement these incomplete fields
-        self._description = description
-        self._xp = xp
-        self._details = details
-        self._gear_proficiency = gear_proficiency
-        self._treasure = treasure
+        # Optional
+        self._xp = xp  # Experience
+        self._gold = gold  # Gold
+        self._weapons = weapons if weapons is not None else []  # List of Weapon Objects
+        self._inventory = inventory if inventory is not None else []  # List of Item Objects
 
-        self.feats = feats if feats is not None else []
-        self.spells = spells if spells is not None else []
-        self.weapons = weapons if weapons is not None else []
-        self.equipment = equipment if equipment is not None else []
+    def add_weapon(self, weapon: Weapon):
+        self._weapons.append(weapon)
 
-    @property
-    def name(self):
-        return self._name
+    def add_item(self, item: Item):
+        self._inventory.append(item)
 
-    @name.setter
-    def name(self, value: str):
-        self._name = value
-
-    @property
-    def race(self):
-        return self._race
-
-    @property
-    def class_(self):
-        return self._class
-
-    @property
-    def background(self):
-        return self._background
-
+    def add_condition(self, condition: Condition):
+        self._conditions.append(condition)

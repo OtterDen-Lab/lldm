@@ -5,10 +5,10 @@ import openai
 import json
 
 
-# openai.api_key = os.getenv("")
+openai.api_key = os.getenv("")
 # Using Sam Ogden's provided API Key for LLDM
 # noinspection SpellCheckingInspection
-openai.api_key = "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"
+openai.api_key = os.environ['GPTAPI']
 MODEL = "gpt-3.5-turbo"
 
 

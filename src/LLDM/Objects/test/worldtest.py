@@ -36,7 +36,8 @@ district4 = CityDistrict("Cenarion Grove", "An enclave for the druidic order")
 # To-Do: Add buildings
 
 # Add Connections
-city1.add_district([district1, district2])
+city1.add_district(district1)
+city1.add_district(district2)
 city2.add_district(district3)
 city3.add_district(district4)
 region1.add_location(city1)
@@ -44,9 +45,14 @@ region3.add_location(city2)
 region5.add_location(city3)
 region2.add_location(site2)
 region4.add_location(site1)
-continent1.add_region([region1, region2])
-continent2.add_region([region3, region4, region5])
-world1.add_continent([continent1, continent2])
+continent1.add_region(region1)
+continent1.add_region(region2)
+continent2.add_region(region3)
+continent2.add_region(region4)
+continent2.add_region(region5)
+
+world1.add_continent(continent1)
+world1.add_continent(continent2)
 
 
 # Pack World into json

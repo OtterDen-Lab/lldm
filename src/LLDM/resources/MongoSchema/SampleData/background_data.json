@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Outlander",
+    "summary": "Experienced with the wild places, a survivor. He came here from the mountains, to resupply",
+    "personality": "Stoic and reserved. Direct and Objective"
+  },
+  {
+    "name": "Bandit",
+    "summary": "Rough and tough, accustomed to banditry and extortion. He stalks the alleys for prey",
+    "personality": "Cold and cutthroat. Will betray anyone the instant it becomes convenient"
+  },
+  {
+    "name":"Tavern Keeper",
+    "summary": "A tavern-keeper, aged but filled with vigor. He tends to his bar, exchanging tall tales.",
+    "motivations": ["He seeks new stories of adventures, as he is now retired."]
+  },
+  {
+    "name": "Fence",
+    "summary": "A shady merchant in the back-alleys, offers everything imaginable. His smiles don't reach his eyes.",
+    "flaws": ["A compulsive gambler."]
+  }
+]

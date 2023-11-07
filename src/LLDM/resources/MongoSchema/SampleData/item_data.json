@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Healing Potion",
+    "description": "A small vial of red liquid.",
+    "category": "Consumable"
+  },
+  {
+    "name": "Steel Breastplate",
+    "description": "Covered in small scratches.",
+    "category": "Equipment"
+  },
+  {
+    "name": "Steel Helmet",
+    "description": "A little scratched, but sturdy.",
+    "category": "Equipment"
+  },
+  {
+    "name": "Wooden Figurine",
+    "description": "Carved in a likeness of a cat.",
+    "category": "Junk"
+  }
+]

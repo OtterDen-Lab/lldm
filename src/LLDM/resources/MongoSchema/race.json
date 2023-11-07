@@ -1,0 +1,36 @@
+{
+  "$jsonSchema": {
+    "title": "Race",
+    "description": "Mongo Schema for Race. Bare-bones Vers.",
+    "required": [
+      "name",
+      "size",
+      "subraces"
+    ],
+    "properties": {
+      "name": {
+        "bsonType": "string"
+      },
+      "description": {
+        "bsonType": "string"
+      },
+      "size": {
+        "bsonType": "string",
+        "enum": [
+          "Tiny",
+          "Small",
+          "Medium",
+          "Large",
+          "Huge",
+          "Gargantuan"
+        ]
+      },
+      "subraces": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "string"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,67 @@
+[
+  {
+    "name": "Artificer",
+    "hit_dice": 8,
+    "subclasses": []
+  },
+  {
+    "name": "Barbarian",
+    "hit_dice": 12,
+    "subclasses": []
+  },
+  {
+    "name": "Bard",
+    "hit_dice": 8,
+    "subclasses": []
+  },
+  {
+    "name": "Cleric",
+    "hit_dice": 8,
+    "subclasses": []
+  },
+  {
+    "name": "Druid",
+    "hit_dice": 8,
+    "subclasses": []
+  },
+  {
+    "name": "Fighter",
+    "hit_dice": 10,
+    "subclasses": ["Eldritch Knight"]
+  },
+  {
+    "name": "Monk",
+    "hit_dice": 8,
+    "subclasses": []
+  },
+  {
+    "name": "Paladin",
+    "hit_dice": 10,
+    "subclasses": []
+  },
+  {
+    "name": "Ranger",
+    "hit_dice": 10,
+    "subclasses": []
+  },
+  {
+    "name": "Rogue",
+    "hit_dice": 8,
+    "subclasses": ["Arcane Trickster"]
+  },
+  {
+    "name": "Sorcerer",
+    "hit_dice": 6,
+    "subclasses": []
+  },
+  {
+    "name": "Warlock",
+    "hit_dice": 6,
+    "subclasses": []
+  },
+  {
+    "name": "Wizard",
+    "hit_dice": 8,
+    "subclasses": []
+  }
+]
