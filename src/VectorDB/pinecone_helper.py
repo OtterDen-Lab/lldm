@@ -2,8 +2,11 @@ import pinecone
 import numpy as np
 import openai_helper
 from typing import Union, List, Dict
-from datetime import datetime
 from config import PINECONE_API_KEY
+from datetime import datetime, timedelta
+from datetime import datetime
+
+
 
 
 '''
@@ -11,22 +14,23 @@ pinecone_helper.py Summary:
 
 1. initialize_pinecone: (Works) Initializes Pinecone with specified API key.
 2. ensure_index_exists: (Works) Checks if index exists, creates it if not.
-3. store_strings_in_pinecone: (Works)Stores text strings as vectors, optional metadata.
+3. store_strings_in_pinecone: (Works) Stores text strings as vectors with optional metadata.
 4. store_vectors_in_pinecone: (Works) Stores pre-computed vectors with optional metadata.
 5. delete_vectors_by_id: (Works) Deletes vectors by ID from Pinecone.
 6. delete_all_vectors: (Works) Deletes all vectors from a Pinecone index.
 7. delete_all_vectors_except: (Works) Deletes all vectors except those with specified IDs.
-8. update_vector: (Works) Updates vector in Pinecone by ID. Uses upsert.
-9. query_index: (Works) Queries Pinecone for vectors similar to a given vector.
+8. update_vector: (Works) Updates vector in Pinecone by ID.
+9. query_index: (Works) Queries Pinecone for similar vectors to a given query vector, applies threshold.
 10. get_ids_from_query: (Works) Fetches IDs matching a given query vector.
 11. get_all_ids_from_index: (Works) Fetches all IDs in a Pinecone index.
 12. ensure_context_vector_exists: (Works) Ensures context vector exists or creates it.
-13. filter_by_metadata: (Untested) Filters query results by metadata key-value pairs.
+13. filter_by_metadata: (Works) Filters query results by metadata key-value pairs.
 14. update_metadata: (Works) Updates metadata for a specific vector by ID.
-15. batch_update_metadata: (Untested) Updates metadata for a batch of vectors by IDs.
-16. advanced_search: (Untested) Executes a query and filters results by metadata.
-
+15. advanced_search: (Works) Executes a query, filters by metadata and applies threshold.
+16. add_metadata_pair: (Works) Adds / Updates existing, a single metadata key-value pair for one or many IDs.
+17. remove_metadata_pair: (Works) Removes a single metadata key-value pair for one or many IDs.
 '''
+
 
 
 
@@ -354,19 +358,21 @@ def get_all_ids_from_index(index, num_dimensions, namespace=""):    #   Works
 
 
 
-def ensure_context_vector_exists(index_name: str, dimension: int,   context_vector_id: str, context_text: str): #   works
+def ensure_context_vector_exists(index_name: str, dimension: int, context_vector_id: str, context_text: str): #   works
     print("entered ensure_context_vector_exists function")
     index = pinecone.Index(index_name)
-   
+
     existing_ids = get_all_ids_from_index(index, dimension)  # Assumes you have a function to get all IDs
 
     if context_vector_id in existing_ids:
         print(f"Context vector '{context_vector_id}' already exists in index '{index_name}'.")
         return "exists"
     else:
-        store_strings_in_pinecone(index_name, [context_vector_id], [context_text])
-        print(f"Created context vector '{context_vector_id}' in index '{index_name}'.")
+        context_metadata = {'type': 'context', 'description': 'This is the context vector for story-telling.'}
+        store_strings_in_pinecone(index_name, [context_vector_id], [context_text], metadata=context_metadata)
+        print(f"Created context vector '{context_vector_id}' with metadata in index '{index_name}'.")
         return "created"
+
 
 
 
@@ -396,7 +402,7 @@ def advanced_search(index_name, query_vector, key, value, top_k=10, threshold=0.
 
 
 
-def update_metadata_pair(index_name, ids, key, value):  #   Works
+def add_metadata_pair(index_name, ids, key, value):  #   Works
     if not isinstance(ids, list):
         ids = [ids]
     
@@ -424,3 +430,86 @@ def remove_metadata_pair(index_name, ids, key): #   Works
         upsert_data = {"id": id, "values": vectors[id]['values'], "metadata": existing_metadata}
         index.upsert([upsert_data])
 
+
+
+
+
+def decay_function(timestamp, current_time, half_life=timedelta(days=7)):
+    elapsed_time = (current_time - timestamp).total_seconds()
+    decay_factor = np.exp(-elapsed_time / half_life.total_seconds())
+    return decay_factor
+
+
+
+def update_game_context(index_name, context_id, new_text):
+    current_time = datetime.utcnow()
+    print(f"Debug: Current time is {current_time}")
+
+    # Generate embedding for the new text
+    new_vector = openai_helper.generate_embeddings([new_text])[0]
+    print(f"Debug: New vector type is {type(new_vector)}, first 10 values are {new_vector[:10]}")
+    
+    if new_vector is None:
+        print("Failed to generate embeddings for the new text.")
+        return "Failure"
+
+    index = pinecone.Index(index_name)
+    existing_vector_info = index.fetch(ids=[context_id])['vectors'][context_id]
+    print(f"Debug: Existing vector info first 10 values are {list(existing_vector_info['values'][:10])}")
+
+    existing_vector = existing_vector_info['values']
+    print(f"Debug: Existing vector type is {type(existing_vector)}, first 10 values are {existing_vector[:10]}")
+
+    existing_timestamp_str = existing_vector_info['metadata'].get('updated_timestamp', current_time.isoformat())
+    print(f"Debug: Existing timestamp string type is {type(existing_timestamp_str)}, value is {existing_timestamp_str}")
+
+    if isinstance(existing_timestamp_str, datetime):
+        existing_timestamp = existing_timestamp_str
+    else:
+        existing_timestamp = datetime.fromisoformat(existing_timestamp_str)
+    
+    print(f"Debug: Existing timestamp type is {type(existing_timestamp)}, value is {existing_timestamp}")
+
+    # Calculate decay factors
+    existing_decay = decay_function(existing_timestamp, current_time)
+    print(f"Debug: Existing decay type is {type(existing_decay)}, value is {existing_decay}")
+
+    new_decay = decay_function(current_time, current_time)  # Will be 1.0, since the new vector is from "now"
+    print(f"Debug: New decay type is {type(new_decay)}, value is {new_decay}")
+
+    # Calculate updated vector
+    updated_vector = (np.array(existing_vector) * existing_decay + np.array(new_vector) * new_decay) / (existing_decay + new_decay)
+    print(f"Debug: Updated vector type is {type(updated_vector)}, first 10 values are {updated_vector[:10]}")
+
+    # Update metadata timestamp
+    existing_vector_info['metadata']['updated_timestamp'] = current_time.isoformat()
+    print(f"Debug: Updated metadata is {existing_vector_info['metadata']}")
+
+    # Upsert the updated vector
+    vector_dict = {'id': context_id, 'values': updated_vector.tolist(), 'metadata': existing_vector_info['metadata']}
+    try:
+        index.upsert([vector_dict])
+        print(f"Updated context vector '{context_id}' in index '{index_name}'.")
+        return "Success"
+    except Exception as e:
+        print(f"Failed to update context vector: {e}")
+        return "Failure"
+
+
+
+
+# Query the game context
+def query_game_context(index_name, query_vector, top_k=10, threshold=0.7):
+    return query_index(index_name, query_vector, top_k=top_k, threshold=threshold, include_metadata=True)
+
+
+
+# Perform a weighted average of vectors
+def weighted_average(vectors, weights):
+    return np.average(vectors, axis=0, weights=weights)
+
+
+
+# Sort the vectors by their metadata timestamps
+def sort_by_timestamp(vectors):
+    return sorted(vectors, key=lambda x: x['metadata']['timestamp'])
