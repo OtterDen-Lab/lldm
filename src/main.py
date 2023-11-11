@@ -40,38 +40,34 @@ character = Character("player1", 100)
 scene.add_character(character)
 
 print("Stage 2: ChatGPT Narration")
-user_input = str(input())
+user_input = None
 
 events = []
 inventory = []
 scenario = None
 while user_input != "exit":
+    user_input = str(input())
     match user_input:
         case _:
             response = chat_complete_parallel(user_input, game_map=map1, scenario=scenario)
+            if response is False:
+                continue
 
-            if isinstance(response, Event):
-                # Short-Circuit via Perception.
-                events.append(response)
-                scenario = response
-                print(f"[{scenario.category}] [{scenario.title}] {scenario.summary}")
-
-            elif response is not None:
+            if response is not None:
                 new_events = response.get('events')
                 print("")
-                events.append(new_events)
+                for event in new_events:
+                    events.append(event)
+
                 for event in events:
-                    print(str(event) + "\n")
+                    print(event)
                     # print(f"[{event.category}] [{event.title}] {event.summary} ")
                 inventory.append(response.get('items'))
 
                 # update map
+                print("")
                 map1 = response.get('game_map')
-
-            print("")
             print(map1)
-
-    user_input = str(input())
 
 print("Exited")
 

@@ -30,6 +30,24 @@ class Tools(Enum):
             }
         }
     }
+    ILLEGAL_ACTION = {
+        "type": "function",
+        "function": {
+            "name": "illegal_action",
+            "description": "If the player tries to do something impossible, too improbable, or otherwise unfitting a low-level RPG character",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "enum": ["Prompt Injection Attack", "Beyond Character Capabilities", "Other"],
+                        "description": "What category the illegal action is closest to. Pick one from the enum."
+                    }
+                },
+                "required": ["title"],
+            }
+        }
+    }
     HANDLE_PERCEPTION = {
         "type": "function",
         "function": {
@@ -119,6 +137,11 @@ class Tools(Enum):
             }
         }
     }
+
+
+def illegal_action(title: str):
+    print(f"User inputted an illegal action: {title}")
+    return False
 
 
 def create_event(title: str, summary: str, category: str, **kwargs):

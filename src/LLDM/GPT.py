@@ -75,7 +75,8 @@ def chat_complete_parallel(user_input, **kwargs):
 
     # Load GPT Functions
     tools = [
-        Tools.CREATE_EVENT.value
+        Tools.CREATE_EVENT.value,
+        Tools.ILLEGAL_ACTION.value
         # Tools.HANDLE_PERCEPTION.value
     ]
 
@@ -88,12 +89,11 @@ def chat_complete_parallel(user_input, **kwargs):
         tool_choice="auto"
     )
     print("| RESPONSE RECEIVED")
-
     # print(f"Inputted: {relevant_locations} \n and {user_input}")
 
     # Extract Data of Tools that GPT wanted to call
     tool_calls = response.choices[0].message.tool_calls
-    # print(tool_calls)
+    print(tool_calls)
 
     for tool_call in tool_calls:
         # Retrieve name and parameters of GPT function call
@@ -110,11 +110,9 @@ def chat_complete_parallel(user_input, **kwargs):
             case "create_event":
                 event = create_event(title, summary, category)
                 events.append(event)
-            case "handle_perception":
-                event = create_event(title, summary, "Perception")
-                # events.append(event)
-                # return {'events': events, 'game_map': game_map, 'items': items}
-                return event
+            case "illegal_action":
+                print("Illegal Operation - Stop trying to coerce my AI!")
+                return illegal_action(title)
 
     # Call GPT a second time. One new call per event, using different tools, and updated dialogue.
     # Load GPT Functions into prompt
@@ -142,7 +140,7 @@ def chat_complete_parallel(user_input, **kwargs):
             case "Movement":
                 event_tool_name = "handle_movement"
             case "General Inquiry":
-                pass
+                raise NotImplementedError
 
         if event_tool_name is None:
             event_tool = "auto"
@@ -165,7 +163,7 @@ def chat_complete_parallel(user_input, **kwargs):
         # print(f"Inputted: {relevant_locations} \n and {obj_to_json(event)}")
 
         tool_calls = response.choices[0].message.tool_calls
-        # print(tool_calls)
+        print(tool_calls)
 
         for tool_call in tool_calls:
             # Retrieve name and parameters of GPT function call
@@ -204,7 +202,9 @@ def chat_complete_parallel(user_input, **kwargs):
             #         "content": function_response,
             #     }
             # )
-    events.append(resolved_events)
+    for event in resolved_events:
+        events.append(event)
+
     return {'events': events, 'game_map': game_map, 'items': items}
 
 
