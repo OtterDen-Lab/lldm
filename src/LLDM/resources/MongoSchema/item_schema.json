@@ -1,0 +1,24 @@
+{
+  "$jsonSchema": {
+    "title": "Item",
+    "description": "Item, simplified. Includes 'Damage' for weapons",
+    "required": [
+      "name",
+      "description"
+    ],
+    "properties": {
+      "name": {
+        "bsonType": "string"
+      },
+      "description": {
+        "bsonType": "string"
+      },
+      "damage": {
+        "bsonType": "int"
+      },
+      "amount": {
+        "bsonType": "int"
+      }
+    }
+  }
+}
