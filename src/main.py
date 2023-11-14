@@ -27,9 +27,7 @@ Room1 = Location("Room 1", "The first room of a sprawling dungeon. It has a clos
 map1 = Map()
 map1.add_location(Room1)
 # map1.add_location(Room2)
-
 # map1.connect_locations(Room1, Room2)
-
 
 # Set the initial location
 map1.move_to(Room1)

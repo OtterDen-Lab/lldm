@@ -113,7 +113,7 @@ class Tools(Enum):
                     },
                     "description": {
                         "type": "string",
-                        "description": "The description of the new location. Make sure it has some sort of exit"
+                        "description": "The description of the new location. Make sure it has some sort of exit. This is only the description of the LOCATION, and should not be addressed to anybody"
                     }
                 },
                 "required": ["name", "description"],
@@ -154,9 +154,10 @@ def create_location(name, description, game_map, **kwargs):
     if game_map.get_location_by_name(name) is None:
         new_location = Location(name, description)
         game_map.add_location(new_location)
+        # Only linear connections (if working as intended): New location & Old location. (then move)
         game_map.connect_locations(game_map.get_current_location(), new_location)
 
-        print("Moving into new location")
+        print("Atomically moving into new connection")
         game_map = handle_movement(new_location.name, game_map)
     else:
         print(f"ChatGPT wanted to make a Location that already exists. Skipping creation")
