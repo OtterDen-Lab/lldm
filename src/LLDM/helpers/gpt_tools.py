@@ -145,22 +145,22 @@ def illegal_action(title: str):
 
 
 def create_event(title: str, summary: str, category: str, **kwargs):
-    print(f"ChatGPT wanted to make an Event: [{category}] {title}")
+    print(f"[Event] ChatGPT wanted to make an Event: [{category}] {title}")
     return Event(title, summary, category)
 
 
 def create_location(name, description, game_map, **kwargs):
-    print(f"ChatGPT wanted to make a Location: {name}")
+    print(f"[Event] ChatGPT wanted to make a Location: {name}")
     if game_map.get_location_by_name(name) is None:
         new_location = Location(name, description)
         game_map.add_location(new_location)
         # Only linear connections (if working as intended): New location & Old location. (then move)
         game_map.connect_locations(game_map.get_current_location(), new_location)
-
-        print("Atomically moving into new connection")
+        # Atomic move into new location (could be decoupled, but harder to define)
+        # print("Moving into new location")
         game_map = handle_movement(new_location.name, game_map)
     else:
-        print(f"ChatGPT wanted to make a Location that already exists. Skipping creation")
+        print(f"[EventError] ChatGPT wanted to make a Location that already exists. Skipping creation")
 
     return game_map, create_event(name, description, "Location Generated")
     # Trying to make non-linear connections by having adjacency given by gpt
@@ -173,7 +173,7 @@ def create_location(name, description, game_map, **kwargs):
 
 
 def create_item(name, description, damage=None, amount=None, **kwargs):
-    print(f"ChatGPT wanted to make an Item: {name}")
+    print(f"[Event] ChatGPT wanted to make an Item: {name}")
     # Assuming Item can take damage and amount as None
     item = Item(name, description, damage=damage, amount=amount)
     return item, create_event(name, description, "Item Generated")
@@ -182,11 +182,11 @@ def create_item(name, description, damage=None, amount=None, **kwargs):
 
 
 def handle_movement(moving_into, game_map, **kwargs):
-    print(f"ChatGPT wanted to Move a character into {moving_into}")
+    print(f"[Event] ChatGPT wanted to perform a Movement into {moving_into}")
     possible_location = game_map.get_location_by_name(moving_into)
     if possible_location is not None:
         game_map.move_to(possible_location)
-        print(f"Current location: {game_map.get_current_location()}")
+        # print(f"Current location: {game_map.get_current_location()}")
     else:
         print(f"Move failed: No location found with matching name. Was ChatGPT supposed to create a location instead?")
     return game_map

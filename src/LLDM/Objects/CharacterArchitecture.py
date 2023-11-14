@@ -3,8 +3,39 @@ from enum import Enum
 from LLDM.Objects.ItemArchitecture import Item, Weapon
 from LLDM.Objects.PrettyPrinter import NestedFormatter
 
-
 from pymongo import MongoClient
+
+
+# Understanding WHEN to Read & Write to Mongo:
+# Example: Getting appropriate loot from a dungeon
+#
+# Event: Player finds a Chest in Dungeon
+# ChatCompletion Function trigger: genContainer(Scene)
+# Read: Scene object from Mongo (contains full world details)
+# GPT generates a Container(Name, Contents)
+# Write: Chest to MongoDB's Scene>World>>>Location
+#
+# Event: Player opens Chest in Dungeon
+# ChatCompletion Function trigger: dropLoot(Player, Chest)
+# Read: Player>Inventory from Mongo
+# Read: Chest>Contents from Mongo
+# Script: Add Contents to Inventory in Python
+# Script: Remove Contents from Chest in Python
+# Write: Save Updated Character to Mongo
+# Write: Save Updated Chest to Mongo
+
+#
+# GPT returns Weapon JSON
+# Script creates Python Object from JSON
+#   WeaponObj is now usable in-script (can be passed to other scripts if necessary)
+#   Isolated Methods do not have access (Ex. NPC_gen() only reads DB, so doesn't have access)
+#
+# Script stores Python Object in Mongo
+#   WeaponObj_JSON is now accessible to ALL readers
+#
+# Note: Atomically store upon creation, atomically store upon modification (and deletion)
+#   Then, only use reads or passes of reads.
+
 
 # Connection
 client = MongoClient('localhost', 8192)

@@ -12,7 +12,7 @@
         "category": {
             "type": "string",
             "default": "",
-            "emu": ["", "Improvised", "Simple", "Martial"]
+            "enum": ["", "Improvised", "Simple", "Martial"]
         },
         "damage": {
             "type": "object",

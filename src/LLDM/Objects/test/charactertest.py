@@ -1,5 +1,5 @@
 from LLDM.Objects.CharacterArchitecture import Background, Class, Race, Character
-from LLDM.Objects.ItemArchitecture import Potion, Weapon, Damage
+from LLDM.Objects.ItemArchitecture import Potion, Damage, Weapon
 
 # Notes:
 # Classes do NOT require subclasses.
