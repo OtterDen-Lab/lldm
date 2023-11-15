@@ -1,0 +1,26 @@
+{
+  "$jsonSchema": {
+    "title": "Stats",
+    "description": "Mongo Schema for Base Creature Stats. Bare-bones Vers.",
+    "required": [
+      "speed",
+      "health",
+      "max_health",
+      "armor"
+    ],
+    "properties": {
+      "speed": {
+        "bsonType": "int"
+      },
+      "health": {
+        "bsonType": "int"
+      },
+      "max_health": {
+        "bsonType": "int"
+      },
+      "armor": {
+        "bsonType": "int"
+      }
+    }
+  }
+}

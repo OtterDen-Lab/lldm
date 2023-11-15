@@ -1,0 +1,35 @@
+{
+  "$jsonSchema": {
+    "title": "Damage",
+    "description": "Mongo Schema for Damage. Bare-bones Vers.",
+    "required": [
+      "damage_dice",
+      "dice_count",
+      "damage_type"
+    ],
+    "properties": {
+      "damage_dice": {
+        "bsonType": "int",
+        "enum": [
+          1,
+          4,
+          6,
+          8,
+          10,
+          12
+        ]
+      },
+      "dice_count": {
+        "bsonType": "int"
+      },
+      "damage_type": {
+        "bsonType": "string",
+        "enum": [
+          "Piercing",
+          "Slashing",
+          "Bludgeoning"
+        ]
+      }
+    }
+  }
+}

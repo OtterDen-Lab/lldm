@@ -1,0 +1,45 @@
+{
+  "$jsonSchema": {
+    "title": "Background",
+    "description": "Mongo Schema for Background. Bare-bones Vers.",
+    "required": [
+      "name",
+      "summary"
+    ],
+    "properties": {
+      "name": {
+        "bsonType": "string"
+      },
+      "summary": {
+        "bsonType": "string"
+      },
+      "personality": {
+        "bsonType": "string"
+      },
+      "skills": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "string"
+        }
+      },
+      "motivations": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "string"
+        }
+      },
+      "bonds": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "string"
+        }
+      },
+      "flaws": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "string"
+        }
+      }
+    }
+  }
+}

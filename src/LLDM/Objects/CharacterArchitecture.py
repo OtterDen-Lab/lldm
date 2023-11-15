@@ -1,73 +1,152 @@
 from enum import Enum
 
+from LLDM.Objects.ItemArchitecture import Item, Weapon
 from LLDM.Objects.PrettyPrinter import NestedFormatter
-from LLDM.Objects import DungeonEnums
+
+from pymongo import MongoClient
 
 
-# This is a slightly different take on building hierarchies than the WorldArchitecture.
-# Each of these classes are far more rigid, but fleshed out:
-# By accessing Enums in DungeonEnums for data, I can set up a mock database to test values.
-# One drawback is that Enums are immutable, meaning I can't create more classes or backgrounds on the fly.
-# It's likely the enums may be replaced by JSON/Dicts to gain that dynamic mutability, so I've made it easer to convert
-# That doesn't mean I can't change the values of created objects, either: I can make and use getter/setters.
-# WARNING!!!: TODO: Remove (or just move) hardcoded Enum Loading:
-#  DungeonEnums.load_enum('background_data.json', 'Backgrounds', 'name')
+# Understanding WHEN to Read & Write to Mongo:
+# Example: Getting appropriate loot from a dungeon
 #
-# Note to self: Type checking in Python is so stupid.
+# Event: Player finds a Chest in Dungeon
+# ChatCompletion Function trigger: genContainer(Scene)
+# Read: Scene object from Mongo (contains full world details)
+# GPT generates a Container(Name, Contents)
+# Write: Chest to MongoDB's Scene>World>>>Location
 #
-# Important: BATTLE DESIGN: I have purposefully omitted certain Setters.
-# You can only change the following:
-# Character name & Class level.
-# Future: Set character size as a new field, and then reset to immutable Race size.
+# Event: Player opens Chest in Dungeon
+# ChatCompletion Function trigger: dropLoot(Player, Chest)
+# Read: Player>Inventory from Mongo
+# Read: Chest>Contents from Mongo
+# Script: Add Contents to Inventory in Python
+# Script: Remove Contents from Chest in Python
+# Write: Save Updated Character to Mongo
+# Write: Save Updated Chest to Mongo
 
-# TODO: Create a Feature class to hold gameplay properties
+#
+# GPT returns Weapon JSON
+# Script creates Python Object from JSON
+#   WeaponObj is now usable in-script (can be passed to other scripts if necessary)
+#   Isolated Methods do not have access (Ex. NPC_gen() only reads DB, so doesn't have access)
+#
+# Script stores Python Object in Mongo
+#   WeaponObj_JSON is now accessible to ALL readers
+#
+# Note: Atomically store upon creation, atomically store upon modification (and deletion)
+#   Then, only use reads or passes of reads.
+
+
+# Connection
+client = MongoClient('localhost', 8192)
+# Database
+db = client['LLDM']
+# Collections (= Tables)
+background_collection = db['background']
+class_collection = db['class']
+race_collection = db['race']
+character_collection = db['character']
+
+
 class Background(NestedFormatter):
-    DungeonEnums.load_enum('background_data.json', 'Backgrounds', 'name')
+    def __init__(self, name, summary: str = None, personality: str = None, skills=None, motivations=None, bonds=None, flaws=None):
+        record = background_collection.find_one({"name": name})
+        self.name = record.get('name')
+        if summary is None:
+            self.summary = record.get('summary')
+        else:
+            self.summary = summary
 
-    def __init__(self, background, origin: str = None, personality: str = None, ideals: str = None, bonds: str = None, flaws: str = None):
-        enum_member = _get_enum_member(background, DungeonEnums.Backgrounds)
-        record = enum_member.value
-        self._name = record.get('name')
-        self._description = record.get('description')
-
-        # TODO: Figure out where/how to implement these details
-        self._origin = origin
-        self._personality = personality
-        self._ideals = ideals
-        self._bonds = bonds
-        self._flaws = flaws
+        self.personality = personality
+        self.skills = skills
+        self.motivations = motivations
+        self.bonds = bonds
+        self.flaws = flaws
 
     @property
     def name(self):
-        return self.name
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
 
     @property
-    def description(self):
-        return self._description
+    def summary(self):
+        return self._summary
+
+    @summary.setter
+    def summary(self, value):
+        self._summary = value
+
+    @property
+    def personality(self):
+        return self._personality
+
+    @personality.setter
+    def personality(self, value):
+        self._personality = value
+
+    @property
+    def skills(self):
+        return self._skills
+
+    @skills.setter
+    def skills(self, value):
+        self._skills = value
+
+    def add_skill(self, value: str):
+        self._skills.add(value)
+
+    @property
+    def motivations(self):
+        return self._motivations
+
+    @motivations.setter
+    def motivations(self, value):
+        self._motivations = value
+
+    def add_motivation(self, value: str):
+        self._motivations.add(value)
+
+    @property
+    def bonds(self):
+        return self._bonds
+
+    @bonds.setter
+    def bonds(self, value):
+        self._bonds = value
+
+    def add_bond(self, value: str):
+        self._bonds.add(value)
+
+    @property
+    def flaws(self):
+        return self._flaws
+
+    @flaws.setter
+    def flaws(self, value):
+        self._flaws = value
+
+    def add_flaw(self, value: str):
+        self._flaws.add(value)
 
 
 class Race(NestedFormatter):
-    DungeonEnums.load_enum('race_data.json', 'Races', 'name')
-    DungeonEnums.load_enum('subrace_data.json', 'Subraces', 'name')
-
     # Description, size, traits, actions, senses are all computed with name and subtype.
-    # TODO: Include racial features
 
     def __init__(self, race, subrace=None):
-        enum_member = _get_enum_member(race, DungeonEnums.Races)
-        record = enum_member.value
+        record = race_collection.find_one({"name": race})
+        # for record in result:
+        #     print(record)
+        # record = enum_member.value
         self._name = record.get('name')
         self._subrace = None
         self._size = record.get('size')
 
-        # Check if subrace is required
-        if record.get('subraces') > 0:
-            sub_member = _get_enum_member(subrace, DungeonEnums.Subraces)
-            sub_record = sub_member.value
-            if self.name == sub_record.get('parent'):
-                self._subrace = sub_record.get('name')
-            # else:
-            #     raise ValueError(f"Invalid Subrace: {record.get('parent')} does not have a {record.get('name')}")
+        # Check if subraces exist- if they do, try to set it to the parameter
+        if subrace in record.get('subraces'):
+            self._subrace = subrace
 
     @property
     def name(self):
@@ -83,36 +162,19 @@ class Race(NestedFormatter):
 
 
 class Class(NestedFormatter):
-    DungeonEnums.load_enum('class_data.json', 'Classes', 'name')
-    DungeonEnums.load_enum('subclass_data.json', 'Subclasses', 'name')
-
-    # TODO: Include class features
-
     def __init__(self, class_name, level: int, subclass=None):
-        enum_member = _get_enum_member(class_name, DungeonEnums.Classes)
-        record = enum_member.value
-        self.name = record.get('name')
+        record = class_collection.find_one({"name": class_name})
+        self._name = record.get('name')
         self._sub_class = None
         self.level = level
         self._hit_die = record.get('hit_dice')
-        self._spell_casting_attr = record.get('spellcasting_mod')
 
-
-        # TODO: Include subclass features (remove 'name' and attach more date)
-        # Set Subclass name and based on Enum Dict, and look for Spellcasting modifier if None
-        if record.get('subclasses') > 0 and subclass is not None:
-            sub_member = _get_enum_member(subclass, DungeonEnums.Subclasses)
-            sub_record = sub_member.value
-            self._sub_class = sub_record.get('name')
-            self._spell_casting_attr = sub_record.get('spellcasting_mod')
+        if subclass is not None and subclass in record.get('subclasses'):
+            self._sub_class = subclass
 
     @property
     def name(self):
         return self._name
-
-    @name.setter
-    def name(self, value: str):
-        self._name = value
 
     @property
     def level(self):
@@ -133,89 +195,45 @@ class Class(NestedFormatter):
     def hit_die(self):
         return self._hit_die
 
-    @property
-    def spell_casting_attr(self):
-        return self._spell_casting_attr
+
+class Stats(NestedFormatter):
+    def __init__(self, classObj: Class, inventory):
+        self._speed = 30
+        self._max_health = classObj.hit_die
+        self._health = self._max_health
+        self._armor = 10
+
+
+class Condition(NestedFormatter):
+    def __init__(self, name: str, duration: int, effect: str = None):
+        self._name = name
+        self._duration = duration
+        self._effect = effect
 
 
 class Character(NestedFormatter):
-    def __init__(self,
-                 name: str,
-                 raceObj: Race,
-                 classObj: Class,
-                 backgroundObj: Background,
-                 # TODO: Continue creating more objects
-                 details=None,
-                 description=None,
-                 xp=None,
-                 gear_proficiency=None,  # weapon_profs=None,armor_profs=None,tool_profs=None,
-                 feats=None,
-                 spells=None,
-                 weapons=None,
-                 equipment=None,
-                 treasure=None
-                 ):
+    def __init__(self, name: str, race: Race, classes, background: Background, weapons=None, inventory=None, xp: int = None, gold: int = None):
+        # Mandatory
+        self._name = name  # String
+        self._race = race  # Race Object
+        self._background = background  # Background Object
+        self._classes = classes  # List of Class Objects
 
-        self.name = name
-        self._race = raceObj
-        self._class = classObj
-        self._background = backgroundObj
+        # Computed
+        self._stats = Stats(classes[0], inventory)
+        self._conditions = None
 
-        # TODO: Implement these incomplete fields
-        self._description = description
-        self._xp = xp
-        self._details = details
-        self._gear_proficiency = gear_proficiency
-        self._treasure = treasure
+        # Optional
+        self._xp = xp  # Experience
+        self._gold = gold  # Gold
+        self._weapons = weapons if weapons is not None else []  # List of Weapon Objects
+        self._inventory = inventory if inventory is not None else []  # List of Item Objects
 
-        self.feats = feats if feats is not None else []
-        self.spells = spells if spells is not None else []
-        self.weapons = weapons if weapons is not None else []
-        self.equipment = equipment if equipment is not None else []
+    def add_weapon(self, weapon: Weapon):
+        self._weapons.append(weapon)
 
-    @property
-    def name(self):
-        return self._name
+    def add_item(self, item: Item):
+        self._inventory.append(item)
 
-    @name.setter
-    def name(self, value: str):
-        self._name = value
-
-    @property
-    def race(self):
-        return self._race
-
-    @property
-    def class_(self):
-        return self._class
-
-    @property
-    def background(self):
-        return self._background
-
-
-def _get_enum_member(obj, enum_class: DungeonEnums):
-    print(f'Creating [{enum_class}] with: [{type(obj)}]')
-    if isinstance(obj, str):
-        # print(f'Searching for [{obj}] in: {enum_class}')
-        if obj in enum_class.__members__:
-            # print(f'Found: [{enum_class[obj]}] in Enums(Member Key) Containing: {enum_class[obj].value}')
-            return enum_class[obj]
-        else:
-            print(f'{obj} is not in {enum_class} as an Enum member key... is this a raw data value (name)?')
-            for member in enum_class.__members__.values():
-                if member.value['name'] == obj:
-                    # print(f'Found: [{member}] in raw dict data. Containing: {member.value}')
-                    return member
-
-    elif isinstance(obj, Enum):
-        # print(f'Searching for Enum:[{obj}] in: {enum_class.__members__}')
-        if obj in enum_class:
-            # print(f'Found: [{obj}] in Enums(Object). Containing: {obj.value}')
-            return obj
-
-    elif isinstance(obj, dict):
-        # print(f'Searching for Dict:[{obj}] in: {enum_class.__members__}')
-        raise NotImplementedError
-
-    raise ValueError("Invalid: Double-Check parameters for missing or NoneType values")
+    def add_condition(self, condition: Condition):
+        self._conditions.append(condition)

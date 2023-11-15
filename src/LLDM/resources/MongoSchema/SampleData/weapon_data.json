@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Sword",
+    "category": "Melee",
+    "damage": {
+      "dice_type": 6,
+      "dice_count": 2,
+      "damage_type": "Slashing"
+    }
+  },
+  {
+    "name": "Axe",
+    "category": "Melee",
+    "damage": {
+      "dice_type": 8,
+      "dice_count": 2,
+      "damage_type": "Slashing"
+    }
+  },
+  {
+    "name": "Spear",
+    "category": "Melee",
+    "damage": {
+      "dice_type": 8,
+      "dice_count": 1,
+      "damage_type": "Piercing"
+    }
+  },
+  {
+    "name": "Bow",
+    "category": "Ranged",
+    "damage": {
+      "dice_type": 6,
+      "dice_count": 2,
+      "damage_type": "Piercing"
+    }
+  },
+  {
+    "name": "Javelin",
+    "category": "Ranged",
+    "damage": {
+      "dice_type": 4,
+      "dice_count": 1,
+      "damage_type": "Piercing"
+    }
+  }
+]
