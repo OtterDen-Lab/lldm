@@ -1,0 +1,82 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "D&D World Architecture",
+    "type": "object",
+    "description": "The world Architecture, goes topdown from continent to country to region which is divided into important places and cities which have buildings in them(i.e shops, churches, barracks etc)",
+    "properties": {
+        "continents": {
+            "type": "array",
+            "$comment": "This should just be an array to hold the continents which will hold all the other info inside of them"
+        },
+        "continent": {
+            "type": "object",
+            "required": ["name", "id"],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "default": "defaultContinent"
+                },
+                "id": {
+                    "type": "string",
+                    "default": "Description for the continent, give some amount of info i.e size, biomes, etc"
+                }
+            }
+        },
+        "region":{
+            "type": "object",
+            "required": ["continent", "name", "id"],
+            "properties": {
+                "name":{
+                    "type": "string",
+                    "default": "defaultRegion"
+                },
+                "id": {
+                    "type": "string",
+                    "default": "Description for the region, describe it can be the biome for a given continent as well"
+                }
+            }
+        },
+        "important_Place": {
+            "type": "object",
+            "required": ["region", "name", "id"],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "default": "default important place"
+                },
+                "id": {
+                    "type": "string",
+                    "default": "Description for an important place in a given region, i.e dungeon,ruins, outpost, goblin camp etc "
+                }
+            }
+        },
+        "city": {
+            "type": "object",
+            "required": ["region","name","id"],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "default": "default city"
+                },
+                "id": {
+                    "type": "string",
+                    "default": "Description for the city"
+                }
+            }
+        },
+        "building": {
+            "type": "object",
+            "required": ["city","name","id"],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "default": "default building"
+                },
+                "id": {
+                    "type": "string",
+                    "default": "Description for the building, what is it i.e barracks, stores, church etc"
+                }
+            }
+        }
+    }
+}

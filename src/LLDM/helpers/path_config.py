@@ -5,6 +5,8 @@ from .FileControl import *
 # Package Directory  (LLDM < helpers < path_config.py)
 LLDM_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+ENUM_DIR = os.path.join(os.path.dirname(LLDM_DIR), "Objects", "Data")
+
 print(f"--Path Config:--")
 print(f"__FILE__: {os.path.abspath(__file__)}")
 print(f"LLDM_DIR: {LLDM_DIR}")

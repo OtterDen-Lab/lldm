@@ -1,0 +1,18 @@
+[
+    {"name": "Acolyte", "description": "a acolyte"},
+    {"name": "Athlete", "description": "an athlete"},
+    {"name": "Charlatan", "description": "a charlatan"},
+    {"name": "Criminal", "description": "a criminal"},
+    {"name": "Entertainer", "description": "an entertainer"},
+    {"name": "Folk Hero", "description": "a folk hero"},
+    {"name": "Gladiator", "description": "a gladiator"},
+    {"name": "Guild Artisan", "description": "a guild artisan"},
+    {"name": "Guild Merchant", "description": "a guild merchant"},
+    {"name": "Hermit", "description": "a hermit"},
+    {"name": "Knight", "description": "a knight"},
+    {"name": "Noble", "description": "a noble"},
+    {"name": "Outlander", "description": "an outlander"},
+    {"name": "Sage", "description": "a sage"},
+    {"name": "Sailor", "description": "a sailor"},
+    {"name": "Soldier", "description": "a soldier"}
+]
