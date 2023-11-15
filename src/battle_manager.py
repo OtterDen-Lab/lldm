@@ -18,11 +18,10 @@ class Battle():
     self.player_alive_count = len(players)
     self.order = []
     self.dice = random.Random()
+    self.breaker = False
     # ? For now this does not include spells or anything that use character specific actions
-    self.commands = ["Attack", "Dodge", "Help", "Hide", "Grapple", "Search", "Ready", "Character"]
-    self.tempMods = {
-      "dodge": False,
-    }
+    self.commands = ["attack", "dodge", "help", "hide", "ready", "character", "actions", "wait"]
+    self.some_text =""
 
   def _start_battle_helper_(self):
     self._turn_order_()
@@ -31,62 +30,27 @@ class Battle():
     self.character_index = 0
 
   def _turn_order_(self):
-    #! This should be all in one not two seperate list of players and enemies
     self._assign_initiative_(self.players_list, self.enemy_list)
-    # self._assign_initiative_(self.enemy_list)
-    # self._assign_initiative_(self.players_list)
     self.order = sorted(self.order, key=lambda x: x[0])
 
-  # TODO: Make an initiative stat for characters as a modifier
-  # TODO: Figure out who should go first if the number is the same between characters
-  #! This should be all in one there is no need for teams all we need to gather all characters
+  
   """
   ! Also if we need an intiiative stat for character we don't need to assign manually we should need a rng d20
   ! from there you should assign current initiative per character this can be solved quickly for either our team
   ! or the campign team
-
   """
-
-  # def _assign_initiative_(self, team):
-  #   for character in team:
-  #     print("Roll initiative for " + character.JSON['name'] + "and enter here: ")
-  #     init_num = int(input())
-  #     while (init_num < 1 or init_num > 20):
-  #       print("Invalid number, please input again.")
-  #       print("\nRoll initiative for " + character.JSON['name'] + "and enter here: ")
-  #       init_num = int(input())
-
-  #     ## Use this instead if the computer is rolling the dice
-  #     # init_num = helper_functions.roll_skill_check(character, "initiative", False)
-  #     self.order.append((init_num, character))
 
   def _assign_initiative_(self, team1, team2):
     print("Merging party members to enemies")
-    # self.true_order = []
     for character in team1:
       print("\nRolling initiative for " + character.JSON['name'] + "(Party): ")
       roll = self.dice.randint(0, 21) + character.JSON['ability_scores']['dex_mod']
       self.order.append((roll, character))
-      # print(roll)
 
     for character in team2:
       print("\nRolling initiative for " + character.JSON['name'] + "(Enemy): ")
       roll = self.dice.randint(0, 21) + character.JSON['ability_scores']['dex_mod']
       self.order.append((roll, character))
-      # print("\n" + character.JSON['name'] + " rolled " + roll)
-
-    # for character in team:
-    #   print("Roll initiative for " + character.JSON['name'] + "and enter here: ")
-    #   init_num = int(input())
-    #   while (init_num < 1 or init_num > 20):
-    #     print("Invalid number, please input again.")
-    #     print("\nRoll initiative for " + character.JSON['name'] + "and enter here: ")
-    #     init_num = int(input())
-
-    #   ## Use this instead if the computer is rolling the dice
-    #   # init_num = helper_functions.roll_skill_check(character, "initiative", False)
-    #   self.order.append((init_num, character))
-
   
   
   def start_battle(self):
@@ -105,44 +69,61 @@ class Battle():
         print(f"Turn complete. Starting Turn {self.turn}")
         self.reset_temp_mods(self)
 
-        break # For debug purposes, only one turn happens, otherwise infinite
+        break #! For debug purposes, only one turn happens, otherwise infinite
     
     print("Battle Complete\n")
     
 
   def current_turn(self, character):
     # For Jalen to implement
+    other_text = ""
     print("It is currently " + character.JSON['name'] + "'s time to act!\n")
-
-    #? check if the character is an enemy
-    # TODO: Code all the necessary queries for a given player's turn
-    if (character.JSON['player']['entity'] != "party"):
-      print("AI commands")
-    else:
-      print("Give " + character.JSON['name'] + " something to do: ")
-      other_text = input()
-      if (self.commands.__contains__(other_text)):
-        print(character.JSON['name'] + " is doing " +  other_text + "\n")
-        self.action_function(other_text)
-        """
-        ! all movement based action will not be considered for the time being
-        #? create a list of what commnads do what
-        #? Attack - character a attacks character b via normal means with current equipment
-        #? Dodge - for the time being all characters who attacks character a will have disadventage
-        #? Help - character b will get advantage
-        #? Hide - character a will attempt to hide but I not too sure if we can but the function into this
-        #? Grapple - characer a will restrain character b
-        #? Search - character a will search for items and such but this resposiblity should be in the campaign team
-        """
+    while True:
+      # TODO: manage dodges
+      #? check if the character is an enemy
+      # TODO: Code all the necessary queries for a given player's turn
+      if (character.JSON['player']['entity'] != "party"):
+        print("AI commands")
+        break
+      else:
+        print("Give " + character.JSON['name'] + " something to do: ")
+        other_text = input()
+        other_text = other_text.lower()
+        if (self.commands.__contains__(other_text)):
+          print(character.JSON['name'] + " is doing " +  other_text + "\n")
+          self.action_function(other_text, character)
+          if self.breaker:
+            break
+          """
+          ! all movement based action will not be considered for the time being
+          #? create a list of what commnads do what
+          #? Attack - character a attacks character b via normal means with current equipment
+          #? Dodge - for the time being all characters who attacks character a will have disadventage
+          #? Help - character b will get advantage
+          #? more action can be callled later maybe...
+          """
 
     # TODO: If it is an enemy's turn, auto generate information from GPT? or have do the same thing as the player...
     
 
     # TODO: Figure out how much action text there will be from the user. If it's an enemy, we would need to generate this information somehow.
+    #? character x does [action]
+    #? character x attack/helps y
+    print(self.some_text)
     action_text = ""
+    action_text += character.JSON['name'] + " does "
+    #? if/switch cases for actions
+    if other_text == "dodge":
+      action_text += "a dodge on the next time if they are hit"
+    elif other_text == "attack":
+      action_text += " an attack"
+    elif other_text == "ready":
+      action_text = character.JSON['name'] + " will prepair an action."
+    
     self.query_turn_story(action_text)
 
     # TODO: Update JSON Database based off keywords in action_text?
+
 
 
     # Update Character Annotations / Attributes
@@ -150,18 +131,55 @@ class Battle():
 
     print("End of " + character.JSON['name'] + "'s turn\n")
 
-  def action_function(self, option):
+  def action_function(self, option, character):
     found_character = False
-    for key in self.tempMods:
-      if key == option:
-        self.set_mod(self, option)
+    if option == self.commands[1]:
+      self.set_dodge(1, character)
+      self.breaker = True
 
-  def reset_temp_mods(self):
-    for key in self.tempMods:
-        self.tempMods[key] = False
+    elif option == self.commands[4]:
+      self.set_ready(1, character)
+      self.breaker = True
 
-  def set_mod(self, mod_key):
-    self.tempMods[mod_key] = True
+    elif option == self.commands[6]:
+      print("Attack (X character) - attacks the character with your current equipted weapon")
+      print("Dodge - within the next interaction, the next attack that will be placed on you will roll for disadvantage")
+      print("Ready - within the next interaction, you can prepair your next action if attacked")
+      print("Help (X character) - helping a character will give them an advantage for the next roll")
+      print("Actions - prints this message again")
+
+    elif option == self.commands[0]:
+      option = input("Who?: ")
+      if self.find_character(option):
+          #? this is commented out for now because it will throw an error
+          #self.action_attack(self)
+          self.breaker = True
+          #? find character b
+
+  def set_dodge(self, number, character):
+    if number == 1:
+      character.JSON['Status Aliments']["Dodge"] = True
+      #TODO: Figure out a way to update JSON files or have this particular stat to be passed through the basebase
+      #? or have another database to keep track of our character states
+
+    else:
+      character.JSON['Status Aliments']["Dodge"] = False
+
+  def set_ready(self, number, character):
+    if number == 1:
+      character.JSON['Status Aliments']["Ready"] = True
+
+    else:
+      character.JSON['Status Aliments']["Ready"] = False
+
+  def find_character(self, option):
+    order_index = 0
+    while order_index < len(self.order):
+      if self.order[order_index][1].JSON['name'] == option:
+        return True
+      order_index += 1
+    return False
+
 
 #################################
 #
@@ -200,7 +218,6 @@ class Battle():
   # For Jalen
   def query_turn_story(self, action_text):
     # TODO: Query GPT for an explanation given information from the turn player
-
     # TODO: Update Vector DB with Chat GPT's summary:
 
     pass
