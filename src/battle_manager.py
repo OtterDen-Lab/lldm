@@ -1,7 +1,15 @@
+# TODO: copy and use current party and enemy JSON files then use that for the battle and apply it to the old when finished
+# TODO: update JSON files
+# TODO: line 85
 from LLDM.Character import Character
 from LLDM.World import World
-#? for now I will include a dice rolls for turn order
 import random
+import openai
+
+#! if this key outdated somehow just use another one...
+openai.api_key = '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'
+
+MODEL = "gpt-3.5-turbo"
 
 class Battle():
   ## Initialize the battle object
@@ -22,6 +30,10 @@ class Battle():
     # ? For now this does not include spells or anything that use character specific actions
     self.commands = ["attack", "dodge", "help", "hide", "ready", "character", "actions", "wait"]
     self.some_text =""
+    self.message_counter = 0
+    self.log = []
+    self.action_log = []
+    self.current_target = ""
 
   def _start_battle_helper_(self):
     self._turn_order_()
@@ -32,13 +44,6 @@ class Battle():
   def _turn_order_(self):
     self._assign_initiative_(self.players_list, self.enemy_list)
     self.order = sorted(self.order, key=lambda x: x[0])
-
-  
-  """
-  ! Also if we need an intiiative stat for character we don't need to assign manually we should need a rng d20
-  ! from there you should assign current initiative per character this can be solved quickly for either our team
-  ! or the campign team
-  """
 
   def _assign_initiative_(self, team1, team2):
     print("Merging party members to enemies")
@@ -56,13 +61,14 @@ class Battle():
   def start_battle(self):
     print("Starting Battle\n")
     self._start_battle_helper_()
+    self.set_stroyteller()
     
     print(f"Battle beginning at turn {self.turn}")
     #! For here you need to check
     while (self.enemy_alive_count > 0 and self.player_alive_count > 0):
-      #! check if its the enemie's turn
+      #! at some point we need to check if how many enemies or players are alive
       self.current_turn(self.order[self.character_index][1])
-
+      self.update_characters()
       self.character_index = (self.character_index + 1) % len(self.order)
       if (self.character_index == 0): 
         self.turn += 1
@@ -73,25 +79,42 @@ class Battle():
     
     print("Battle Complete\n")
     
+  def update_characters(self):
+    #! grabs character JSON files and determine if the characters are dead "HP < 0"
+    number = 0
+    while number < len(self.order):
+      passed = True
+      if self.order[number][1].JSON['hit_points']['current'] < 0:
+        if self.order[number][1].JSON['player']['entity'] != "party":
+          self.enemy_list.remove(self.order[number][1])
+
+        else:
+          self.players_list.remove(self.order[number][1])
+
+        self.order.remove(self.order[number])
+        self.player_alive_count = len(self.players_list)
+        self.enemy_alive_count = len(self.enemy_list)
+      if passed:
+        number += 1
+    # pass
 
   def current_turn(self, character):
     # For Jalen to implement
     other_text = ""
-    print("It is currently " + character.JSON['name'] + "'s time to act!\n")
+    print("It is currently " + character.JSON['name'] + "'s time to act!")
     while True:
       # TODO: manage dodges
       #? check if the character is an enemy
-      # TODO: Code all the necessary queries for a given player's turn
       if (character.JSON['player']['entity'] != "party"):
         print("AI commands")
-        break
+        return
       else:
         print("Give " + character.JSON['name'] + " something to do: ")
         other_text = input()
         other_text = other_text.lower()
         if (self.commands.__contains__(other_text)):
           print(character.JSON['name'] + " is doing " +  other_text + "\n")
-          self.action_function(other_text, character)
+          self.action_function(other_text)
           if self.breaker:
             break
           """
@@ -103,23 +126,24 @@ class Battle():
           #? more action can be callled later maybe...
           """
 
-    # TODO: If it is an enemy's turn, auto generate information from GPT? or have do the same thing as the player...
+    #? UNKNOWN: If it is an enemy's turn, auto generate information from GPT? or have do the same thing as the player...
     
 
-    # TODO: Figure out how much action text there will be from the user. If it's an enemy, we would need to generate this information somehow.
     #? character x does [action]
     #? character x attack/helps y
-    print(self.some_text)
     action_text = ""
     action_text += character.JSON['name'] + " does "
     #? if/switch cases for actions
     if other_text == "dodge":
       action_text += "a dodge on the next time if they are hit"
     elif other_text == "attack":
-      action_text += " an attack"
+      action_text += "an attack at " + self.current_target
     elif other_text == "ready":
       action_text = character.JSON['name'] + " will prepair an action."
     
+    if len(self.current_target) != 0:
+      self.current_target = ""
+
     self.query_turn_story(action_text)
 
     # TODO: Update JSON Database based off keywords in action_text?
@@ -131,14 +155,14 @@ class Battle():
 
     print("End of " + character.JSON['name'] + "'s turn\n")
 
-  def action_function(self, option, character):
+  def action_function(self, option):
     found_character = False
     if option == self.commands[1]:
-      self.set_dodge(1, character)
+      self.set_dodge(1, self.order[self.character_index][1])
       self.breaker = True
 
     elif option == self.commands[4]:
-      self.set_ready(1, character)
+      self.set_ready(1)
       self.breaker = True
 
     elif option == self.commands[6]:
@@ -151,26 +175,29 @@ class Battle():
     elif option == self.commands[0]:
       option = input("Who?: ")
       if self.find_character(option):
-          #? this is commented out for now because it will throw an error
-          #self.action_attack(self)
+          self.current_target = option
           self.breaker = True
-          #? find character b
+
+  #! AS OF THE CURRENT MOMENT THIS DOESN'T WORK
+  #! NEEDS TO UPDATE JSON FILES
 
   def set_dodge(self, number, character):
-    if number == 1:
-      character.JSON['Status Aliments']["Dodge"] = True
-      #TODO: Figure out a way to update JSON files or have this particular stat to be passed through the basebase
-      #? or have another database to keep track of our character states
+    pass
+    # if number == 1:
+    #   character.JSON['Status Aliments']["Dodge"] = True
+    # else:
+    #   character.JSON['Status Aliments']["Dodge"] = False
+    
 
-    else:
-      character.JSON['Status Aliments']["Dodge"] = False
-
+  #! AS OF THE CURRENT MOMENT THIS DOESN'T WORK
+  #! NEEDS TO UPDATE JSON FILES
   def set_ready(self, number, character):
-    if number == 1:
-      character.JSON['Status Aliments']["Ready"] = True
+    pass
+    # if number == 1:
+    #   character.JSON['Status Aliments']["Ready"] = True
 
-    else:
-      character.JSON['Status Aliments']["Ready"] = False
+    # else:
+    #   character.JSON['Status Aliments']["Ready"] = False
 
   def find_character(self, option):
     order_index = 0
@@ -217,7 +244,25 @@ class Battle():
 
   # For Jalen
   def query_turn_story(self, action_text):
-    # TODO: Query GPT for an explanation given information from the turn player
+    text = "discribe and summarize this: " + action_text
+    print("[GAMEMASTER]:", end=" ")
+    self.log.append({"role": "user", "content": text})  
+    person = openai.ChatCompletion.create(model=MODEL, messages=self.log)
+    replay = person.choices[0].message['content']
+    print(replay)
+    self.action_log.append(replay)
     # TODO: Update Vector DB with Chat GPT's summary:
+    
 
-    pass
+  def set_stroyteller(self):
+    #? The context can be edited for maybe for a better description
+    self.log.append({"role": "system", "content": "You are a Dungeon Master facilitating a Dungeons and Dragons campaign that is currently within a battle"})
+  
+  def grand_sum(self):
+    auto_text = "Summarize the following events of the battle: "
+    for text in self.action_log:
+      auto_text += text + "\n"
+    
+    person = openai.ChatCompletion.create(model=MODEL, message=auto_text)
+    replay = person.choice[0].message.centent
+    print(replay)
