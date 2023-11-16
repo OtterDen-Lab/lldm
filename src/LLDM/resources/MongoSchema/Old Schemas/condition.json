@@ -1,0 +1,39 @@
+{
+  "$jsonSchema": {
+    "title": "Condition",
+    "description": "Mongo Schema for Conditions & Status effects. Bare-bones Vers.",
+    "required": [
+      "name",
+      "duration"
+    ],
+    "properties": {
+      "name": {
+        "bsonType": "string",
+        "enum": [
+          "Blinded",
+          "Charmed",
+          "Deafened",
+          "Exhaustion",
+          "Frightened",
+          "Grappled",
+          "Incapacitated",
+          "Invisible",
+          "Necrotic",
+          "Paralyzed",
+          "Petrified",
+          "Poisoned",
+          "Prone",
+          "Restrained",
+          "Stunned",
+          "Unconscious"
+        ]
+      },
+      "effect": {
+        "bsonType": "string"
+      },
+      "duration": {
+        "bsonType": "int"
+      }
+    }
+  }
+}

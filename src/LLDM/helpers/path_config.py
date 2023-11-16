@@ -5,6 +5,8 @@ from .FileControl import *
 # Package Directory  (LLDM < helpers < path_config.py)
 LLDM_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+ENUM_DIR = os.path.join(os.path.dirname(LLDM_DIR), "Objects", "Data")
+
 print(f"--Path Config:--")
 print(f"__FILE__: {os.path.abspath(__file__)}")
 print(f"LLDM_DIR: {LLDM_DIR}")
@@ -28,6 +30,8 @@ PATH_CONTEXT_GAMEMASTER          = os.path.join(RES_GPT_DIR, "GameAnalyst.txt")
 PATH_CONTEXT_GAMESETUP           = os.path.join(RES_GPT_DIR, "GameSetup.txt")
 PATH_CONTEXT_SDPROMTER           = os.path.join(RES_GPT_DIR, "SDPrompter.txt")
 PATH_CONTEXT_CHRONICLER          = os.path.join(RES_GPT_DIR, "Chronicler.txt")
+PATH_CONTEXT_SIMPLE_AGENT        = os.path.join(RES_GPT_DIR, "SimpleDungeonAgent.txt")
+PATH_CONTEXT_SIMPLE_EVENT        = os.path.join(RES_GPT_DIR, "SimpleDungeonEvent.txt")
 
 # SD Subdirectory
 RES_SD_DIR = os.path.join(RESOURCES_DIR, "SD")
@@ -77,4 +81,6 @@ CONTEXT_GAMESETUP    = read(PATH_CONTEXT_GAMESETUP)
 CONTEXT_GAMEMASTER   = read(PATH_CONTEXT_GAMEMASTER)
 CONTEXT_SDPROMTER    = read(PATH_CONTEXT_SDPROMTER)
 CONTEXT_CHRONICLER   = read(PATH_CONTEXT_CHRONICLER)
+CONTEXT_SIMPLE_AGENT   = read(PATH_CONTEXT_SIMPLE_AGENT)
+CONTEXT_SIMPLE_EVENT   = read(PATH_CONTEXT_SIMPLE_EVENT)
 RESOURCE_SAMPLE_CHARACTER = read(PATH_RESOURCE_SAMPLE_CHARACTER)

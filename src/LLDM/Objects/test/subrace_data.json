@@ -1,0 +1,10 @@
+[
+  {"name": "High", "parent": "Elf", "traits": []},
+  {"name": "Wood", "parent": "Elf", "traits": []},
+  {"name": "High Elf Heritage", "parent": "Half-Elf", "traits": []},
+  {"name": "Wood Elf Heritage", "parent": "Half-Elf", "traits": []},
+  {"name": "Forest", "parent": "Gnome", "traits": []},
+  {"name": "Rock", "parent": "Gnome", "traits": []},
+  {"name": "Lightfoot", "parent": "Halfling", "traits": []},
+  {"name": "Stout", "parent": "Halfling", "traits": []}
+]

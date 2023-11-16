@@ -6,7 +6,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 
 from LLDM.GPT import *
 from LLDM.helpers.JSONControl import *
-from LLDM.Character import Character
+from LLDM.Objects.Character import Character
 
 # PATH_BACKGROUND_IMAGES = "src/LLDM/common/static/images"
 PATH_UPLOAD_FOLDER = PATH_RESOURCE_CHARACTERS
@@ -112,4 +112,4 @@ if __name__ == '__main__':
 
 
 def start():
-    app.run(host="0.0.0.0", port=8192)
+    app.run(host="0.0.0.0", port=5000)

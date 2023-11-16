@@ -1,0 +1,18 @@
+{
+  "$jsonSchema": {
+    "title": "Location",
+    "description": "Location, Simplified",
+    "required": [
+      "name",
+      "description"
+    ],
+    "properties": {
+      "name": {
+        "bsonType": "string"
+      },
+      "description": {
+        "bsonType": "string"
+      }
+    }
+  }
+}
