@@ -15,12 +15,11 @@ MODEL_PREVIEW = "gpt-4-1106-preview"
 
 
 # ================================ Functions: =======================================
-
-# ChatCompletion Method (So IDE will stop yelling at me for duplicated code)
-def chat_complete_story(user_input, **kwargs):
+# Main Loop 2-Stage GPT Processor
+def chat_complete_story(user_input: str, **kwargs):
     print("[AGENT]:", end=" ")
 
-    # Setup return values
+    # Setup return values / important things to update
     game_map = kwargs.get('game_map')
     scenario = kwargs.get('scenario')
     events = []
@@ -233,7 +232,7 @@ def sdprompter(subject: str, title=None):
     response = openai.ChatCompletion.create(
         model=MODEL,
         messages=[
-            {"role": "system", "content": CONTEXT_SDPROMTER},
+            {"role": "system", "content": CONTEXT_SDPROMPTER},
             {"role": "user", "content": subject}
         ]
     )
