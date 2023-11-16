@@ -1,8 +1,8 @@
 import unittest
 
-from LLDM.helpers.path_config import *
+from LLDM.helpers.Utility.path_config import *
 from LLDM.Objects.Character import Character
-from LLDM.Objects.WorldArchitecture import World
+from LLDM.Objects.test.WorldArchitecture import World
 from battle_manager import Battle
 
 # Test that Character class loads info correctly

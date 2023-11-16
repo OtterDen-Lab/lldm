@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from .FileControl import *
+from LLDM.helpers.Utility.FileControl import *
 
 # Package Directory  (LLDM < helpers < path_config.py)
 LLDM_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -21,11 +21,11 @@ if not os.path.exists(WEB_APP_IMAGES):
 RESOURCES_DIR = os.path.join(LLDM_DIR, "resources")
 
 # TESTING DATA DRAGONBORN SORCERER SAMPLE
-PATH_RESOURCE_CHARACTERS         = os.path.join(RESOURCES_DIR, "SampleJSON")
+PATH_RESOURCE_CHARACTERS         = os.path.join(RESOURCES_DIR, "../../resources/SampleJSON")
 PATH_RESOURCE_SAMPLE_CHARACTER   = os.path.join(PATH_RESOURCE_CHARACTERS, "Dragon_JSON.txt")
 
 # GPT Subdirectory
-RES_GPT_DIR = os.path.join(RESOURCES_DIR, "GPT")
+RES_GPT_DIR = os.path.join(RESOURCES_DIR, "../../resources/GPT")
 PATH_CONTEXT_GAMEMASTER          = os.path.join(RES_GPT_DIR, "GameAnalyst.txt")
 PATH_CONTEXT_GAMESETUP           = os.path.join(RES_GPT_DIR, "GameSetup.txt")
 PATH_CONTEXT_SDPROMTER           = os.path.join(RES_GPT_DIR, "SDPrompter.txt")
@@ -34,7 +34,7 @@ PATH_CONTEXT_SIMPLE_AGENT        = os.path.join(RES_GPT_DIR, "SimpleDungeonAgent
 PATH_CONTEXT_SIMPLE_EVENT        = os.path.join(RES_GPT_DIR, "SimpleDungeonEvent.txt")
 
 # SD Subdirectory
-RES_SD_DIR = os.path.join(RESOURCES_DIR, "SD")
+RES_SD_DIR = os.path.join(RESOURCES_DIR, "../../resources/SD")
 PATH_SDCONFIG_NEGATIVE           = os.path.join(RES_SD_DIR, "NegativePrompt.txt")
 PATH_SDCONFIG_CONFIG             = os.path.join(RES_SD_DIR, "Payload.txt")
 
@@ -54,33 +54,23 @@ if not os.path.exists(CURRENT_CAMPAIGN_DIR):
 
 # Instance Logs (Campaign-specific ChatCompletion Dumps)
 PATH_OUTPUT_GAMEMASTER           = os.path.join(CURRENT_CAMPAIGN_DIR, "OUTPUT_GAMEMASTER.txt")
-PATH_OUTPUT_CHRONICLER           = os.path.join(CURRENT_CAMPAIGN_DIR, "OUTPUT_CHRONICLER.txt")
-# NOTE: Chronicler output is overwritten (summary-of-summary to preserve tokens)
-
-PATH_LOG_GAMEMASTER              = os.path.join(CURRENT_CAMPAIGN_DIR, "LOG_GAMEMASTER.txt")
 PATH_LOG_SDPROMPTER              = os.path.join(CURRENT_CAMPAIGN_DIR, "LOG_SDPROMPTER.txt")
-PATH_LOG_CHRONICLER              = os.path.join(CURRENT_CAMPAIGN_DIR, "LOG_CHRONICLER.txt")
+PATH_LOG_EVENTS                  = os.path.join(CURRENT_CAMPAIGN_DIR, "LOG_EVENTS.txt")
 PATH_OUTPUT_STABLEDIFFUSION      = os.path.join(CURRENT_CAMPAIGN_DIR, "Images")
 if not os.path.exists(PATH_OUTPUT_STABLEDIFFUSION):
     os.makedirs(PATH_OUTPUT_STABLEDIFFUSION)
 
 # Touch Outputs & Logs
 LogList = [
-    PATH_OUTPUT_GAMEMASTER,
-    PATH_OUTPUT_CHRONICLER,
-    PATH_LOG_GAMEMASTER,
     PATH_LOG_SDPROMPTER,
-    PATH_LOG_CHRONICLER
+    PATH_LOG_EVENTS
 ]
-
 for output_path in LogList:
     with open(output_path, 'a'):
         pass
 
-CONTEXT_GAMESETUP    = read(PATH_CONTEXT_GAMESETUP)
-CONTEXT_GAMEMASTER   = read(PATH_CONTEXT_GAMEMASTER)
+
 CONTEXT_SDPROMTER    = read(PATH_CONTEXT_SDPROMTER)
-CONTEXT_CHRONICLER   = read(PATH_CONTEXT_CHRONICLER)
 CONTEXT_SIMPLE_AGENT   = read(PATH_CONTEXT_SIMPLE_AGENT)
 CONTEXT_SIMPLE_EVENT   = read(PATH_CONTEXT_SIMPLE_EVENT)
 RESOURCE_SAMPLE_CHARACTER = read(PATH_RESOURCE_SAMPLE_CHARACTER)

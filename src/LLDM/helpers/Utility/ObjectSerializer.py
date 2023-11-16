@@ -1,6 +1,6 @@
 from json import JSONEncoder
 import json
-from LLDM.Objects.WorldArchitecture import *
+from LLDM.Objects.test.WorldArchitecture import *
 
 # from LLDM.Objects.WorldArchitecture import World, Continent, Region, City, Site, CityDistrict, Building
 #

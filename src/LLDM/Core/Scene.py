@@ -1,9 +1,8 @@
-from LLDM.Objects.PrettyPrinter import NestedFormatter
-from LLDM.Objects.WorldArchitecture import BaseLocation
-from json import JSONEncoder
-import json
+from LLDM.Core.PrettyPrinter import NestedFormatter
 
 
+# Events are the descriptions of actions or reactions created through play.
+# User inputs are processed by GPT into action Events, then resolved by GPT again to produce reaction Events
 class Event:
     def __init__(self, title: str, summary: str, category: str):
         self._title = title
@@ -29,12 +28,30 @@ class Event:
         return self._category
 
 
+# Simplified Character object.
+# TODO: Optional: Add parameters
 class Character(NestedFormatter):
-    def __init__(self, name: str, health: int):
+    def __init__(self, name: str, health: int, inventory=None):
+        if inventory is None:
+            inventory = []
         self._name = name
         self._health = health
+        self._inventory = inventory
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def health(self):
+        return self._health
+
+    @property
+    def inventory(self):
+        return self._inventory
 
 
+# Item object, with keyword arguments for optional attributes.
 class Item(NestedFormatter):
     def __init__(self, name: str, description: str, **kwargs):
         self._name = name
@@ -44,7 +61,24 @@ class Item(NestedFormatter):
         if kwargs.get("amount") is not None:
             self._amount = kwargs.get("amount")
 
+    @property
+    def name(self):
+        return self._name
 
+    @property
+    def description(self):
+        return self._description
+
+    @property
+    def amount(self):
+        return self._amount
+
+    @property
+    def damage(self):
+        return self._damage
+
+
+# Node of a graph with bidirectional connections. Each connection has a distance (currently unused)
 class Location:
     def __init__(self, name, description, adjacent=None):
         self._name = name
@@ -72,6 +106,7 @@ class Location:
         return self._name
 
 
+# Map. Holds Locations as in a node-based graph structure
 class Map:
     def __init__(self):
         self.locations = {}  # Holds Location objects. Which have their own list of adjacent locations
@@ -126,6 +161,8 @@ class Map:
             return None
 
 
+# Scene represent the top level object.
+# It holds the entire map/graph data, all events that have occurred, and all characters present.
 class Scene(NestedFormatter):
     time = 0
 
@@ -143,16 +180,8 @@ class Scene(NestedFormatter):
     def add_character(self, character: Character):
         self._characters.append(character)
 
-# Room1 = Location("Room 1", "The first room")
-# Room2 = Location("Room 2", "The second room")
-# Room3 = Location("Room 3", "The third room")
-#
-# map1 = Map()
-# map1.add_location(Room1)
-# map1.add_location(Room2)
-# map1.add_location(Room3)
-#
-# map1.connect_locations(Room1, Room2)
-# map1.connect_locations(Room2, Room3)
-#
-# print(map1)
+    def get_character_by_name(self, name):
+        for character in self._characters:
+            if character.name == name:
+                return character
+        return None

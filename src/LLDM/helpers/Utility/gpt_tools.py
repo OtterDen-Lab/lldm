@@ -1,5 +1,5 @@
 from enum import Enum
-from LLDM.Objects.Scene import Event, Item, Location, Map
+from LLDM.Core.Scene import Event, Item, Location
 
 
 class Tools(Enum):
@@ -68,7 +68,8 @@ class Tools(Enum):
                 "required": ["title", "summary"],
             }
         }
-    }
+    }  # Currently Unimplemented
+
     # Second Call - Apply described action to game data
     CREATE_ITEM = {
         "type": "function",
@@ -138,6 +139,31 @@ class Tools(Enum):
         }
     }
 
+    # TODO: Create a ChatCompletion Function for HANDLE_EXAMINE{}
+    # This function should just produce more text/information about the entity it is describing.
+    # Most of the work for this will be done in the actual method, not the ChatCompletion.
+    HANDLE_EXAMINE = {
+        "type": "function",
+        "function": {}
+    }
+
+    # Battle Division Calls
+    # TODO: Create a ChatCompletion Function for CREATE_BATTLE_EVENT{}
+    # This is the battle-equivalent of CREATE_EVENT.
+    # This is an input-processor specifically tailored to analyze user inputs in the context of a battle.
+    CREATE_BATTLE_EVENT = {
+        "type": "function",
+        "function": {}
+    }
+
+    # TODO: Create a ChatCompletion Function for HANDLE_ATTACK{}
+    # It should contain attributes for the target (character hp), weapon used (damage).
+    # Plus anything else you think is necessary to compute an attack.
+    HANDLE_ATTACK = {
+        "type": "function",
+        "function": {}
+    }
+
 
 def illegal_action(title: str):
     print(f"User inputted an illegal action: {title}")
@@ -177,8 +203,6 @@ def create_item(name, description, damage=None, amount=None, **kwargs):
     # Assuming Item can take damage and amount as None
     item = Item(name, description, damage=damage, amount=amount)
     return item, create_event(name, description, "Item Generated")
-    # Only useful if we're passing this back into GPT through messages.append({"content": function_response})
-    # return obj_to_json(item)
 
 
 def handle_movement(moving_into, game_map, **kwargs):
@@ -190,3 +214,16 @@ def handle_movement(moving_into, game_map, **kwargs):
     else:
         print(f"Move failed: No location found with matching name. Was ChatGPT supposed to create a location instead?")
     return game_map
+
+
+# Create functions to be called by GPT via Tool-calls.
+# TODO: Make a handle_attack() function.
+def handle_attack(weapon, target, **kwargs):
+    pass  # You can add/remove/edit the parameters as needed.
+
+
+# TODO: Make a handle_examine() function.
+def handle_examine(subject, description, **kwargs):
+    pass  # You can add/remove/edit the parameters as needed.
+    # The core part of this function is to append that information to an alread-existing object.
+    # Example: Appending newly produced information into the description of a location.

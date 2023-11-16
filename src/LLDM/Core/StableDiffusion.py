@@ -1,14 +1,14 @@
-﻿import os
-
-import requests
+﻿import requests
 import io
 import base64
 from PIL import Image, PngImagePlugin
 
-from .helpers.path_config import *
+from LLDM.helpers.Utility.path_config import *
 
 
-def generate():
+def generate(title=None):
+    filename = title if title is not None else "output"
+
     # Use local instance, the gradio link will expire after 72 hours
     url = "http://127.0.0.1:7860"
     #url = "https://664176ef9c42434e22.gradio.live"
@@ -41,10 +41,10 @@ def generate():
         pnginfo = PngImagePlugin.PngInfo()
         pnginfo.add_text("parameters", response2.json().get("info"))
 
-        img_path = uniquify(os.path.join(PATH_OUTPUT_STABLEDIFFUSION, "output.png"))
+        img_path = uniquify(os.path.join(PATH_OUTPUT_STABLEDIFFUSION, f"{filename}.png"))
         image.save(img_path, pnginfo=pnginfo)
         # image.show()
-        static_img_path = uniquify(os.path.join(WEB_APP_IMAGES, "output.png"))
+        static_img_path = uniquify(os.path.join(WEB_APP_IMAGES, f"{filename}.png"))
         image.save(static_img_path, pnginfo=pnginfo)
 
         # print(f"Image Output Path: {static_img_path}")

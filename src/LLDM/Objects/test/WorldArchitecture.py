@@ -1,4 +1,4 @@
-from LLDM.Objects.PrettyPrinter import PrettyPrinter
+from LLDM.Core.PrettyPrinter import PrettyPrinter
 
 
 # This is the hierarchical file for objects from World >>> Building
