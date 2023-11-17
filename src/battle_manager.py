@@ -1,8 +1,8 @@
 # TODO: copy and use current party and enemy JSON files then use that for the battle and apply it to the old when finished
 # TODO: update JSON files
 # TODO: line 85
-from LLDM.Character import Character
-from LLDM.World import World
+from LLDM.Objects.Character import Character
+from LLDM.Objects.WorldArchitecture import World
 import random
 import openai
 
@@ -34,34 +34,12 @@ class Battle():
     self.log = []
     self.action_log = []
     self.current_target = ""
-
-  def _start_battle_helper_(self):
-    self._turn_order_()
-    self.turn = 1
-    self.battle_result = "unknown"
-    self.character_index = 0
-
-  def _turn_order_(self):
-    self._assign_initiative_(self.players_list, self.enemy_list)
-    self.order = sorted(self.order, key=lambda x: x[0])
-
-  def _assign_initiative_(self, team1, team2):
-    print("Merging party members to enemies")
-    for character in team1:
-      print("\nRolling initiative for " + character.JSON['name'] + "(Party): ")
-      roll = self.dice.randint(0, 21) + character.JSON['ability_scores']['dex_mod']
-      self.order.append((roll, character))
-
-    for character in team2:
-      print("\nRolling initiative for " + character.JSON['name'] + "(Enemy): ")
-      roll = self.dice.randint(0, 21) + character.JSON['ability_scores']['dex_mod']
-      self.order.append((roll, character))
   
   
   def start_battle(self):
     print("Starting Battle\n")
     self._start_battle_helper_()
-    self.set_stroyteller()
+    self.set_storyteller()
     
     print(f"Battle beginning at turn {self.turn}")
     #! For here you need to check
@@ -73,87 +51,50 @@ class Battle():
       if (self.character_index == 0): 
         self.turn += 1
         print(f"Turn complete. Starting Turn {self.turn}")
-        self.reset_temp_mods(self)
+        self.reset_temp_mods()
 
         break #! For debug purposes, only one turn happens, otherwise infinite
     
     print("Battle Complete\n")
-    
-  def update_characters(self):
-    #! grabs character JSON files and determine if the characters are dead "HP < 0"
-    number = 0
-    while number < len(self.order):
-      passed = True
-      if self.order[number][1].JSON['hit_points']['current'] < 0:
-        if self.order[number][1].JSON['player']['entity'] != "party":
-          self.enemy_list.remove(self.order[number][1])
-
-        else:
-          self.players_list.remove(self.order[number][1])
-
-        self.order.remove(self.order[number])
-        self.player_alive_count = len(self.players_list)
-        self.enemy_alive_count = len(self.enemy_list)
-      if passed:
-        number += 1
-    # pass
 
   def current_turn(self, character):
-    # For Jalen to implement
-    other_text = ""
-    print("It is currently " + character.JSON['name'] + "'s time to act!")
+    print("It is currently " + character.JSON['name'] + "'s time to act!\n")
     while True:
       # TODO: manage dodges
       #? check if the character is an enemy
+      # TODO: Code all the necessary queries for a given player's turn
       if (character.JSON['player']['entity'] != "party"):
-        print("AI commands")
-        return
+        print("Prompting for " + character.JSON['name'] + "'s action\n")
+        prompt_input = queryStringGetHelpFromRayForWhatThisShouldBe
       else:
-        print("Give " + character.JSON['name'] + " something to do: ")
-        other_text = input()
-        other_text = other_text.lower()
-        if (self.commands.__contains__(other_text)):
-          print(character.JSON['name'] + " is doing " +  other_text + "\n")
-          self.action_function(other_text)
-          if self.breaker:
+        print("Give " + character.JSON['name'] + " something to do this turn. Provide target and other information as needed: ")
+        prompt_input = str(input())
+
+      match prompt_input:
+        case _:
+          action = self.chat_complete_getAction(prompt_input, character)
+          if action is False or action['action_type'] == "help":
+            continue
+          
+          if action is not None:
+            response = self.chat_complete_performAction(action, character)
+
+            # Update Character Annotations / Attributes
+
             break
-          """
-          ! all movement based action will not be considered for the time being
-          #? create a list of what commnads do what
-          #? Attack - character a attacks character b via normal means with current equipment
-          #? Dodge - for the time being all characters who attacks character a will have disadventage
-          #? Help - character b will get advantage
-          #? more action can be callled later maybe...
-          """
-
-    #? UNKNOWN: If it is an enemy's turn, auto generate information from GPT? or have do the same thing as the player...
-    
-
-    #? character x does [action]
-    #? character x attack/helps y
-    action_text = ""
-    action_text += character.JSON['name'] + " does "
-    #? if/switch cases for actions
-    if other_text == "dodge":
-      action_text += "a dodge on the next time if they are hit"
-    elif other_text == "attack":
-      action_text += "an attack at " + self.current_target
-    elif other_text == "ready":
-      action_text = character.JSON['name'] + " will prepair an action."
-    
-    if len(self.current_target) != 0:
-      self.current_target = ""
-
-    self.query_turn_story(action_text)
-
-    # TODO: Update JSON Database based off keywords in action_text?
-
-
-
-    # Update Character Annotations / Attributes
-    # attributes.update_attributes(character)
 
     print("End of " + character.JSON['name'] + "'s turn\n")
+
+
+
+  """
+  ! all movement based action will not be considered for the time being
+  #? create a list of what commnads do what
+  #? Attack - character a attacks character b via normal means with current equipment
+  #? Dodge - for the time being all characters who attacks character a will hdisadventage
+  #? Help - character b will get advantage
+  #? more action can be callled later maybe...
+  """
 
   def action_function(self, option):
     found_character = False
@@ -208,41 +149,157 @@ class Battle():
     return False
 
 
-#################################
+#########################################
 #
-#        Battle Functions
+#          Pre-Battle Functions
 #
-#################################
+#########################################
 
-  def _victory_(self):
+  def _start_battle_helper_(self):
+    self._turn_order_()
+    self.turn = 1
+    self.battle_result = "unknown"
+    self.character_index = 0
+
+  def _turn_order_(self):
+    self._assign_initiative_(self.players_list, self.enemy_list)
+    self.order = sorted(self.order, key=lambda x: x[0])
+
+  def _assign_initiative_(self, team1, team2):
+    """
+    ! Also if we need an intiiative stat for character we don't need to assign manually we should   need a rng d20
+    ! from there you should assign current initiative per character this can be solved quickly for  either our team
+    ! or the campign team
+    """
+
+    print("Merging party members to enemies")
+    for character in team1:
+      print("\nRolling initiative for " + character.JSON['name'] + "(Party): ")
+      roll = self.dice.randint(0, 21) + character.JSON['ability_scores']['dex_mod']
+      self.order.append((roll, character))
+
+    for character in team2:
+      print("\nRolling initiative for " + character.JSON['name'] + "(Enemy): ")
+      roll = self.dice.randint(0, 21) + character.JSON['ability_scores']['dex_mod']
+      self.order.append((roll, character))
+
+
+
+#########################################
+#
+#        Chat Complete Functions
+#
+#########################################
+
+  def chat_complete_getAction(self):
     pass
 
-  def _defeat_(self):
+  def chat_complete_performAction(self):
     pass
 
-  def _run_away_players_(self):
+
+
+#########################################
+#
+#          Battle Functions
+#
+#########################################
+
+  def handle_attack(self):
     pass
 
-  def _run_away_enemies_(self):
+  def handle_dodge(self, character):
+    character.JSON['Status Aliments']["Dodge"] = True
     pass
 
-  def _damage_calculator_(self):
+  def handle_help(self):
     pass
 
-  def action_attack(self):
+  def handle_actions(self):
     pass
 
-  def action_wait(self):
+  def handle_wait(self):
     pass
 
-  def action_skill(self):
-    pass
-
-  # Primarily for anger or fear leading to possible run away
   def check_motivation(self):
+    # TODO: Primarily for anger or fear leading to possible run away
+
     pass
 
-  # For Jalen
+  def update_characters(self):
+    #! grabs character JSON files and determine if the characters are dead "HP < 0"
+    number = 0
+    while number < len(self.order):
+      passed = True
+      if self.order[number][1].JSON['hit_points']['current'] < 0:
+        if self.order[number][1].JSON['player']['entity'] != "party":
+          self.enemy_list.remove(self.order[number][1])
+
+        else:
+          self.players_list.remove(self.order[number][1])
+
+        self.order.remove(self.order[number])
+        self.player_alive_count = len(self.players_list)
+        self.enemy_alive_count = len(self.enemy_list)
+      if passed:
+        number += 1
+
+#########################################
+#
+#    End of Battle Functions - Richard
+#
+#########################################
+
+  def conclusion_summary_GPT(self, outcome):
+    # TODO: Check LLDM MasterDoc (Should be in slack group DM)
+    
+    pass
+
+  def rewards_distribution(self):
+    # TODO: Check LLDM MasterDoc
+
+    pass
+
+  def reset_battle_check(self):
+    # TODO: Check LLDM MasterDoc
+
+    pass
+
+  # Dominic will implement
+  def finalize_objects(self):
+
+    pass
+
+
+
+
+
+
+#########################################
+#
+#               Unused
+#
+#########################################
+  # # TODO: If it is an enemy's turn, auto generate information from GPT? or have do the same thing as the player...
+    
+
+  #   # TODO: Figure out how much action text there will be from the user. If it's an enemy, we would need to generate this information somehow.
+  #   #? character x does [action]
+  #   #? character x attack/helps y
+  #   action_text = ""
+  #   action_text += character.JSON['name'] + " does "
+  #   #? if/switch cases for actions
+  #   if other_text == "dodge":
+  #     action_text += "a dodge on the next time if they are hit"
+  #   elif other_text == "attack":
+  #     action_text += " an attack"
+  #   elif other_text == "ready":
+  #     action_text = character.JSON['name'] + " will prepare an action."
+    
+  #   self.query_turn_story(action_text)
+
+  # Need to Update / Add in
+    # For Jalen
   def query_turn_story(self, action_text):
     text = "discribe and summarize this: " + action_text
     print("[GAMEMASTER]:", end=" ")
@@ -254,7 +311,7 @@ class Battle():
     # TODO: Update Vector DB with Chat GPT's summary:
     
 
-  def set_stroyteller(self):
+  def set_storyteller(self):
     #? The context can be edited for maybe for a better description
     self.log.append({"role": "system", "content": "You are a Dungeon Master facilitating a Dungeons and Dragons campaign that is currently within a battle"})
   
