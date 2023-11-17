@@ -1,7 +1,7 @@
 ﻿from .Objects.ObjectSerializer import obj_to_json
 from .Objects.Scene import Event, Item, Location, Map
 from .helpers.gpt_tools import *
-from .helpers.path_config_false import *
+from .helpers.path_config import *
 from .StableDiffusion import generate
 
 import openai

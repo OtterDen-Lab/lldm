@@ -5,7 +5,7 @@ import io
 import base64
 from PIL import Image, PngImagePlugin
 
-from .helpers.path_config_false import *
+from .helpers.path_config import *
 
 
 def generate():
