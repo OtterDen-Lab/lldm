@@ -1,1 +1,1 @@
-Small, sparkling gem, colorful.
+Stable Diffusion environment prompt: dimly lit corridor, deep dungeon
