@@ -1,8 +1,8 @@
 # TODO: copy and use current party and enemy JSON files then use that for the battle and apply it to the old when finished
 # TODO: update JSON files
 # TODO: line 85
-from LLDM.Character import Character
-from LLDM.World import World
+from LLDM.Objects.Character import Character
+from LLDM.Objects.WorldArchitecture import World
 import random
 import openai
 
