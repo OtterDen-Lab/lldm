@@ -12,7 +12,7 @@ class Mock_test_1(unittest.TestCase):
         self.enemies = []
         self.location = World("testWorld", "TestDescription")
         self.players.append(Character(PATH_RESOURCE_SAMPLE_CHARACTER))
-        self.enemies.append(Character(PATH_RESOURCE_SAMPLE_CHARACTER))
+        self.enemies.append(Character(PATH_RESOURCE_SAMPLE_CHARACTER2))
 
         self.battle = Battle(self.location, self.players, self.enemies)
 
