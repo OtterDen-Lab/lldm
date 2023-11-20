@@ -69,6 +69,10 @@ class Item(NestedFormatter):
     def description(self):
         return self._description
 
+    @description.setter
+    def description(self, value):
+        self._description = value
+
     @property
     def amount(self):
         return self._amount
@@ -100,6 +104,10 @@ class Location:
     @property
     def description(self):
         return self._description
+
+    @description.setter
+    def description(self, value):
+        self._description = value
 
     @property
     def name(self):

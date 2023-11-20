@@ -3,6 +3,7 @@ from LLDM.Core.GPT import *
 from LLDM.Core.Scene import Scene, Location, Character, Map
 
 
+
 print("LLDM Active:\nType \"exit\" to stop this program.\n")
 
 # TODO: Use a DungeonGenerator to pass main a fully-structured dungeon with notable locations and entrance/exit.
@@ -21,12 +22,15 @@ print(map1)
 
 
 # Scenes are built off of maps. New map? New scene. (E.g. Dungeon, City)
-# If the new scene should come with characters, generate them, and them to the scene.
+# If the new scene should come with characters, generate them, and add them to the scene.
 #  (including copying existing characters from the old scene)
 print("Stage 1: Initializing Scene")
 scene = Scene(map1)
 character = Character("player1", 100)
+sword = Item("Sword", "A legendary sword crafted from the finest steel.", damage=100, amount=1)
+character.inventory.append(sword)
 scene.add_character(character)
+
 
 
 # Enter main loop of input>process>apply>input
@@ -40,7 +44,7 @@ while user_input != "exit":
     match user_input:
         case _:
             # Perform the ChatCompletion with our user input
-            response = chat_complete_story(user_input, game_map=map1, scenario=scenario)
+            response = chat_complete_story(user_input, game_map=map1, scenario=scenario, character=character)
 
             # False indicates Illegal Operation / Failed Input
             if response is False:

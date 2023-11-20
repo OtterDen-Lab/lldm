@@ -2,16 +2,17 @@
 from LLDM.helpers.Utility.gpt_tools import *
 from LLDM.helpers.Utility.path_config import *
 from .StableDiffusion import generate
-
 import openai
 import json
 
-openai.api_key = os.getenv("")
 # Using Sam Ogden's provided API Key for LLDM
 # noinspection SpellCheckingInspection
 openai.api_key = os.environ['GPTAPI']
 MODEL = "gpt-3.5-turbo"
 MODEL_PREVIEW = "gpt-4-1106-preview"
+
+
+
 
 
 # ================================ Functions: =======================================
@@ -22,6 +23,8 @@ def chat_complete_story(user_input: str, **kwargs):
     # Setup return values / important things to update
     game_map = kwargs.get('game_map')
     scenario = kwargs.get('scenario')
+    character = kwargs.get('character')
+    print(f"\n Character: {character}\n")
     events = []
     items = []
 
@@ -62,6 +65,8 @@ def chat_complete_story(user_input: str, **kwargs):
     print("| RESPONSE RECEIVED")
     # print(f"Inputted: {relevant_locations} \n and {user_input}")
 
+    print("\nResponse: ", response, "\n")
+
     # Extract Data of Tools that GPT wanted to call
     tool_calls = response.choices[0].message.tool_calls
     print(tool_calls)
@@ -90,7 +95,8 @@ def chat_complete_story(user_input: str, **kwargs):
     tools = [
         Tools.CREATE_ITEM.value,
         Tools.CREATE_LOCATION.value,
-        Tools.HANDLE_MOVEMENT.value
+        Tools.HANDLE_MOVEMENT.value,
+        Tools.HANDLE_EXAMINE.value
     ]
     resolved_events = []
     for event in events:
@@ -111,6 +117,8 @@ def chat_complete_story(user_input: str, **kwargs):
                 event_tool_name = "create_location"
             case "Movement":
                 event_tool_name = "handle_movement"
+            case "Examine":
+                event_tool_name = "handle_examine"
             case "General Inquiry":
                 raise NotImplementedError
 
@@ -148,6 +156,10 @@ def chat_complete_story(user_input: str, **kwargs):
             damage = function_args.get('damage')
             amount = function_args.get('amount')
             moving_into = function_args.get('moving_into')
+
+            #TODO examine_tool subject line below
+            # subject
+            
             # game_map retrieved from kwargs above (at start)
 
             # Execute function according to matched name
@@ -158,7 +170,7 @@ def chat_complete_story(user_input: str, **kwargs):
                     resolved_events.append(item_response[1])
 
                     # Generate Image of new item
-                    sdprompter(new_item.description, title=new_item.name)
+                    # sdprompter(new_item.description, title=new_item.name)
 
                 case "create_location":
                     location_response = create_location(name, description, game_map)
@@ -166,10 +178,51 @@ def chat_complete_story(user_input: str, **kwargs):
                     resolved_events.append(location_response[1])
 
                     # Generate Image of new current Location
-                    sdprompter(game_map.get_current_location().description, title=game_map.get_current_location().name)
+                    # sdprompter(game_map.get_current_location().description, title=game_map.get_current_location().name)
 
                 case "handle_movement":
                     game_map = handle_movement(moving_into, game_map)
+
+                #TODO run the examine tool we restricted it to the logic part at the bottom somewhere
+                case "handle_examine":
+                    # Retrieve parameters for the examine function
+                    examine_type = function_args.get('type')
+                    obj_name = function_args.get('obj_name')
+                    new_description = function_args.get('description')
+
+                    # Additional game state elements required for the examine function
+                    character = kwargs.get('character')  # Assuming character is passed in kwargs
+                    game_map = kwargs.get('game_map')    # Assuming game_map is passed in kwargs
+                    characters = kwargs.get('characters') # Assuming characters list is passed in kwargs
+
+                    # Call the examine function
+                    updated_object = handle_examine(examine_type, obj_name, new_description, 
+                                                    game_map=game_map, character=character)
+
+                    # Update the game state based on the type of object examined
+                    if updated_object:
+                        match examine_type:
+                            case "Item":
+                                # Update the item in the inventory
+                                # Assuming inventory is a list of Item objects
+                                for i, item in enumerate(character.inventory):
+                                    if item.name == obj_name:
+                                        character.inventory[i] = updated_object
+                                        print(f"\nCharacter Inventory: {character.inventory} \n")
+                                        break
+                            case "Location":
+                                # Update the location in the game map
+                                game_map.add_location(updated_object)
+                            case "Character":
+                                # Update the character in the characters list
+                                for i, character in enumerate(characters):
+                                    if character.name == obj_name:
+                                        characters[i] = updated_object
+                                        break
+                    else:
+                        print(f"No updates made for {obj_name}")
+
+               
 
     # Log the new Reaction Events created from the Event Actions
     for event in resolved_events:
@@ -180,6 +233,15 @@ def chat_complete_story(user_input: str, **kwargs):
         append(PATH_LOG_EVENTS, str(event))
 
     return {'events': events, 'game_map': game_map, 'items': items}
+
+
+
+
+
+
+
+
+
 
 
 # TODO: Create another 2-phase input parse>process>apply using gpt_tools strictly for Battle!
@@ -222,6 +284,12 @@ def chat_complete_battle(user_input, **kwargs):
     # TODO: Add the second call below to handle the result of the response in a loop
     # for battle_event in battle_events:
     #     pass
+
+
+
+
+
+
 
 
 # Function to generate images, using an input text and an optional title (for the filename)

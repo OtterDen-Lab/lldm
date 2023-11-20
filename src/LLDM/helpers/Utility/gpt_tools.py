@@ -18,8 +18,8 @@ class Tools(Enum):
                     },
                     "category": {
                         "type": "string",
-                        "enum": ["Item Generation", "Movement", "Exploration", "General Inquiry"],
-                        "description": "What category the event is most like. Exploration includes opening doors or actions that would reveal locations. Movement is character locomotion. Pick one from the enum."
+                        "enum": ["Item Generation", "Movement", "Exploration", "Examine", "General Inquiry"],
+                        "description": "What category the event is most like. Exploration includes opening doors or actions that would reveal locations. Movement is character locomotion. Examine gives more information about something. Pick one from the enum."
                     },
                     "summary": {
                         "type": "string",
@@ -138,14 +138,33 @@ class Tools(Enum):
             }
         }
     }
-
-    # TODO: Create a ChatCompletion Function for HANDLE_EXAMINE{}
-    # This function should just produce more text/information about the entity it is describing.
-    # Most of the work for this will be done in the actual method, not the ChatCompletion.
     HANDLE_EXAMINE = {
         "type": "function",
-        "function": {}
+        "function": {
+            "name": "handle_examine",
+            "description": "Provide detailed information about a game object upon examination.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": ["Item", "Location", "Character"],
+                        "description": "The type of object being examined."
+                    },
+                    "obj_name": {
+                        "type": "string",
+                        "description": "The name of the object being examined."
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "New details or information to be added to the object's existing description."
+                    }
+                },
+                "required": ["type", "obj_name", "description"]
+            }
+        }
     }
+
 
     # Battle Division Calls
     # TODO: Create a ChatCompletion Function for CREATE_BATTLE_EVENT{}
@@ -222,8 +241,76 @@ def handle_attack(weapon, target, **kwargs):
     pass  # You can add/remove/edit the parameters as needed.
 
 
-# TODO: Make a handle_examine() function.
-def handle_examine(subject, description, **kwargs):
-    pass  # You can add/remove/edit the parameters as needed.
+def handle_examine(type, obj_name, new_description, **kwargs):
+    print("\nEntered handle_examine function!\n")
+    if type == "Item":
+        print("\nType Item\n")
+        # Retrieve the inventory from kwargs
+        character = kwargs.get('character')
+        print(f"\nCharacter inside handle_examine: {character}\n")
+        if character.inventory:
+            # Find the item in the inventory
+            for item in character.inventory:
+                print(f"\nitem.name: {item.name}\n")
+                print(f"\nobj_name: {obj_name}\n")
+                
+                if item.name == obj_name:
+                    # Update the item's description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+                    item.description += " " + new_description
+                    return item  # Return the updated item
+            print(f"Item named {obj_name} not found in inventory.")
+        else:
+            print("Inventory not provided.")
+
+    elif type == "Location":
+        print("\nType Location\n")
+        # Retrieve the game map from kwargs
+        game_map = kwargs.get('game_map')
+        if game_map:
+            # Find the location in the game map
+            location = game_map.get_location_by_name(obj_name)
+            if location:
+                # Update the location's description
+                location.description += " " + new_description
+                return location  # Return the updated location
+            else:
+                print(f"Location named {obj_name} not found.")
+        else:
+            print("Game map not provided.")
+
+    elif type == "Character":
+        # Retrieve the character list from kwargs
+        characters = kwargs.get('characters')
+        if characters:
+            # Find the character
+            for character in characters:
+                if character.name == obj_name:
+                    # Update the character's description
+                    character.description += " " + new_description
+                    return character  # Return the updated character
+            print(f"Character named {obj_name} not found.")
+        else:
+            print("Character list not provided.")
+
+    else:
+        print(f"Unknown type: {type}")
+
+
+
+
+
+
+    # You can add/remove/edit the parameters as needed.
     # The core part of this function is to append that information to an alread-existing object.
     # Example: Appending newly produced information into the description of a location.
+
+    #I am handed (string)subject(name, description) and new description which is the new fluff append and return the two descriptions
+    
+
+
+
+
+
+#   GPTTOOLs I need to make the parameter generating function the big json text and I need the logic function to add the descriptions to objects with an openai call
+# GPT after the events been made i get a category back its a check to ensure chatgpt is only runnign the tool we want it tot use when we want it to use we are not giving it freedom if we know what its suppsoe to run 
+#line 110 in gpt.py
