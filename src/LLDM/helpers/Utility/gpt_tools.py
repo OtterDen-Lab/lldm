@@ -18,7 +18,7 @@ class Tools(Enum):
                     },
                     "category": {
                         "type": "string",
-                        "enum": ["Item Generation", "Movement", "Exploration", "Examine", "General Inquiry"],
+                        "enum": ["Item Generation", "Movement", "Exploration", "Examine"],
                         "description": "What category the event is most like. Exploration includes opening doors or actions that would reveal locations. Movement is character locomotion. Examine gives more information about something. Pick one from the enum."
                     },
                     "summary": {
@@ -48,27 +48,6 @@ class Tools(Enum):
             }
         }
     }
-    HANDLE_PERCEPTION = {
-        "type": "function",
-        "function": {
-            "name": "handle_perception",
-            "description": "General-purpose function to reveal more detail about the game environment. This includes searching for details and answering questions",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "title": {
-                        "type": "string",
-                        "description": "The title of query.",
-                    },
-                    "summary": {
-                        "type": "string",
-                        "description": "Your natural response as a TTRPG DM, provide details, clues or events to give something the player can interact with and keep the story going."
-                    }
-                },
-                "required": ["title", "summary"],
-            }
-        }
-    }  # Currently Unimplemented
 
     # Second Call - Apply described action to game data
     CREATE_ITEM = {
@@ -142,7 +121,7 @@ class Tools(Enum):
         "type": "function",
         "function": {
             "name": "handle_examine",
-            "description": "Provide detailed information about a game object upon examination.",
+            "description": "Provide additional details about a game object upon examination.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -153,11 +132,11 @@ class Tools(Enum):
                     },
                     "obj_name": {
                         "type": "string",
-                        "description": "The name of the object being examined."
+                        "description": "The name of best fitting object"
                     },
                     "description": {
                         "type": "string",
-                        "description": "New details or information to be added to the object's existing description."
+                        "description": "A rewritten description, retaining all important details but also including new ones. Just the facts, no addressing any observers."
                     }
                 },
                 "required": ["type", "obj_name", "description"]
@@ -241,28 +220,25 @@ def handle_attack(weapon, target, **kwargs):
     pass  # You can add/remove/edit the parameters as needed.
 
 
-def handle_examine(type, obj_name, new_description, **kwargs):
-    print("\nEntered handle_examine function!\n")
-    if type == "Item":
+def handle_examine(obj_type, obj_name, new_description, **kwargs):
+    # print("\nEntered handle_examine function!\n")
+    if obj_type == "Item":
         print("\nType Item\n")
         # Retrieve the inventory from kwargs
         character = kwargs.get('character')
-        print(f"\nCharacter inside handle_examine: {character}\n")
+        # print(f"\nCharacter inside handle_examine: {character}\n")
         if character.inventory:
             # Find the item in the inventory
             for item in character.inventory:
-                print(f"\nitem.name: {item.name}\n")
-                print(f"\nobj_name: {obj_name}\n")
-                
                 if item.name == obj_name:
                     # Update the item's description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
-                    item.description += " " + new_description
+                    item.description = new_description
                     return item  # Return the updated item
             print(f"Item named {obj_name} not found in inventory.")
         else:
             print("Inventory not provided.")
 
-    elif type == "Location":
+    elif obj_type == "Location":
         print("\nType Location\n")
         # Retrieve the game map from kwargs
         game_map = kwargs.get('game_map')
@@ -271,29 +247,32 @@ def handle_examine(type, obj_name, new_description, **kwargs):
             location = game_map.get_location_by_name(obj_name)
             if location:
                 # Update the location's description
-                location.description += " " + new_description
-                return location  # Return the updated location
+                location.description = new_description
+                return game_map  # Return the updated game_map
             else:
                 print(f"Location named {obj_name} not found.")
         else:
             print("Game map not provided.")
 
-    elif type == "Character":
+    elif obj_type == "Character":
         # Retrieve the character list from kwargs
-        characters = kwargs.get('characters')
-        if characters:
-            # Find the character
-            for character in characters:
-                if character.name == obj_name:
-                    # Update the character's description
-                    character.description += " " + new_description
-                    return character  # Return the updated character
-            print(f"Character named {obj_name} not found.")
-        else:
-            print("Character list not provided.")
+        character = kwargs.get('character')
+        character.description += " " + new_description
+        return character  # Return the updated character
+
+        # if characters:
+        #     # Find the character
+        #     for character in characters:
+        #         if character.name == obj_name:
+        #             # Update the character's description
+        #             character.description += " " + new_description
+        #             return character  # Return the updated character
+        #     print(f"Character named {obj_name} not found.")
+        # else:
+        #     print("Character list not provided.")
 
     else:
-        print(f"Unknown type: {type}")
+        print(f"Unknown type: {obj_type}")
 
 
 

@@ -12,9 +12,6 @@ MODEL = "gpt-3.5-turbo"
 MODEL_PREVIEW = "gpt-4-1106-preview"
 
 
-
-
-
 # ================================ Functions: =======================================
 # Main Loop 2-Stage GPT Processor
 def chat_complete_story(user_input: str, **kwargs):
@@ -22,11 +19,8 @@ def chat_complete_story(user_input: str, **kwargs):
 
     # Setup return values / important things to update
     game_map = kwargs.get('game_map')
-    scenario = kwargs.get('scenario')
     character = kwargs.get('character')
-    print(f"\n Character: {character}\n")
     events = []
-    items = []
 
     # send only relevant Location objects (subset of graph) to each API prompt
     current_location = game_map.get_current_location()
@@ -36,25 +30,21 @@ def chat_complete_story(user_input: str, **kwargs):
     relevant_locations = f"[Map]: {locations}\nCurrent Location: [{current_location}]"
     # later, overwrite the graph entries using the list
 
-    # Load GPT Dialogue
-    messages = [{"role": "system", "content": CONTEXT_SIMPLE_EVENT}]
-
-    # Optional: Load extra detail (from perception) into prompt
-    if scenario is not None:
-        messages.append({"role": "assistant", "content": str(scenario)})
-
-    # Add game information and user input
-    messages.append(
-        {"role": "user", "content": "\n Game Map: " + str(relevant_locations) + "\n User Input: " + user_input})
+    # Load GPT Dialogue (Add game information and user input)
+    messages = [{"role": "system", "content": CONTEXT_SIMPLE_EVENT},
+                {"role": "user", "content":
+                    f"\n Game Map: {str(relevant_locations)} "
+                    f"\n Character: {character}"
+                    f"\n User Input:{user_input}"
+                 }]
 
     # Load GPT Functions
     tools = [
         Tools.CREATE_EVENT.value,
         Tools.ILLEGAL_ACTION.value
-        # Tools.HANDLE_PERCEPTION.value
     ]
 
-    # Execute OpenAI API call
+    # Execute OpenAI API call (First call, for parsing input into an Event)
     print("[OPENAI]: REQUEST SENT", end=" ")
     response = openai.ChatCompletion.create(
         model=MODEL,
@@ -65,7 +55,7 @@ def chat_complete_story(user_input: str, **kwargs):
     print("| RESPONSE RECEIVED")
     # print(f"Inputted: {relevant_locations} \n and {user_input}")
 
-    print("\nResponse: ", response, "\n")
+    # print("\nResponse: ", response, "\n")
 
     # Extract Data of Tools that GPT wanted to call
     tool_calls = response.choices[0].message.tool_calls
@@ -101,12 +91,12 @@ def chat_complete_story(user_input: str, **kwargs):
     resolved_events = []
     for event in events:
         # Load GPT Dialogue into Prompt (With Specific Event Data)
-        messages = [
-            {"role": "system", "content": CONTEXT_SIMPLE_AGENT},
-            {"role": "user",
-             "content": "\n Game Map: " + str(relevant_locations) + "\n User Input/Event Description: " + obj_to_json(
-                 event)}
-        ]
+        messages = [{"role": "system", "content": CONTEXT_SIMPLE_AGENT},
+                    {"role": "user", "content":
+                        f"\n Game Map: {str(relevant_locations)} "
+                        f"\n Character: {character}"
+                        f"\n User Input/Event Description:{obj_to_json(event)}"
+                     }]
 
         # Force use of function based on Event category. This helps reduce GPT confusion
         event_tool_name = None
@@ -119,8 +109,6 @@ def chat_complete_story(user_input: str, **kwargs):
                 event_tool_name = "handle_movement"
             case "Examine":
                 event_tool_name = "handle_examine"
-            case "General Inquiry":
-                raise NotImplementedError
 
         if event_tool_name is None:
             event_tool = "auto"
@@ -130,7 +118,7 @@ def chat_complete_story(user_input: str, **kwargs):
                 "function": {"name": event_tool_name}
             }
 
-        # Execute OpenAI API call
+        # Execute OpenAI API call (Second call, for modifying data structures)
         print("[OPENAI]: REQUEST SENT", end=" ")
         response = openai.ChatCompletion.create(
             model=MODEL,
@@ -156,10 +144,6 @@ def chat_complete_story(user_input: str, **kwargs):
             damage = function_args.get('damage')
             amount = function_args.get('amount')
             moving_into = function_args.get('moving_into')
-
-            #TODO examine_tool subject line below
-            # subject
-            
             # game_map retrieved from kwargs above (at start)
 
             # Execute function according to matched name
@@ -167,6 +151,7 @@ def chat_complete_story(user_input: str, **kwargs):
                 case "create_item":
                     item_response = create_item(name, description, damage, amount)
                     new_item = item_response[0]
+                    character.inventory.append(new_item)
                     resolved_events.append(item_response[1])
 
                     # Generate Image of new item
@@ -183,46 +168,38 @@ def chat_complete_story(user_input: str, **kwargs):
                 case "handle_movement":
                     game_map = handle_movement(moving_into, game_map)
 
-                #TODO run the examine tool we restricted it to the logic part at the bottom somewhere
                 case "handle_examine":
                     # Retrieve parameters for the examine function
                     examine_type = function_args.get('type')
                     obj_name = function_args.get('obj_name')
                     new_description = function_args.get('description')
 
-                    # Additional game state elements required for the examine function
-                    character = kwargs.get('character')  # Assuming character is passed in kwargs
-                    game_map = kwargs.get('game_map')    # Assuming game_map is passed in kwargs
-                    characters = kwargs.get('characters') # Assuming characters list is passed in kwargs
-
                     # Call the examine function
-                    updated_object = handle_examine(examine_type, obj_name, new_description, 
-                                                    game_map=game_map, character=character)
+                    updated_object = handle_examine(examine_type, obj_name, new_description, game_map=game_map, character=character)
 
                     # Update the game state based on the type of object examined
                     if updated_object:
                         match examine_type:
                             case "Item":
-                                # Update the item in the inventory
-                                # Assuming inventory is a list of Item objects
+                                # Update the item in character's inventory
                                 for i, item in enumerate(character.inventory):
                                     if item.name == obj_name:
                                         character.inventory[i] = updated_object
-                                        print(f"\nCharacter Inventory: {character.inventory} \n")
                                         break
                             case "Location":
-                                # Update the location in the game map
-                                game_map.add_location(updated_object)
+                                # Update the game map
+                                game_map = updated_object
+                                break
                             case "Character":
-                                # Update the character in the characters list
-                                for i, character in enumerate(characters):
-                                    if character.name == obj_name:
-                                        characters[i] = updated_object
-                                        break
+                                character = updated_object
+                                break
+                                # # Update the character in the characters list
+                                # for i, character in enumerate(characters):
+                                #     if character.name == obj_name:
+                                #         characters[i] = updated_object
+                                #         break
                     else:
                         print(f"No updates made for {obj_name}")
-
-               
 
     # Log the new Reaction Events created from the Event Actions
     for event in resolved_events:
@@ -232,16 +209,7 @@ def chat_complete_story(user_input: str, **kwargs):
         # Dump Events into Log
         append(PATH_LOG_EVENTS, str(event))
 
-    return {'events': events, 'game_map': game_map, 'items': items}
-
-
-
-
-
-
-
-
-
+    return {'events': events, 'game_map': game_map, 'character': character}
 
 
 # TODO: Create another 2-phase input parse>process>apply using gpt_tools strictly for Battle!
@@ -256,7 +224,7 @@ def chat_complete_battle(user_input, **kwargs):
         {"role": "user", "content": "\n Location: " + str(location) +
                                     "\n Characters: " + str(characters) +
                                     "\n User Input: " + user_input
-        }
+         }
     ]
     # Load GPT Functions
     tools = [
@@ -286,14 +254,8 @@ def chat_complete_battle(user_input, **kwargs):
     #     pass
 
 
-
-
-
-
-
-
 # Function to generate images, using an input text and an optional title (for the filename)
-def sdprompter(subject: str, title=None):
+def sdprompter(subject: str, title: str = None):
     print("[SDPROMPTER]:", end=" ")
     # Execute OpenAI API call
     print("[OPENAI]: REQUEST SENT", end=" ")

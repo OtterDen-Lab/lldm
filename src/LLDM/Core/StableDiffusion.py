@@ -9,13 +9,17 @@ from LLDM.helpers.Utility.path_config import *
 def generate(title=None):
     filename = title if title is not None else "output"
 
-    # Use local instance, the gradio link will expire after 72 hours
+    # Use local instance, as gradio links expire after 72 hours
     url = "http://127.0.0.1:7860"
-    #url = "https://664176ef9c42434e22.gradio.live"
-    # Read from file input
+
+    # If using remote, Automatic1111's webapp can be hosted on gradio by using the --share init parameter
+    # url = "https://664176ef9c42434e22.gradio.live"
+
+    # Read config parameters from file
     prompt = read(PATH_SDCONFIG_PROMPT)
     negative_prompt = read(PATH_SDCONFIG_NEGATIVE)
 
+    # These are the config parameters for StableDiffusion. Bare minimum is modified.
     payload = {
         "seed": -1,
         "prompt": "fantasy, dungeons and dragons, , " + prompt + " <lora:more_details:1> ",
@@ -30,6 +34,7 @@ def generate(title=None):
 
     r = response.json()
 
+    # POST call to SD service.
     for i in r['images']:
         image = Image.open(io.BytesIO(base64.b64decode(i.split(",", 1)[0])))
 
@@ -52,6 +57,7 @@ def generate(title=None):
         return os.path.basename(static_img_path)
 
 
+# Helper function to ensure unique filenames.
 def uniquify(path):
     filename, extension = os.path.splitext(path)
     counter = 1

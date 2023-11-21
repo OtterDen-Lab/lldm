@@ -27,10 +27,13 @@ print(map1)
 print("Stage 1: Initializing Scene")
 scene = Scene(map1)
 character = Character("player1", 100)
-sword = Item("Sword", "A legendary sword crafted from the finest steel.", damage=100, amount=1)
-character.inventory.append(sword)
-scene.add_character(character)
 
+sword = Item("Sword", "A sturdy blade crafted from the finest steel.", damage=100, amount=1)
+character.inventory.append(sword)
+potion = Item("Health Potion", "A small vial of red liquid.", amount=1)
+character.inventory.append(potion)
+
+scene.add_character(character)
 
 
 # Enter main loop of input>process>apply>input
@@ -44,30 +47,33 @@ while user_input != "exit":
     match user_input:
         case _:
             # Perform the ChatCompletion with our user input
-            response = chat_complete_story(user_input, game_map=map1, scenario=scenario, character=character)
+            response = chat_complete_story(user_input, game_map=map1, character=character)
 
             # False indicates Illegal Operation / Failed Input
             if response is False:
                 continue
 
-            # If a response is received, extract the contents and append to our running total
+            # If a response is received
             if response is not None:
+                # Add the items to the inventory of a character in the scene
+                print("")
+                character = response.get('character')
+
+                # Update the Map
+                print("")
+                map1 = response.get('game_map')
+                print(map1)
+
+                # extract the new events and append to our log
                 new_events = response.get('events')
                 print("")
                 for event in new_events:
                     events.append(event)
 
+                # Print our Total Event Log
+                print("Event History (Log)")
                 for event in events:
                     print(event)
-                    # print(f"[{event.category}] [{event.title}] {event.summary} ")
-
-                # Add the items to the inventory of a character in the scene
-                scene.get_character_by_name("player1").inventory.append(response.get('items'))
-
-                # Update the Map
-                print("")
-                map1 = response.get('game_map')
-            print(map1)
 
 print("Exited")
 
