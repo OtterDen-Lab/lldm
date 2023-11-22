@@ -4,10 +4,11 @@ from LLDM.World import World
 import random
 import openai
 
-#! if this key outdated somehow just use another one...
+# ! if this key outdated somehow just use another one...
 openai.api_key = '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'
 
 MODEL = "gpt-3.5-turbo"
+
 
 class Battle():
   ## Initialize the battle object
@@ -155,7 +156,11 @@ class Battle():
     # Update Character Annotations / Attributes
     # attributes.update_attributes(character)
 
-    print("End of " + character.JSON['name'] + "'s turn\n")
+            # match prompt_input:
+            #     case _:
+            #         action = self.chat_complete_getAction(prompt_input, character)
+            #         if action is False or action['action_type'] == "help":
+            #             continue
 
   def action_function(self, option):
     found_character = False

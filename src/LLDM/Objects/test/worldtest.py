@@ -1,5 +1,5 @@
-from LLDM.Objects.ObjectSerializer import *
-from LLDM.Objects.WorldArchitecture import *
+from LLDM.helpers.Utility.ObjectSerializer import *
+from LLDM.Objects.test.WorldArchitecture import *
 
 # Main file to test Factory/World generation
 

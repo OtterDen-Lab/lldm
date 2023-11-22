@@ -1,7 +1,5 @@
-from enum import Enum
-
-from LLDM.Objects.ItemArchitecture import Item, Weapon
-from LLDM.Objects.PrettyPrinter import NestedFormatter
+from LLDM.Objects.test.ItemArchitecture import Item, Weapon
+from LLDM.Core.PrettyPrinter import NestedFormatter
 
 from pymongo import MongoClient
 

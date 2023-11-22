@@ -1,8 +1,3 @@
-import json
-
-from LLDM.helpers.FileControl import *
-
-
 class CharacterAnnotations:
     # Motivations, state, etc.
     # Something that modifies the character
