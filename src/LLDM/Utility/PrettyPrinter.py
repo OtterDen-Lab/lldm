@@ -1,8 +1,13 @@
-# This class in inherited by most Objects, and handles their returns/to_strings and setters for name/descriptions
+# This class in inherited by most Deprecated, and handles their returns/to_strings and setters for name/descriptions
+from abc import ABC
+
+
 class PrettyPrinter(object):
-    def __init__(self):
-        self.name = None
-        self.description = None
+    def __init__(self, name: str = None, description: str = None):
+        if name is not None:
+            self._name = name
+        if description is not None:
+            self._description = description
 
     def __str__(self):
         lines = [self.__class__.__name__ + ':']
@@ -16,15 +21,21 @@ class PrettyPrinter(object):
             lines += '{}: {}'.format(key, val).split('\n')
         return '\n    '.join(lines)
 
-    def set_name(self, value):
-        if not isinstance(value, str):
-            raise ValueError("Expected a string for name.")
-        self.name = value
+    @property
+    def name(self):
+        return self._name
 
-    def set_description(self, value):
-        if not isinstance(value, str):
-            raise ValueError("Expected a string for description.")
-        self.description = value
+    @name.setter
+    def name(self, value: str):
+        self._name = value
+
+    @property
+    def description(self):
+        return self._description
+
+    @description.setter
+    def description(self, value: str):
+        self._description = value
 
 
 class NestedFormatter(object):

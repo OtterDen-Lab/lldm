@@ -1,4 +1,4 @@
-# from LLDM.Objects.World import World
+# from LLDM.Deprecated.World import World
 
 
 class Battle():

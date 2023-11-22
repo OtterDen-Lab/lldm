@@ -33,7 +33,7 @@ class player:
 
 
 # Usage example
-player = player("JSONSchema/player_character.json")
+player = player("../resources/JSONSchema/player_character.json")
 
 # Example data to set (replace this with your actual data)
 sample_data = {

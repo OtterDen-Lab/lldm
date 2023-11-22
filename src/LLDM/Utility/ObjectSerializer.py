@@ -1,8 +1,8 @@
 from json import JSONEncoder
 import json
-from LLDM.Objects.test.WorldArchitecture import *
+from LLDM.Deprecated.Objects.WorldArchitecture import *
 
-# from LLDM.Objects.WorldArchitecture import World, Continent, Region, City, Site, CityDistrict, Building
+# from LLDM.Deprecated.WorldArchitecture import World, Continent, Region, City, Site, CityDistrict, Building
 #
 #
 # This class serves as a Factory to build hierarchical game objects.
@@ -33,17 +33,17 @@ def obj_to_json(obj):
     return json.dumps(obj, indent=4, cls=Encoder)
 
 
-# Convert Json/Dictionary to Object
+# UNUSED Convert Json/Dictionary to Object
 def json_to_obj(dct):
     return json.loads(dct, object_hook=custom_object_hook)
 
 
-# Serializer to create instances of classes using class_name
+# UNUSED Serializer to create instances of classes using class_name
 def class_factory(class_name, **kwargs):
     return CLASS_MAP[class_name](**kwargs)
 
 
-# Check for match between dictionary keys and class constructor. If matched, use class_factory to construct instance
+# UNUSED Check for match between dictionary keys and class constructor. Use class_factory to construct matches
 def custom_object_hook(dct):
     keys = set(dct.keys())
     for class_name, class_type in CLASS_MAP.items():

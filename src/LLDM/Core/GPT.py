@@ -1,9 +1,11 @@
-﻿from LLDM.helpers.Utility.ObjectSerializer import obj_to_json
-from LLDM.helpers.Utility.gpt_tools import *
-from LLDM.helpers.Utility.path_config import *
-from .StableDiffusion import generate
-import openai
+﻿import os
 import json
+import openai
+from LLDM.Core.StableDiffusion import generate
+from LLDM.Utility.FileControl import *  # Also imports json in path_config.py
+from LLDM.Utility.ObjectSerializer import obj_to_json
+from LLDM.Utility.gpt_tools import *
+from LLDM.Utility.path_config import *  # Also imports os in path_config.py
 
 # Using Sam Ogden's provided API Key for LLDM
 # noinspection SpellCheckingInspection
@@ -149,7 +151,7 @@ def chat_complete_story(user_input: str, **kwargs):
             # Execute function according to matched name
             match function_name:
                 case "create_item":
-                    item_response = create_item(name, description, damage, amount)
+                    item_response = create_item(name, description, damage=damage, amount=amount)
                     new_item = item_response[0]
                     character.inventory.append(new_item)
                     resolved_events.append(item_response[1])
@@ -175,7 +177,8 @@ def chat_complete_story(user_input: str, **kwargs):
                     new_description = function_args.get('description')
 
                     # Call the examine function
-                    updated_object = handle_examine(examine_type, obj_name, new_description, game_map=game_map, character=character)
+                    updated_object = handle_examine(examine_type, obj_name, new_description, game_map=game_map,
+                                                    character=character)
 
                     # Update the game state based on the type of object examined
                     if updated_object:

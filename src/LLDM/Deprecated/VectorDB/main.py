@@ -1,7 +1,5 @@
 import logging
 logging.basicConfig(level=logging.INFO)
-import unittest
-
 
 import pinecone_helper
 import openai_helper
@@ -21,7 +19,7 @@ if __name__ == "__main__":
         logging.info(f"\nInitializing index '{index_name}'...")
         pinecone_helper.ensure_index_exists(index_name, dimension=dimension)
 
-        #   Begin test code here    ------------
+        #   Begin tests code here    ------------
         print("\nBegin Testing\n")
 
         # print("Testing delete all vectors functions")
@@ -67,7 +65,7 @@ if __name__ == "__main__":
 
 
 
-        #   End test code here  ------------
+        #   End tests code here  ------------
         print("\End Json Testing\n")
 
         # ids_to_delete = [

@@ -1,5 +1,5 @@
-from LLDM.Objects.test.ItemArchitecture import Item, Weapon
-from LLDM.Core.PrettyPrinter import NestedFormatter
+from LLDM.Deprecated.Objects.ItemArchitecture import Item, Weapon
+from LLDM.Utility.PrettyPrinter import NestedFormatter
 
 from pymongo import MongoClient
 
@@ -215,7 +215,7 @@ class Character(NestedFormatter):
         self._name = name  # String
         self._race = race  # Race Object
         self._background = background  # Background Object
-        self._classes = classes  # List of Class Objects
+        self._classes = classes  # List of Class Deprecated
 
         # Computed
         self._stats = Stats(classes[0], inventory)
@@ -224,8 +224,8 @@ class Character(NestedFormatter):
         # Optional
         self._xp = xp  # Experience
         self._gold = gold  # Gold
-        self._weapons = weapons if weapons is not None else []  # List of Weapon Objects
-        self._inventory = inventory if inventory is not None else []  # List of Item Objects
+        self._weapons = weapons if weapons is not None else []  # List of Weapon Deprecated
+        self._inventory = inventory if inventory is not None else []  # List of Item Deprecated
 
     def add_weapon(self, weapon: Weapon):
         self._weapons.append(weapon)

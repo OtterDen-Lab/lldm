@@ -33,7 +33,7 @@ class NPCBehavior:
 
 
 # Usage example
-npc_behavior = NPCBehavior("JSONSchema/npc_behavior.json")
+npc_behavior = NPCBehavior("../resources/JSONSchema/npc_behavior.json")
 
 # Example data to set (replace this with your actual data)
 sample_data = {

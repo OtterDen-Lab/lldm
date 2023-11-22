@@ -4,9 +4,7 @@
 import random
 from flask import Flask, render_template, request, redirect, url_for, flash
 
-from LLDM.Core.GPT import *
-from LLDM.helpers.Utility.FileControl import *
-from LLDM.Objects.Character import Character
+from LLDM.Deprecated.Character import Character
 
 # PATH_BACKGROUND_IMAGES = "src/LLDM/common/static/images"
 PATH_UPLOAD_FOLDER = PATH_RESOURCE_CHARACTERS

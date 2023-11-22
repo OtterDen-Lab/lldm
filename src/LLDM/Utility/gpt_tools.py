@@ -1,5 +1,5 @@
 from enum import Enum
-from LLDM.Core.Scene import Event, Item, Location
+from LLDM.Core.Scene import Event, Item, Location, Map
 
 
 class Tools(Enum):
@@ -168,12 +168,12 @@ def illegal_action(title: str):
     return False
 
 
-def create_event(title: str, summary: str, category: str, **kwargs):
+def create_event(title: str, summary: str, category: str):
     print(f"[Event] ChatGPT wanted to make an Event: [{category}] {title}")
     return Event(title, summary, category)
 
 
-def create_location(name, description, game_map, **kwargs):
+def create_location(name: str, description: str, game_map: Map):
     print(f"[Event] ChatGPT wanted to make a Location: {name}")
     if game_map.get_location_by_name(name) is None:
         new_location = Location(name, description)
@@ -196,14 +196,14 @@ def create_location(name, description, game_map, **kwargs):
     #     game_map.connect_locations(new_location, adjacent_location)
 
 
-def create_item(name, description, damage=None, amount=None, **kwargs):
+def create_item(name: str, description: str, **kwargs):
     print(f"[Event] ChatGPT wanted to make an Item: {name}")
     # Assuming Item can take damage and amount as None
-    item = Item(name, description, damage=damage, amount=amount)
+    item = Item(name, description, damage=kwargs.get("damage"), amount=kwargs.get("amount"))
     return item, create_event(name, description, "Item Generated")
 
 
-def handle_movement(moving_into, game_map, **kwargs):
+def handle_movement(moving_into: str, game_map: Map):
     print(f"[Event] ChatGPT wanted to perform a Movement into {moving_into}")
     possible_location = game_map.get_location_by_name(moving_into)
     if possible_location is not None:
@@ -220,7 +220,7 @@ def handle_attack(weapon, target, **kwargs):
     pass  # You can add/remove/edit the parameters as needed.
 
 
-def handle_examine(obj_type, obj_name, new_description, **kwargs):
+def handle_examine(obj_type: str, obj_name: str, new_description: str, **kwargs):
     # print("\nEntered handle_examine function!\n")
     if obj_type == "Item":
         print("\nType Item\n")

@@ -1,13 +1,13 @@
-from LLDM.Core.PrettyPrinter import PrettyPrinter
+from LLDM.Utility.PrettyPrinter import PrettyPrinter
 
 
 # This is the hierarchical file for objects from World >>> Building
 # This may expand to include Characters, Lootables, and more (or put into separate file is possible)
 #
 # Possibly able to put add/remove into PrettyPrint base class,
-#   but unlikely, as Objects may have differing data structures
+#   but unlikely, as Deprecated may have differing data structures
 # Currently, add() has support for the specific Object, and lists (no typechecks on list!!)
-# remove() only removes single Objects of specific Type. (To-Do)
+# remove() only removes single Deprecated of specific Type. (To-Do)
 
 # ToDo: Major: Implement Factory Pattern onto zones. Make new inheritable for name, description, and child location list
 

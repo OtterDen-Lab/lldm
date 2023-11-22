@@ -1,5 +1,4 @@
 import pinecone
-from numpy import ndarray
 from config import PINECONE_API_KEY
 import openai_helper
 from typing import Union, List

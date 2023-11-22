@@ -1,7 +1,6 @@
-from LLDM.helpers.Utility.ObjectSerializer import *
-from LLDM.Objects.test.WorldArchitecture import *
+from LLDM.Deprecated.Objects.WorldArchitecture import *
 
-# Main file to test Factory/World generation
+# Main file to tests Factory/World generation
 
 
 # Create new objects & connections

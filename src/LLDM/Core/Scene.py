@@ -1,4 +1,4 @@
-from LLDM.Core.PrettyPrinter import NestedFormatter
+from LLDM.Utility.PrettyPrinter import NestedFormatter, PrettyPrinter
 
 
 # Events are the descriptions of actions or reactions created through play.
@@ -30,13 +30,15 @@ class Event:
 
 # Simplified Character object.
 # TODO: Optional: Add parameters
-class Character(NestedFormatter):
-    def __init__(self, name: str, health: int, inventory=None):
-        if inventory is None:
-            inventory = []
+class Character(PrettyPrinter):
+    def __init__(self, name: str, health: int, **kwargs):
+        description = kwargs.get("description")
+        inventory = kwargs.get("inventory")
+        super().__init__(name, description)
+
         self._name = name
         self._health = health
-        self._inventory = inventory
+        self._inventory = inventory if inventory is not None else []
 
     @property
     def name(self):
@@ -52,26 +54,13 @@ class Character(NestedFormatter):
 
 
 # Item object, with keyword arguments for optional attributes.
-class Item(NestedFormatter):
+class Item(PrettyPrinter):
     def __init__(self, name: str, description: str, **kwargs):
-        self._name = name
-        self._description = description
+        super().__init__(name, description)
         if kwargs.get("damage") is not None:
             self._damage = kwargs.get("damage")
         if kwargs.get("amount") is not None:
             self._amount = kwargs.get("amount")
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def description(self):
-        return self._description
-
-    @description.setter
-    def description(self, value):
-        self._description = value
 
     @property
     def amount(self):
@@ -83,10 +72,10 @@ class Item(NestedFormatter):
 
 
 # Node of a graph with bidirectional connections. Each connection has a distance (currently unused)
-class Location:
-    def __init__(self, name, description, adjacent=None):
-        self._name = name
-        self._description = description
+class Location(PrettyPrinter):
+    def __init__(self, name: str, description: str, adjacent=None):
+        super().__init__(name, description)
+
         self.adjacent = adjacent if adjacent is not None else {}
         # Dictionary to hold adjacent locations and their respective distances
 
@@ -100,18 +89,6 @@ class Location:
 
     def get_adjacent_locations(self):
         return self.adjacent.keys()
-
-    @property
-    def description(self):
-        return self._description
-
-    @description.setter
-    def description(self, value):
-        self._description = value
-
-    @property
-    def name(self):
-        return self._name
 
 
 # Map. Holds Locations as in a node-based graph structure
@@ -135,8 +112,8 @@ class Map:
                 return location
         return None
 
-    def add_location(self, location: Location):
-        self.locations[location] = location
+    def add_location(self, new_location: Location):
+        self.locations[new_location] = new_location
 
     def connect_locations(self, loc1: Location, loc2: Location, distance=1):
         if loc1 in self.locations and loc2 in self.locations:
@@ -144,22 +121,22 @@ class Map:
                 loc1.add_adjacent(loc2, distance)
                 loc2.add_adjacent(loc1, distance)  # For undirected graph (bidirectional paths)
 
-    def move_to(self, location: Location):
+    def move_to(self, destination: Location):
         if self.current_location is None:
             # If there is no current location, set the initial location
-            if isinstance(location, Location):
-                self.current_location = location
+            if isinstance(destination, Location):
+                self.current_location = destination
         else:
             # If trying to move to a new location, check if it's adjacent
-            if self.are_adjacent(self.current_location, location):
-                self.current_location = self.locations[location]
+            if self.are_adjacent(self.current_location, destination):
+                self.current_location = self.locations[destination]
             else:
-                print(f"Cannot move to [{location.name}] from [{self.current_location.name}]. Location not adjacent.")
+                print(f"Cannot move to [{destination.name}] from [{self.current_location.name}]. Location not adjacent.")
 
     def are_adjacent(self, loc1: Location, loc2: Location):
         if loc1 in self.locations and loc2 in self.locations:
             if loc1 and loc2:
-                return loc2 in loc1.adjacent
+                return loc2 in loc1.adjacent  # FOR USE ONLY IN FULLY BIDIRECTIONAL GRAPHS. Edit for directed graphs.
         return False
 
     def get_adjacent_to_current(self):
@@ -188,7 +165,7 @@ class Scene(NestedFormatter):
     def add_character(self, character: Character):
         self._characters.append(character)
 
-    def get_character_by_name(self, name):
+    def get_character_by_name(self, name: str):
         for character in self._characters:
             if character.name == name:
                 return character

@@ -1,5 +1,5 @@
 from abc import ABC
-from LLDM.Core.PrettyPrinter import NestedFormatter
+from LLDM.Utility.PrettyPrinter import NestedFormatter
 
 
 # TODO: Need ENUMs or other methods to ensure: Category, Weapon Type, Dice_Type, and Damage_Type are all Valid Strings

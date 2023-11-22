@@ -1,18 +1,19 @@
 import os
 from datetime import datetime
-from LLDM.helpers.Utility.FileControl import *
 
-# Package Directory  (LLDM < helpers < path_config.py)
-LLDM_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from LLDM.Utility.FileControl import read
 
-ENUM_DIR = os.path.join(os.path.dirname(LLDM_DIR), "Objects", "Data")
+# Package Directory  (LLDM < Utility < path_config.py)
+LLDM_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+ENUM_DIR = os.path.join(os.path.dirname(LLDM_DIR), "Deprecated", "Data")
 
 print(f"--Path Config:--")
 print(f"PATH_CONFIG: {os.path.abspath(__file__)}")
 print(f"LLDM_DIR: {LLDM_DIR}")
 
 # External Package Directories (Like 'static' for the WebApp
-WEB_APP_TEMPLATES = os.path.join(os.path.dirname(LLDM_DIR), "WebApp", "templates")
+WEB_APP_TEMPLATES = os.path.join(LLDM_DIR, "WebApp", "templates")
 WEB_APP_IMAGES = os.path.join(os.path.dirname(LLDM_DIR), "WebApp", "static", "images")
 if not os.path.exists(WEB_APP_IMAGES):
     os.makedirs(WEB_APP_IMAGES)
@@ -38,7 +39,7 @@ PATH_SDCONFIG_PROMPT = os.path.join(RES_SD_DIR, "Prompt.txt")
 PATH_INPUT_USER = os.path.join(RESOURCES_DIR, "Input", "User_input.txt")
 
 # Campaign Directory
-OUTPUT_DIR = os.path.join(LLDM_DIR, "Output")
+OUTPUT_DIR = os.path.join(os.path.dirname(LLDM_DIR), "Output")
 CAMPAIGNS_DIR = os.path.join(OUTPUT_DIR, "Campaigns")
 campaign = str(datetime.now().strftime("%m-%d-%Y (%I.%M.%S %p)"))  # Use time of creation as placeholder campaign name
 CURRENT_CAMPAIGN_DIR = os.path.join(CAMPAIGNS_DIR, f"{campaign}")

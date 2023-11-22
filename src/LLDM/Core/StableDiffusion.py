@@ -3,7 +3,7 @@ import io
 import base64
 from PIL import Image, PngImagePlugin
 
-from LLDM.helpers.Utility.path_config import *
+from LLDM.Utility.path_config import *
 
 
 def generate(title=None):
