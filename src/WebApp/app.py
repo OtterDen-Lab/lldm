@@ -1,61 +1,34 @@
 # from LLDM.GPT import *
 # from LLDM.helpers.JSONControl import *
-
+import os
 import random
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 
-from LLDM.Deprecated.Character import Character
-
-# PATH_BACKGROUND_IMAGES = "src/LLDM/common/static/images"
-PATH_UPLOAD_FOLDER = PATH_RESOURCE_CHARACTERS
-PATH_PLAYER_CHARACTER = PATH_RESOURCE_CHARACTERS + "/PC"
+from LLDM.Utility.path_config import WEB_APP_IMAGES
+from main import process_input, get_map, get_character, get_events, get_img
 
 app = Flask(__name__)
 app.secret_key = 'some_secret_key'  # for flash messages
 
+# Select a random image from our static folder
 background_image_filename = random.choice(os.listdir(WEB_APP_IMAGES))
 print(f"Background Image: {background_image_filename}")
 
+# Accepted file formats for uploads
 ALLOWED_EXTENSIONS = {'pdf'}
 
-app.config['PATH_UPLOAD_FOLDER'] = PATH_UPLOAD_FOLDER
+
+# app.config['PATH_UPLOAD_FOLDER'] = PATH_UPLOAD_FOLDER
 
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-@app.route('/startup/')
-def character_creation():
-    return render_template('character_creation.html', filename=background_image_filename)
-
-
-@app.route('/startup/', methods=['POST'])
-def upload_file():
-    if 'file' not in request.files:
-        flash('No file part')
-        return redirect(request.url)
-
-    file = request.files['file']
-
-    if file.filename == '':
-        flash('No selected file')
-        return redirect(request.url)
-
-    if file and allowed_file(file.filename):
-        # Here, you can save the file or process it
-        filepath = os.path.join(app.config['PATH_UPLOAD_FOLDER'], file.filename)
-        stripped_filename = '.'.join(file.filename.split('.')[:-1])
-        json_filename = stripped_filename + '.txt'
-        file.save(filepath)
-        flash('File successfully uploaded')
-        print("Writing JSON to " + PATH_PLAYER_CHARACTER+"/"+json_filename)
-        write(PATH_PLAYER_CHARACTER +"/" + json_filename, extract_pdf_fields(filepath))
-        return redirect(url_for('chat'))
-
-    else:
-        flash('Allowed file type is PDF')
-        return redirect(request.url)
+# Storage of messages to be sent to frontend
+messages = [
+    {"sender": "bot", "text": "I am LLDM, your narrator for this session. Type \"exit\" to stop this program."}
+]
 
 
 @app.route('/')
@@ -67,42 +40,28 @@ def index():
     return render_template('home.html', filename=background_image_filename)
 
 
-# @app.route('/chat/')
-# def chat():
-#     input_string = request.args.get('input', '')
-#     message = GPT.generate_message(input_string)
-#     return render_template('chat.html', filename=background_image_filename, message=message)
-
-@app.route('/chat/', methods=['GET', 'POST'])
+@app.route('/chat/', methods=['GET'])
 def chat():
     global background_image_filename
-    character = ""
-    message = ""
-    if request.method == 'POST':
-        user_input = request.form['user_input']
-        if user_input == "Print Environ":
-            print("Sending request to GPT")
-            background_image_filename = print_image()
-        else:
-            print("Sending request to GPT")
-            message = process_input(user_input)
-            print(message)
-    elif len(os.listdir(PATH_PLAYER_CHARACTER)) > 0:
-        # Fix this so file-names are easier to get / the onus of proper file naming is not on this function
-        chars = os.listdir(PATH_PLAYER_CHARACTER)
-        if len(chars) > 0:
-            path_of_character = PATH_PLAYER_CHARACTER + "/" + chars[0]
-            character = read(path_of_character)
-            print("Sending request to GPT")
-            message = place_character(path_of_character)
-            print(message)
-    else:
-        print("Skipped Profile: Unexpected results expected!")
-        character = Character(PATH_RESOURCE_SAMPLE_CHARACTER)
-        print(f"(APP) Character: {character}")
-        message = place_player(character)
+    return render_template('chat.html', filename=background_image_filename, messages=messages, box1=get_map(),
+                           box2=get_character())
 
-    return render_template('chat.html', filename=background_image_filename, character=character, message=message)
+
+@app.route('/send_message', methods=['POST'])
+def send_message():
+    message_text = request.form['message']
+    messages.append({"sender": "user", "text": message_text})
+    process_input(message_text)  # This updates what the getter functions return
+    bot_responses = [
+        get_events()
+    ]
+    for response in bot_responses:
+        messages.append({"sender": "bot", "text": response})
+
+    image_path = url_for('static', filename='images/' + get_img())
+
+    return jsonify({"bot_responses": bot_responses, "character_info": get_character(), "map_info": get_map(),
+                    "image_path": image_path})
 
 
 if __name__ == '__main__':

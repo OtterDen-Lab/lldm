@@ -23,6 +23,7 @@ def chat_complete_story(user_input: str, **kwargs):
     game_map = kwargs.get('game_map')
     character = kwargs.get('character')
     events = []
+    image_path = None
 
     # send only relevant Location objects (subset of graph) to each API prompt
     current_location = game_map.get_current_location()
@@ -157,7 +158,7 @@ def chat_complete_story(user_input: str, **kwargs):
                     resolved_events.append(item_response[1])
 
                     # Generate Image of new item
-                    # sdprompter(new_item.description, title=new_item.name)
+                    image_path = sdprompter(new_item.description, title=new_item.name)
 
                 case "create_location":
                     location_response = create_location(name, description, game_map)
@@ -165,7 +166,7 @@ def chat_complete_story(user_input: str, **kwargs):
                     resolved_events.append(location_response[1])
 
                     # Generate Image of new current Location
-                    # sdprompter(game_map.get_current_location().description, title=game_map.get_current_location().name)
+                    image_path = sdprompter(game_map.get_current_location().description, title=game_map.get_current_location().name)
 
                 case "handle_movement":
                     game_map = handle_movement(moving_into, game_map)
@@ -212,7 +213,7 @@ def chat_complete_story(user_input: str, **kwargs):
         # Dump Events into Log
         append(PATH_LOG_EVENTS, str(event))
 
-    return {'events': events, 'game_map': game_map, 'character': character}
+    return {'events': events, 'game_map': game_map, 'character': character, 'image_path': image_path}
 
 
 # TODO: Create another 2-phase input parse>process>apply using gpt_tools strictly for Battle!

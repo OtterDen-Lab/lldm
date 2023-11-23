@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Julius+Sans+One">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto">
+    <link rel="stylesheet" href="../static/css/style.css">
+</head>
+<body>
+    <style>
+        body {
+            background: url({{url_for('static', filename='images/'+filename)}}) no-repeat center center fixed;
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;
+        }
+
+        h1 {
+            background-color: black;
+            color: white;
+        }
+
+        #center {
+            text-align: center;
+            text-shadow: 1px 1px 2px black;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            font-family: inherit;
+            font-weight: 500;
+            line-height: 1.2;
+            color: #fff;
+        }
+        h4 {
+            display: block;
+            margin-block-start: 1.33em;
+            margin-block-end: 0;
+            margin-inline-start: 0;
+            margin-inline-end: 0;
+
+            font-size: 78px;
+            font-weight: 700;
+            font-family: 'Cinzel Decorative', cursive;
+        }
+        h5 {
+            display: block;
+            margin-block-start: 0;
+            margin-block-end: 0;
+            margin-inline-start: 0;
+            margin-inline-end: 0;
+            font-size: 60px;
+            font-weight: 500;
+            font-family: 'Julius Sans One', sans-serif;
+        }
+        .start_btn{
+            display: block;
+            align-content: center;
+        }
+        .start_btn a {
+            display: inline-block;
+            margin-top: 18px;
+            letter-spacing: 2px;
+            padding: 9px 18px;
+
+            font-family: 'Julius Sans One', sans-serif;
+            border: 4px double #9c8f8f;
+            background-color: rgba(0, 0, 0, 0.40);
+            outline: none;
+
+            color: #fff;
+            font-size: 20px;
+            text-decoration: none;
+        }
+        a:hover{
+            opacity: 0.5;
+        }
+
+        p{
+            background-color: rgba(0, 0, 0, 0.60);
+            padding: 1% 1%;
+        }
+        .paragraph-container {
+            display: flex;               /* Use Flexbox */
+            justify-content: center;    /* Center horizontally */
+            align-items: center;        /* Center vertically */
+            height: 100%;
+            padding: 0 10%;             /* Initial padding of 10% on left and right */
+        }
+         /* Media query to handle scaling behavior */
+        @media (max-width: 768px) { /* Trigger when window width is less than or equal to 768px */
+            .paragraph-container {
+                padding: 0 5%;        /* Reduce padding to 5% */
+            }
+        }
+
+        @media (max-width: 480px) { /* Trigger when window width is less than or equal to 480px */
+            .paragraph-container {
+                padding: 0;           /* No padding */
+            }
+        }
+
+    </style>
+    <div class="chat-container">
+        <div class="message user-message">
+            <p>Hello, how can I help you?</p>
+        </div>
+        <!-- More messages here -->
+        <div class="message bot-message">
+            <p>Your response goes here...</p>
+        </div>
+    </div>
+
+    <form class="message-form">
+        <input type="text" placeholder="Type a message...">
+        <button type="submit">Send</button>
+    </form>
+
+    <div id="center">
+        <h4>LLDM</h4>
+        <br>
+        <div class="paragraph-container">
+            <p id="chat"><strong>LLDM:</strong>
+                "Hello, and welcome to Ray's LLDM Prototype."<br>
+                "I will be serving as your DM this session."<br>
+                "Type \"exit\" to stop this program.")
+            </p>
+        </div>
+
+        <div class="paragraph-container">
+            {% if message %}
+                <p id="chat"><strong>LLDM:</strong> {{ message }}</p><br>
+            {% endif %}
+        </div>
+
+        <div>
+            <form method="post">
+                <input type="text" name="user_input" placeholder="Enter your input">
+                <input type="submit" value="Generate">
+            </form>
+            <br>
+        </div>
+
+        <div class="start_btn">
+            <a href="/">End</a>
+        </div>
+    </div>
+
+
+
+
+</body>
+</html>

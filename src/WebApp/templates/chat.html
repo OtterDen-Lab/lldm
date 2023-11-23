@@ -2,144 +2,85 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Title</title>
-</head>
-<body>
-    <style>
-        body {
-            background: url({{url_for('static', filename='images/'+filename)}}) no-repeat center center fixed;
-            -webkit-background-size: cover;
-            -moz-background-size: cover;
-            -o-background-size: cover;
-            background-size: cover;
-        }
-
-        h1 {
-            background-color: black;
-            color: white;
-        }
-
-        #center {
-            text-align: center;
-            text-shadow: 1px 1px 2px black;
-            margin-top: 0;
-            margin-bottom: 0.5rem;
-            font-family: inherit;
-            font-weight: 500;
-            line-height: 1.2;
-            color: #fff;
-        }
-        h4 {
-            display: block;
-            margin-block-start: 1.33em;
-            margin-block-end: 0;
-            margin-inline-start: 0;
-            margin-inline-end: 0;
-
-            font-size: 78px;
-            font-weight: 700;
-            font-family: 'Cinzel Decorative', cursive;
-        }
-        h5 {
-            display: block;
-            margin-block-start: 0;
-            margin-block-end: 0;
-            margin-inline-start: 0;
-            margin-inline-end: 0;
-            font-size: 60px;
-            font-weight: 500;
-            font-family: 'Julius Sans One', sans-serif;
-        }
-        .start_btn{
-            display: block;
-            align-content: center;
-        }
-        .start_btn a {
-            display: inline-block;
-            margin-top: 18px;
-            letter-spacing: 2px;
-            padding: 9px 18px;
-
-            font-family: 'Julius Sans One', sans-serif;
-            border: 4px double #9c8f8f;
-            background-color: rgba(0, 0, 0, 0.40);
-            outline: none;
-
-            color: #fff;
-            font-size: 20px;
-            text-decoration: none;
-        }
-        a:hover{
-            opacity: 0.5;
-        }
-
-        p{
-            background-color: rgba(0, 0, 0, 0.60);
-            padding: 1% 1%;
-        }
-        .paragraph-container {
-            display: flex;               /* Use Flexbox */
-            justify-content: center;    /* Center horizontally */
-            align-items: center;        /* Center vertically */
-            height: 100%;
-            padding: 0 10%;             /* Initial padding of 10% on left and right */
-        }
-         /* Media query to handle scaling behavior */
-        @media (max-width: 768px) { /* Trigger when window width is less than or equal to 768px */
-            .paragraph-container {
-                padding: 0 5%;        /* Reduce padding to 5% */
-            }
-        }
-
-        @media (max-width: 480px) { /* Trigger when window width is less than or equal to 480px */
-            .paragraph-container {
-                padding: 0;           /* No padding */
-            }
-        }
-
-    </style>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Julius+Sans+One">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Goudy+Bookletter+1911">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
 
-    <div id="center">
-        <h4>LLDM</h4>
-        <br>
-        <div class="paragraph-container">
-            <p id="chat"><strong>LLDM:</strong>
-                "Hello, and welcome to Ray's LLDM Prototype."<br>
-                "I will be serving as your DM this session."<br>
-                "Type \"exit\" to stop this program.")
-            </p>
+<div class="container">
+    <div class="chat-column">
+        <div id="chat-container" class="chat-container">
+            {% for message in messages %}
+                <div class="message {{ 'user-message' if message.sender == 'user' else 'bot-message' }}">
+                    <p>{{ message.text|replace('\n', '<br>')|safe }}</p>
+                </div>
+            {% endfor %}
         </div>
-
-        <div class="paragraph-container">
-            {% if character %}
-                <p id="chat"><strong>Player Character:</strong> {{ character }}</p><br>
-            {% endif %}
-        </div>
-
-        <div class="paragraph-container">
-            {% if message %}
-                <p id="chat"><strong>LLDM:</strong> {{ message }}</p><br>
-            {% endif %}
-        </div>
-
-        <div>
-            <form method="post">
-                <input type="text" name="user_input" placeholder="Enter your input">
-                <input type="submit" value="Generate">
-            </form>
-            <br>
-        </div>
-
-        <div class="start_btn">
-            <a href="/">End</a>
-        </div>
+        <form id="message-form" class="message-form">
+            <input type="text" id="message-input" placeholder="Type a message...">
+            <button type="submit">Send</button>
+        </form>
     </div>
+    <div class="info-column">
+        <div id="info-box-1" class="info-box">{{ box1|replace('\n', '<br>')|safe }}</div>
+        <div id="info-box-2" class="info-box">{{ box2|replace('\n', '<br>')|safe }}</div>
+        <div id="info-box-3" class="info-box">Box 3 Content</div>
+    </div>
+</div>
 
 
+<script>
+    document.getElementById('message-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const messageText = document.getElementById('message-input').value;
+        // Prevent accidental submission / Empty text
+        if (messageText === "") {
+            return
+        }
 
+        // Add user message (higher up for reactivity)
+        addMessage('user-message', messageText);
+        // Clear the input box
+        document.getElementById('message-input').value = '';
+        fetch('/send_message', {
+            method: 'POST',
+            body: new URLSearchParams({'message': messageText}),
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Add bot responses (Chat Column)
+                data.bot_responses.forEach((response) => {
+                    addMessage('bot-message', response);
+                });
+                // Info Box 1 : Map
+                document.getElementById('info-box-1').innerHTML = data.character_info.replace(/\n/g, '<br>');
+                // Info Box 2 : Character
+                document.getElementById('info-box-2').innerHTML = data.map_info.replace(/\n/g, '<br>');
+                // Info Box 2 : Image
+                if (data.image_path) {
+                    document.getElementById('info-box-3').innerHTML =
+                        `<img src="${data.image_path}" alt="Dynamic Image">`;
+                }
+
+                // Scroll to the bottom of the chat
+                document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
+            });
+    });
+
+    function addMessage(className, text) {
+        const div = document.createElement('div');
+        div.className = `message ${className}`;
+        div.innerHTML = text.replace(/\n/g, '<br>'); // Convert newlines to <br>
+        document.getElementById('chat-container').appendChild(div);
+    }
+</script>
 
 </body>
 </html>

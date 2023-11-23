@@ -1,1 +1,1 @@
-Stable Diffusion environment prompt: dimly lit corridor, deep dungeon
+old, leather-bound book
