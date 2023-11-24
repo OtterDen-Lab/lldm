@@ -6,14 +6,25 @@ from PIL import Image, PngImagePlugin
 from LLDM.Utility.path_config import *
 
 
+# Use local instance, as gradio links expire after 72 hours
+url = "http://127.0.0.1:7860"
+
+# If using remote, Automatic1111's webapp can be hosted on gradio by using the --share init parameter
+# url = "https://664176ef9c42434e22.gradio.live"
+
+
+def is_url_alive():
+    try:
+        response = requests.get(url)
+        # If the response status code is 200, the URL is alive
+        return response.status_code == 200
+    except requests.RequestException:
+        # If any exception occurs, the URL is probably down or invalid
+        return False
+
+
 def generate(title=None):
     filename = title if title is not None else "output"
-
-    # Use local instance, as gradio links expire after 72 hours
-    url = "http://127.0.0.1:7860"
-
-    # If using remote, Automatic1111's webapp can be hosted on gradio by using the --share init parameter
-    # url = "https://664176ef9c42434e22.gradio.live"
 
     # Read config parameters from file
     prompt = read(PATH_SDCONFIG_PROMPT)

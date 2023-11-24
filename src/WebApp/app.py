@@ -5,7 +5,7 @@ import random
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 
 from LLDM.Utility.path_config import WEB_APP_IMAGES
-from main import process_input, get_map, get_character, get_all_events, get_img, get_new_events
+from main import process_input, get_map, get_character, get_all_events, get_img, get_new_events, main_gen_img
 
 app = Flask(__name__)
 app.secret_key = 'some_secret_key'  # for flash messages
@@ -45,6 +45,12 @@ def chat():
     global background_image_filename
     return render_template('chat.html', filename=background_image_filename, messages=messages, box1=get_map(),
                            box2=get_character())
+
+
+@app.route('/generate_image', methods=['POST'])
+def generate_image():
+    test = main_gen_img()
+    return jsonify({"image_path": test, "image_name": test})
 
 
 @app.route('/send_message', methods=['POST'])

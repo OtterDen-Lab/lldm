@@ -1,7 +1,7 @@
 ﻿import os
 import json
 import openai
-from LLDM.Core.StableDiffusion import generate
+from LLDM.Core.StableDiffusion import generate, is_url_alive
 from LLDM.Utility.FileControl import *  # Also imports json in path_config.py
 from LLDM.Utility.ObjectSerializer import obj_to_json
 from LLDM.Utility.gpt_tools import *
@@ -260,6 +260,10 @@ def chat_complete_battle(user_input, **kwargs):
 
 # Function to generate images, using an input text and an optional title (for the filename)
 def sdprompter(subject: str, title: str = None):
+    # Check if SD service is alive (Don't waste a GPT call if sdprompt is dead)
+    if not is_url_alive():
+        return title
+
     print("[SDPROMPTER]:", end=" ")
     # Execute OpenAI API call
     print("[OPENAI]: REQUEST SENT", end=" ")

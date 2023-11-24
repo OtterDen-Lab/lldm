@@ -32,8 +32,8 @@
             <button id="prev-image" class="image-swap-button">&lt;</button>
             <span id="image-title">{{filename.removesuffix(".png")}}</span>
             <button id="next-image" class="image-swap-button">&gt;</button>
+            <button id="new-image" class="image-swap-button">+</button>
             <img id="display-image" src="{{ url_for('static', filename='images/' + filename) }}" alt="Box Content 3">
-
         </div>
     </div>
 </div>
@@ -63,7 +63,22 @@
     document.getElementById('next-image').addEventListener('click', () => {
         changeImage(1)
     });
+    document.getElementById('new-image').addEventListener('click', () => {
+        generateImage()
+    });
 
+    function generateImage() {
+        fetch('/generate_image', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('image-title').textContent = data.image_name;
+        });
+    }
 
     function addMessage(className, text) {
         const div = document.createElement('div');

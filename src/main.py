@@ -58,6 +58,10 @@ def process_input(user_input):
         image_path = response.get('image_path')
 
 
+def main_gen_img():
+    return sdprompter("test for dead url", "test")
+
+
 def get_img():
     global image_path
     return str(image_path)
