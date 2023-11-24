@@ -30,7 +30,7 @@ def init_char():
 
 
 def process_input(user_input):
-    global starter_map, starter_character, events, image_path
+    global starter_map, starter_character, events, new_events, image_path
     response = chat_complete_story(user_input, game_map=starter_map, character=starter_character)
 
     # False indicates Illegal Operation / Failed Input
@@ -73,14 +73,20 @@ def get_character():
     return str(starter_character)
 
 
-def get_events():
+def get_all_events():
     global events
     return '\n'.join(str(event) for event in events)
+
+
+def get_new_events():
+    global new_events
+    return '\n'.join(str(event) for event in new_events)
 
 
 if __name__ != '__main__':
     print("Stage 1: Initializing Scene")
     events = []
+    new_events = []
     starter_map = init_map()
     starter_character = init_char()
     image_path = None
@@ -90,11 +96,11 @@ if __name__ != '__main__':
     # Scenes are built off of maps. New map? New scene. (E.g. Dungeon, City)
     # If the new scene should come with characters, generate them, and add them to the scene.
     #  (including copying existing characters from the old scene)
-    print("LLDM Active:\nType \"exit\" to stop this program.\n")
+    print("LLDM Active!")
     print("Stage 2: ChatGPT Narration")
 
 
-# This uncomment this to use main.py directly
+# This uncomment this to use main.py directly. Note: Exit command is removed for above.
 # if __name__ == '__main__':
 #     # Enter main loop of input>process>apply>input
 #     user_input = None

@@ -28,12 +28,50 @@
     <div class="info-column">
         <div id="info-box-1" class="info-box">{{ box1|replace('\n', '<br>')|safe }}</div>
         <div id="info-box-2" class="info-box">{{ box2|replace('\n', '<br>')|safe }}</div>
-        <div id="info-box-3" class="info-box">Box 3 Content</div>
+        <div id="info-box-3" class="info-box">
+            <button id="prev-image" class="image-swap-button">&lt;</button>
+            <span id="image-title">{{filename.removesuffix(".png")}}</span>
+            <button id="next-image" class="image-swap-button">&gt;</button>
+            <img id="display-image" src="{{ url_for('static', filename='images/' + filename) }}" alt="Box Content 3">
+
+        </div>
     </div>
 </div>
 
 
 <script>
+    let images = []; // Array to store image URLs
+    let currentImageIndex = 0;
+
+    images.push({url:'{{ url_for('static', filename='images/' + filename) }}', filename: '{{filename}}'.replace(/\.[^/.]+$/, "")});
+    {#images.push({url:'{{ url_for('static', filename='images/' + "Exit.png") }}', filename: 'Exit'});#}
+
+    function changeImage(delta) {
+        if (!((currentImageIndex + delta < 0) || (currentImageIndex + delta > images.length-1))) {
+            currentImageIndex += delta;
+            const currentImage = images[currentImageIndex];
+            document.getElementById('image-title').textContent = currentImage.filename;
+            document.getElementById('display-image').src = currentImage.url;
+        }
+        console.log("Image Index: " + (currentImageIndex))
+
+    }
+
+    document.getElementById('prev-image').addEventListener('click', () => {
+        changeImage(-1)
+    });
+    document.getElementById('next-image').addEventListener('click', () => {
+        changeImage(1)
+    });
+
+
+    function addMessage(className, text) {
+        const div = document.createElement('div');
+        div.className = `message ${className}`;
+        div.innerHTML = text.replace(/\n/g, '<br>'); // Convert newlines to <br>
+        document.getElementById('chat-container').appendChild(div);
+    }
+
     document.getElementById('message-form').addEventListener('submit', function (e) {
         e.preventDefault();
         const messageText = document.getElementById('message-input').value;
@@ -65,8 +103,8 @@
                 document.getElementById('info-box-2').innerHTML = data.map_info.replace(/\n/g, '<br>');
                 // Info Box 2 : Image
                 if (data.image_path) {
-                    document.getElementById('info-box-3').innerHTML =
-                        `<img src="${data.image_path}" alt="Dynamic Image">`;
+                    images.push({ url: data.image_path, filename: data.image_name });
+                    changeImage(1)
                 }
 
                 // Scroll to the bottom of the chat
@@ -74,12 +112,7 @@
             });
     });
 
-    function addMessage(className, text) {
-        const div = document.createElement('div');
-        div.className = `message ${className}`;
-        div.innerHTML = text.replace(/\n/g, '<br>'); // Convert newlines to <br>
-        document.getElementById('chat-container').appendChild(div);
-    }
+
 </script>
 
 </body>

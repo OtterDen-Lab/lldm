@@ -75,6 +75,9 @@ body {
     top: 0;
     right: 0;
     max-width: 45%;
+    min-width: 552px;
+    max-height: 100vh; /* Set a maximum height */
+    overflow-y: auto; /* Enable vertical scrolling */
     padding: 20px;
     flex: 1;
     display: flex;
@@ -89,3 +92,20 @@ body {
     font-family: 'Goudy Bookletter 1911', sans-serif;
 }
 
+.info-box img {
+    width: 100%; /* Make the image responsive */
+    height: auto; /* Maintain aspect ratio */
+}
+
+
+.image-swap-button {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+#display-image {
+    width: 100%; /* Adjust as needed */
+    height: auto; /* Maintain aspect ratio */
+}
