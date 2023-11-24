@@ -30,10 +30,10 @@
         <div id="info-box-2" class="info-box">{{ box2|replace('\n', '<br>')|safe }}</div>
         <div id="info-box-3" class="info-box">
             <button id="prev-image" class="image-swap-button">&lt;</button>
-            <span id="image-title">{{filename.removesuffix(".png")}}</span>
+            <span id="image-title" class="image-title">{{filename.removesuffix(".png")}}</span>
             <button id="next-image" class="image-swap-button">&gt;</button>
             <button id="new-image" class="image-swap-button">+</button>
-            <img id="display-image" src="{{ url_for('static', filename='images/' + filename) }}" alt="Box Content 3">
+            <img id="display-image" src="{{ url_for('static', filename='images/' + filename) }}" alt="Dynamic Image">
         </div>
     </div>
 </div>
@@ -76,7 +76,8 @@
         })
         .then(response => response.json())
         .then(data => {
-            document.getElementById('image-title').textContent = data.image_name;
+            images.push({ url: data.image_path, filename: data.image_name });
+            changeImage(1)
         });
     }
 

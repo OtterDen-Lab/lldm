@@ -105,6 +105,10 @@ body {
     cursor: pointer;
 }
 
+.image-title {
+    font-family: 'Julius Sans One', sans-serif;
+}
+
 #display-image {
     width: 100%; /* Adjust as needed */
     height: auto; /* Maintain aspect ratio */
