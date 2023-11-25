@@ -27,7 +27,8 @@ def allowed_file(filename):
 
 # Storage of messages to be sent to frontend
 messages = [
-    {"sender": "bot", "text": "I am LLDM, your narrator for this session. \nDetails of this adventure are listed on the right, and will be updated as you progress. \nPlease enter your actions in the field below."}
+    {"sender": "bot",
+     "text": "I am LLDM, your narrator for this session. \nDetails of this adventure are listed on the right, and will be updated as you progress. \nPlease enter your actions in the field below."}
 ]
 
 
@@ -64,11 +65,13 @@ def send_message():
     for response in bot_responses:
         messages.append({"sender": "bot", "text": response})
 
-    image_name = get_img().removesuffix(".png")
-    image_path = url_for('static', filename='images/' + get_img())
+    if get_img():
+        image_name = get_img().removesuffix(".png")
+        image_path = url_for('static', filename='images/' + get_img())
 
-    return jsonify({"bot_responses": bot_responses, "character_info": get_character(), "map_info": get_map(),
-                    "image_path": image_path, "image_name": image_name})
+        return jsonify({"bot_responses": bot_responses, "character_info": get_character(), "map_info": get_map(),
+                        "image_path": image_path, "image_name": image_name})
+    return jsonify({"bot_responses": bot_responses, "character_info": get_character(), "map_info": get_map()})
 
 
 if __name__ == '__main__':

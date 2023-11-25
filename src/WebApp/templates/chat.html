@@ -25,14 +25,18 @@
             <button type="submit">Send</button>
         </form>
     </div>
+
     <div class="info-column">
         <div id="info-box-1" class="info-box">{{ box1|replace('\n', '<br>')|safe }}</div>
         <div id="info-box-2" class="info-box">{{ box2|replace('\n', '<br>')|safe }}</div>
         <div id="info-box-3" class="info-box">
-            <button id="prev-image" class="image-swap-button">&lt;</button>
-            <span id="image-title" class="image-title">{{filename.removesuffix(".png")}}</span>
-            <button id="next-image" class="image-swap-button">&gt;</button>
-            <button id="new-image" class="image-swap-button">+</button>
+            <div id="image-header-1" class="image-header">
+                <button id="prev-image" class="image-swap-button">&lt;</button>
+                <span id="image-title" class="image-title">{{filename.removesuffix(".png")}}</span>
+                <button id="next-image" class="image-swap-button">&gt;</button>
+{#                <button id="new-image" class="image-swap-button">+</button>#}
+            </div>
+
             <img id="display-image" src="{{ url_for('static', filename='images/' + filename) }}" alt="Dynamic Image">
         </div>
     </div>
@@ -43,9 +47,11 @@
     let images = []; // Array to store image URLs
     let currentImageIndex = 0;
 
+    // Push the default (random image) to the array using Flask/Jinja2's url_for(). Trim the file extension from the name.
     images.push({url:'{{ url_for('static', filename='images/' + filename) }}', filename: '{{filename}}'.replace(/\.[^/.]+$/, "")});
     {#images.push({url:'{{ url_for('static', filename='images/' + "Exit.png") }}', filename: 'Exit'});#}
 
+    // Function to cycle images in info-box 3. Images are cycled via use of the array and index above.
     function changeImage(delta) {
         if (!((currentImageIndex + delta < 0) || (currentImageIndex + delta > images.length-1))) {
             currentImageIndex += delta;
@@ -57,16 +63,12 @@
 
     }
 
-    document.getElementById('prev-image').addEventListener('click', () => {
-        changeImage(-1)
-    });
-    document.getElementById('next-image').addEventListener('click', () => {
-        changeImage(1)
-    });
-    document.getElementById('new-image').addEventListener('click', () => {
-        generateImage()
-    });
+    // Add onclick listeners for the image buttons. Generate Image is a test button that works without GPT/SD running
+    document.getElementById('prev-image').addEventListener('click', () => changeImage(-1));
+    document.getElementById('next-image').addEventListener('click', () => changeImage(1));
+    // document.getElementById('new-image').addEventListener('click', () => generateImage());
 
+    // Test handler for image generation when services are dead
     function generateImage() {
         fetch('/generate_image', {
             method: 'POST',
@@ -81,6 +83,7 @@
         });
     }
 
+    // Function to append message to the dialogue column
     function addMessage(className, text) {
         const div = document.createElement('div');
         div.className = `message ${className}`;
@@ -88,6 +91,8 @@
         document.getElementById('chat-container').appendChild(div);
     }
 
+    // Handler for submitting new message. This will POST to app, which will run the GPT call.
+    // Response is received and used to update the info-box columns, including image.
     document.getElementById('message-form').addEventListener('submit', function (e) {
         e.preventDefault();
         const messageText = document.getElementById('message-input').value;
@@ -113,6 +118,9 @@
                 data.bot_responses.forEach((response) => {
                     addMessage('bot-message', response);
                 });
+                // Update the info-boxes. This also replaces newline characters with proper break tags.
+                // The reason this is done client-side because console output server-side should also be readable.
+
                 // Info Box 1 : Map
                 document.getElementById('info-box-1').innerHTML = data.character_info.replace(/\n/g, '<br>');
                 // Info Box 2 : Character

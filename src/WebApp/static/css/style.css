@@ -13,7 +13,7 @@ body {
 }
 
 .chat-column {
-    max-width: 50%;
+    max-width: 45%;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -75,7 +75,7 @@ body {
     top: 0;
     right: 0;
     max-width: 45%;
-    min-width: 552px;
+    /*min-width: 552px;*/
     max-height: 100vh; /* Set a maximum height */
     overflow-y: auto; /* Enable vertical scrolling */
     padding: 20px;
@@ -97,6 +97,10 @@ body {
     height: auto; /* Maintain aspect ratio */
 }
 
+.image-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;}
 
 .image-swap-button {
     background-color: #f0f0f0;

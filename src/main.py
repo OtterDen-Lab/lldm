@@ -64,7 +64,7 @@ def main_gen_img():
 
 def get_img():
     global image_path
-    return str(image_path)
+    return str(image_path) if image_path is not None else None
 
 
 def get_map():
