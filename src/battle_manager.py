@@ -2,23 +2,24 @@
 
 '''
 # Dominic TODO:
-  Make chat complete battle
-    - Tools
-    - Stuff for each tool
+    Make chat complete battle
+      - Tools
+      - Stuff for each tool
 
     create_event is defined in gpt_tools, use for reference
-        - JSON schema which outlines the function you're going to run
+      - JSON schema which outlines the function you're going to run
 
     Make Creation / Handle events in GPT Tools
-        - Parameters needed in the properties part, **kwargs
+      - Parameters needed in the properties part, **kwargs
 
-    Look at scene to get character information
-    
-    Can look over main, but no need to change it?
+    Look over:
+      - Scene to get character information
+      - Main, but no need to change it for now
+
+    Update Documentation
 
     If you want to give more battle specific info to main, edit story to include those, and edit main to retrieve those from the response object from battle
         - Should be after everything else is working for battle
-
 '''
 
 # TODO: copy and use current party and enemy JSON files then use that for the battle and apply it to the old when finished
