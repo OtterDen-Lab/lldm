@@ -20,7 +20,7 @@ if not os.path.exists(WEB_APP_IMAGES):
 # Resources Directory (Contains all the GPT/SD inputs)
 RESOURCES_DIR = os.path.join(LLDM_DIR, "resources")
 PATH_RESOURCE_CHARACTERS = os.path.join(RESOURCES_DIR, "SampleJSON")
-PATH_RESOURCE_SAMPLE_CHARACTER = os.path.join(PATH_RESOURCE_CHARACTERS, "Dragon_JSON.txt")
+PATH_RESOURCE_SAMPLE_CHARACTER = os.path.join(PATH_RESOURCE_CHARACTERS, "Dragon.json")
 
 # GPT Subdirectory
 RES_GPT_DIR = os.path.join(RESOURCES_DIR, "GPT")
