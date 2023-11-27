@@ -1,0 +1,54 @@
+[
+  {
+    "name": "Half-Orc",
+    "size": "Medium",
+    "subraces": []
+  },
+  {
+    "name": "Human",
+    "size": "Medium",
+    "subraces": []
+  },
+  {
+    "name": "Gnome",
+    "size": "Medium",
+    "subraces": [
+      "Rock",
+      "Forest"
+    ]
+  },
+  {
+    "name": "Elf",
+    "size": "Medium",
+    "subraces": [
+      "High",
+      "Elf"
+    ]
+  },
+  {
+    "name": "Half-Elf",
+    "size": "Medium",
+    "subraces": [
+      "High Elf Heritage",
+      "Wood Elf Heritage"
+    ]
+  },
+  {
+    "name": "Halfling",
+    "size": "Medium",
+    "subraces": [
+      "Lightfoot",
+      "Stout"
+    ]
+  },
+  {
+    "name": "Dragonborn",
+    "size": "Medium",
+    "subraces": []
+  },
+  {
+    "name": "Tiefling",
+    "size": "Medium",
+    "subraces": []
+  }
+]

@@ -1,6 +1,4 @@
-from LLDM.Objects.Character import Character
-# from LLDM.Objects.World import World
-from LLDM.Objects.WorldArchitecture import World
+# from LLDM.Deprecated.World import World
 
 
 class Battle():

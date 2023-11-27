@@ -87,3 +87,6 @@ __pycache__/
 /.idea/lldm.iml
 /.idea/misc.xml
 /.idea/webResources.xml
+
+#API KEYS
+settings.json

@@ -1,0 +1,18 @@
+{
+  "$jsonSchema": {
+    "title": "Event",
+    "description": "Something that happened",
+    "required": [
+      "title",
+      "summary"
+    ],
+    "properties": {
+      "title": {
+        "bsonType": "string"
+      },
+      "summary": {
+        "bsonType": "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,119 @@
+body {
+    background-color: darkslategray;
+    font-family: "Goudy Bookletter 1911", sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.container {
+    display: flex;
+}
+
+.chat-column {
+    max-width: 45%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background-color: #f5f5f5;
+}
+
+.message {
+    max-width: 100%;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 20px;
+    font-family: 'Goudy Bookletter 1911', sans-serif;
+}
+
+.user-message {
+    background-color: #007bff;
+    color: white;
+    align-self: flex-end;
+}
+
+.bot-message {
+    background-color: #eaeaea;
+    color: black;
+    align-self: flex-start;
+}
+
+.message-form {
+    display: flex;
+    padding: 10px;
+    background-color: #ddd;
+}
+
+.message-form input {
+    flex-grow: 1;
+    padding: 10px;
+    margin-right: 10px;
+    border: none;
+    border-radius: 10px;
+}
+
+.message-form button {
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+}
+
+.info-column {
+    background-color: burlywood;
+    position: fixed;
+    top: 0;
+    right: 0;
+    max-width: 45%;
+    /*min-width: 552px;*/
+    max-height: 100vh; /* Set a maximum height */
+    overflow-y: auto; /* Enable vertical scrolling */
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.info-box {
+    background-color: bisque;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    font-family: 'Goudy Bookletter 1911', sans-serif;
+}
+
+.info-box img {
+    width: 100%; /* Make the image responsive */
+    height: auto; /* Maintain aspect ratio */
+}
+
+.image-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;}
+
+.image-swap-button {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.image-title {
+    font-family: 'Julius Sans One', sans-serif;
+}
+
+#display-image {
+    width: 100%; /* Adjust as needed */
+    height: auto; /* Maintain aspect ratio */
+}

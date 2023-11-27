@@ -1,0 +1,277 @@
+{
+  "$jsonSchema": {
+    "title": "Character",
+    "description": "MongoSchema for Character. Includes Class, Race, Background, Weapons, Stats, Inventory",
+    "bsonType": "object",
+    "required": [
+      "name",
+      "race",
+      "classes",
+      "background",
+      "stats"
+    ],
+    "properties": {
+      "name": {
+        "bsonType": "string"
+      },
+      "race": {
+        "bsonType": "object",
+        "required": [
+          "name",
+          "size",
+          "subraces"
+        ],
+        "properties": {
+          "name": {
+            "bsonType": "string"
+          },
+          "description": {
+            "bsonType": "string"
+          },
+          "size": {
+            "bsonType": "string",
+            "enum": [
+              "Tiny",
+              "Small",
+              "Medium",
+              "Large",
+              "Huge",
+              "Gargantuan"
+            ]
+          },
+          "subraces": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "string"
+            }
+          }
+        }
+      },
+      "background": {
+        "bsonType": "object",
+        "required": [
+          "summary"
+        ],
+        "properties": {
+          "summary": {
+            "bsonType": "string"
+          },
+          "personality": {
+            "bsonType": "string"
+          },
+          "skills": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "string"
+            }
+          },
+          "motivations": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "string"
+            }
+          },
+          "bonds": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "string"
+            }
+          },
+          "flaws": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "string"
+            }
+          }
+        }
+      },
+      "classes": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "object",
+          "required": [
+            "name",
+            "hit_dice",
+            "subclasses"
+          ],
+          "properties": {
+            "name": {
+              "bsonType": "string"
+            },
+            "description": {
+              "bsonType": "string"
+            },
+            "hit_dice": {
+              "bsonType": "int",
+              "enum": [
+                1,
+                4,
+                6,
+                8,
+                10,
+                12
+              ]
+            },
+            "subclasses": {
+              "bsonType": "array",
+              "items": {
+                "bsonType": "string"
+              }
+            }
+          }
+        }
+      },
+      "stats": {
+        "bsonType": "object",
+        "required": [
+          "speed",
+          "health",
+          "max_health",
+          "armor"
+        ],
+        "properties": {
+          "speed": {
+            "bsonType": "int"
+          },
+          "health": {
+            "bsonType": "int"
+          },
+          "max_health": {
+            "bsonType": "int"
+          },
+          "armor": {
+            "bsonType": "int"
+          }
+        }
+      },
+      "conditions": {
+        "bsonType": "array",
+        "items": {
+          "required": [
+            "name",
+            "duration"
+          ],
+          "properties": {
+            "name": {
+              "bsonType": "string",
+              "enum": [
+                "Blinded",
+                "Charmed",
+                "Deafened",
+                "Exhaustion",
+                "Frightened",
+                "Grappled",
+                "Incapacitated",
+                "Invisible",
+                "Necrotic",
+                "Paralyzed",
+                "Petrified",
+                "Poisoned",
+                "Prone",
+                "Restrained",
+                "Stunned",
+                "Unconscious"
+              ]
+            },
+            "effect": {
+              "bsonType": "string"
+            },
+            "duration": {
+              "bsonType": "int"
+            }
+          }
+        }
+      },
+      "weapons": {
+        "bsonType": "array",
+        "items": {
+          "required": [
+            "name",
+            "category",
+            "damage"
+          ],
+          "properties": {
+            "name": {
+              "bsonType": "string"
+            },
+            "description": {
+              "bsonType": "string"
+            },
+            "weapon_type": {
+              "bsonType": "string",
+              "enum": [
+                "Melee",
+                "Ranged"
+              ]
+            },
+            "damage": {
+              "bsonType": "object",
+              "required": [
+                "dice_type",
+                "dice_count",
+                "damage_type"
+              ],
+              "properties": {
+                "dice_type": {
+                  "bsonType": "int",
+                  "enum": [
+                    1,
+                    4,
+                    6,
+                    8,
+                    10,
+                    12
+                  ]
+                },
+                "dice_count": {
+                  "bsonType": "int"
+                },
+                "damage_type": {
+                  "bsonType": "string",
+                  "enum": [
+                    "Piercing",
+                    "Slashing",
+                    "Bludgeoning"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "inventory": {
+        "bsonType": "array",
+        "items": {
+          "required": [
+            "name",
+            "description",
+            "category"
+          ],
+          "properties": {
+            "name": {
+              "bsonType": "string"
+            },
+            "description": {
+              "bsonType": "string"
+            },
+            "category": {
+              "bsonType": "string",
+              "enum": [
+                "Consumable",
+                "Junk",
+                "Equipment",
+                "Weapon"
+              ]
+            }
+          }
+        }
+      },
+      "xp": {
+        "bsonType": "int"
+      },
+      "gold": {
+        "bsonType": "int"
+      }
+    }
+  }
+}
