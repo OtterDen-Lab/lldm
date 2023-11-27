@@ -7,7 +7,7 @@
       <excludeFolder url="file://$MODULE_DIR$/src/LLDM/helpers/Output" />
       <excludeFolder url="file://$MODULE_DIR$/src/Output" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.10" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.10 (lldm)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TemplatesService">
