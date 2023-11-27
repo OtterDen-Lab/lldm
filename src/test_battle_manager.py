@@ -17,12 +17,14 @@ class Mock_test_1(unittest.TestCase):
 
     # Check that Battle object is created correctly
     def test_battle_init(self):
+        print("Test 1")
         self.assertEqual(1, self.battle._party_alive_count)
         self.assertEqual(1, self.battle._enemy_alive_count)
         self.assertEqual("testName", self.battle._location.name)
 
     # Check that Battle object can run to completion
     def test_battle_finish(self):
+        print("Test 2")
         self.battle.start_battle()
         self.assertEqual("unknown", self.battle._battle_result)
         self.assertEqual(2, self.battle._turn)
@@ -30,10 +32,12 @@ class Mock_test_1(unittest.TestCase):
     # TODO SECTION: 
     # [Unfinished] Check that Battle object resets properly
     def test_battle_repeat(self):
+        print("Test 3")
         self.battle.start_battle()
         self.assertEqual("unknown", self.battle._battle_result)
         self.assertEqual(2, self.battle._turn)
 
+        print ("Test 3 part 2")
         self.battle.start_battle()
         self.assertEqual("unknown", self.battle._battle_result)
         self.assertEqual(2, self.battle._turn)

@@ -82,7 +82,7 @@ venv/
 __pycache__/
 *.pyc
 *.pyo
-.env
+*.env
 /.idea/inspectionProfiles/profiles_settings.xml
 /.idea/lldm.iml
 /.idea/misc.xml

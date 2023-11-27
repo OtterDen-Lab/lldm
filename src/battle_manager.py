@@ -109,7 +109,7 @@ class Battle():
         """
         for info in self._order:
             # print(f"\nRolling initiative for {character.name}: ")
-            info[0] = random.randint(1, 20) + info[1].dexterity
+            info[0] = random.randint(1, 20) + info[1].getDexterity()
         self._order = sorted(self._order, key=lambda x: x[0])
 
 
@@ -155,7 +155,7 @@ class Battle():
     ## Need to Update / Add in
 
     # def query_turn_story(self, action_text):
-    #     text = "discribe and summarize this: " + action_text
+    #     text = "describe and summarize this: " + action_text
     #     print("[GAMEMASTER]:", end=" ")
     #     self.log.append({"role": "user", "content": text})
     #     person = openai.ChatCompletion.create(model=MODEL, messages=self.log)

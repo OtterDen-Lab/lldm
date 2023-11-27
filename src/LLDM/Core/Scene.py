@@ -81,6 +81,27 @@ class Character(PrettyPrinter):
     def inventory(self):
         return self._inventory
     
+    def getId(self):
+        return self._id
+    
+    def getHealth(self):
+        return self._health
+    
+    def getAttack(self):
+        return self._attack
+    
+    def getDefense(self):
+        return self._defense
+    
+    def getDexterity(self):
+        return self._dexterity
+    
+    def getEntity(self):
+        return self._entity
+
+    def getInventory(self):
+        return self._inventory
+    
     def getItemFromInventory(self, itemName: str):
         return next((item for item in self._inventory if itemName == item.name), None)
 
@@ -100,6 +121,12 @@ class Item(PrettyPrinter):
 
     @property
     def damage(self):
+        return self._damage
+    
+    def getAmount(self):
+        return self._amount
+    
+    def getDamage(self):
         return self._damage
 
 
