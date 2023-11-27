@@ -147,6 +147,25 @@ class Tools(Enum):
 
     # Battle Division Calls
 
+    # This makes a simulated user input for NPCs
+    CREATE_AI_INPUT = {
+        "type": "function",
+        "function": {
+            "name": "create_ai_input",
+            "description": "Creates an input for NPCs to follow some random action",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "input_string": {
+                        "type": "string",
+                        "description": "The input response of GPT.",
+                    }
+                },
+                "required": ["input_string"]
+            }
+        }
+    }
+
     # This is the battle-equivalent of CREATE_EVENT.
     # This is an input-processor specifically tailored to analyze user inputs in the context of a battle.
     # TODO: Add more battle events
@@ -183,20 +202,20 @@ class Tools(Enum):
         "type": "function",
         "function": {
             "name": "handle_attack",
-            "description": "Handles player attack against another entity, be it player, enemy, or NPC.",
+            "description": "Handles player attack against another character, be it player, enemy, or NPC.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "target": {
-                        "type": "string",
-                        "description": "The name of the entity being attacked."
+                    "targetID": {
+                        "type": "int",
+                        "description": "The ID of the character being attacked."
                     },
                     "weapon": {
                         "type": "string",
                         "description": "The name of the weapon being used for the attack."
                     }
                 },
-                "required": ["target", "weapon"],
+                "required": ["targetID", "weapon"],
             }
         }
     }
@@ -210,7 +229,6 @@ def illegal_action(title: str):
 def create_event(title: str, summary: str, category: str):
     print(f"[Event] ChatGPT wanted to make an Event: [{category}] {title}")
     return Event(title, summary, category)
-
 
 def create_location(name: str, description: str, game_map: Map):
     print(f"[Event] ChatGPT wanted to make a Location: {name}")
@@ -263,6 +281,7 @@ def handle_attack(attacker: Character, target: Character, weapon: Item):
 
     target.health -= weapon.damage # TODO: Replace once Calculator is ready
 
+    # TODO: Handle possible weapon durability?
     return {"attacker": attacker, 
             "target": target, 
             "weapon": weapon, 
@@ -338,7 +357,9 @@ def handle_examine(obj_type: str, obj_name: str, new_description: str, **kwargs)
 
     #I am handed (string)subject(name, description) and new description which is the new fluff append and return the two descriptions
     
-
+def create_ai_input(input_string: str):
+    print(f"[AI INPUT] ChatGPT wanted to make an AI INPUT: [{input_string}]")
+    return input_string
 
 
 

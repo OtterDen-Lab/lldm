@@ -31,10 +31,15 @@ class Event:
 # Simplified Character object.
 # TODO: Optional: Add parameters
 class Character(PrettyPrinter):
+    id_counter = 1
+
     def __init__(self, name: str, health: int, attack: int, defense: int, dexterity=0, entity="neutral", **kwargs):
         description = kwargs.get("description")
         inventory = kwargs.get("inventory")
         super().__init__(name, description)
+
+        self._id = Character.id_counter
+        Character.id_counter += 1
 
         self._name = name
         self._health = health
@@ -44,6 +49,10 @@ class Character(PrettyPrinter):
         self._entity = entity
         self._inventory = inventory if inventory is not None else []
 
+    @property
+    def id(self):
+        return self._id
+    
     @property
     def name(self):
         return self._name
@@ -73,10 +82,7 @@ class Character(PrettyPrinter):
         return self._inventory
     
     def getItemFromInventory(self, itemName: str):
-        for item in self._inventory:
-            if itemName == item.name:
-                return item
-        return None
+        return next((item for item in self._inventory if itemName == item.name), None)
 
 
 # Item object, with keyword arguments for optional attributes.

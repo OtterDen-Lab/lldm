@@ -223,8 +223,7 @@ def chat_complete_battle(user_input: str, **kwargs):
     # Some POTENTIAL kwargs / important things to update
     location = kwargs.get('location')
     turnCharacter = kwargs.get('turnCharacter')
-    party = kwargs.get('characters')
-    enemies = kwargs.get('enemies')
+    charactersInvolved = kwargs.get('characters')
     events = []
 
     # Load GPT Dialogue
@@ -232,8 +231,7 @@ def chat_complete_battle(user_input: str, **kwargs):
         {"role": "system", "content": BATTLE_CONTEXT_SIMPLE_EVENT},
         {"role": "user", "content": "\n Location: " + str(location) +
                                     "\n Current Turn: " + str(turnCharacter) +
-                                    "\n Party: " + str(party) +
-                                    "\n Enemies: " + str(enemies) +
+                                    "\n Party: " + str(charactersInvolved) +
                                     "\n User Input: " + user_input
          }]
     
@@ -324,19 +322,10 @@ def chat_complete_battle(user_input: str, **kwargs):
             function_args = json.loads(tool_call.function.arguments)
 
             # Setup common argument aliases
-            targetName = function_args.get('target')
+            targetID = function_args.get('targetID')
             weaponName = function_args.get('weapon')
             
-            while target is None:
-                for enemy in enemies:
-                    if targetName == enemy.name:
-                        target = enemy
-                        break
-
-                if target is None:
-                    # TODO: User Input?
-                    print("TODO")
-            
+            target = next((info[1] for info in charactersInvolved if info[1].id == targetID), None)
             weapon = target.getItemFromInventory(weaponName)
 
             # Execute function according to matched name
@@ -345,7 +334,14 @@ def chat_complete_battle(user_input: str, **kwargs):
                     attack_info = handle_attack(turnCharacter, target, weapon)
                     turnCharacter = attack_info["attacker"]
                     target = attack_info["target"]
-                    weapon = attack_info["weapon"]
+                    # weapon = attack_info["weapon"]
+
+                    for info in charactersInvolved:
+                        if info[1].id == turnCharacter.id:
+                            info[1] = turnCharacter
+                        elif info[1].id == target.id:
+                            info[1] = target
+
                     resolved_events.append(attack_info["event"])
 
     # Log the new Reaction Events created from the Event Actions
@@ -356,8 +352,42 @@ def chat_complete_battle(user_input: str, **kwargs):
         # Dump Events into Log
         append(PATH_LOG_EVENTS, str(event))
 
-    return {'events': events, 'location': location, 'character': turnCharacter, 'party': party, 'enemies': enemies}
+    return {'events': events, 'location': location, 'characters': charactersInvolved}
 
+# Function to get an input string for NPC actions
+def chat_complete_battle_AI_input(**kwargs):
+    print("[BATTLE AI INPUT]:", end = " ")
+
+    # Some POTENTIAL kwargs / important things to update
+    location = kwargs.get('location')
+    turnCharacter = kwargs.get('turnCharacter')
+    charactersInvolved = kwargs.get('characters')
+
+    # Load GPT Dialogue
+    messages = [
+        {"role": "system", "content": BATTLE_CONTEXT_AI_EVENT},
+        {"role": "user", "content": "\n Location: " + str(location) +
+                                    "\n Current Turn: " + str(turnCharacter) +
+                                    "\n Characters Involved: " + str(charactersInvolved)
+         }]
+    
+    # Load GPT Functions
+    tools = [
+        Tools.CREATE_AI_INPUT.value
+    ]
+
+    # Execute OpenAI API call
+    print("[OPENAI]: REQUEST SENT", end=" ")
+    response = openai.ChatCompletion.create(
+        model=MODEL,
+        messages=messages,
+        tools=tools,
+        tool_choice="auto"
+    )
+    print("| RESPONSE RECEIVED")
+
+    # TODO: Handle the response of the first call to make Battle_Events
+    return create_ai_input(str(response.choices[0].message.content))
 
 # Function to generate images, using an input text and an optional title (for the filename)
 def sdprompter(subject: str, title: str = None):
