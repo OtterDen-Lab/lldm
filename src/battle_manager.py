@@ -1,5 +1,3 @@
-# from LLDM.Deprecated.World import World
-
 '''
 # Dominic TODO:
     Make chat complete battle
@@ -27,6 +25,8 @@
 # TODO: line 85
 import random
 import openai
+# from LLDM.Deprecated.World import World
+
 
 # ! if this key outdated somehow just use another one...
 openai.api_key = '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'

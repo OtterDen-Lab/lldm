@@ -1,5 +1,5 @@
 from enum import Enum
-from LLDM.Core.Scene import Event, Item, Location, Map
+from LLDM.Core.Scene import Event, Item, Location, Map, Character
 
 
 class Tools(Enum):
@@ -146,20 +146,59 @@ class Tools(Enum):
 
 
     # Battle Division Calls
-    # TODO: Create a ChatCompletion Function for CREATE_BATTLE_EVENT{}
+
     # This is the battle-equivalent of CREATE_EVENT.
     # This is an input-processor specifically tailored to analyze user inputs in the context of a battle.
+    # TODO: Add more battle events
     CREATE_BATTLE_EVENT = {
         "type": "function",
-        "function": {}
+        "function": {
+            "name": "create_battle_event",
+            "description": "Process the user text into a described battle action.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "The title of the event stemming from the resolved player action.",
+                    },
+                    "category": {
+                        "type": "string",
+                        "enum": ["Attack"],
+                        "description": "What category the event is most like. Attack is an action which deals damage to an enemy. Pick one from the enum."
+                    },
+                    "summary": {
+                        "type": "string",
+                        "description": "The eloquent narration of what occurred in the event"
+                    }
+                },
+                "required": ["title", "category", "summary"]
+            }
+        }
     }
 
-    # TODO: Create a ChatCompletion Function for HANDLE_ATTACK{}
-    # It should contain attributes for the target (character hp), weapon used (damage).
-    # Plus anything else you think is necessary to compute an attack.
+    # Attack information
+    # TODO: Add anything else needed to compute an attack.
     HANDLE_ATTACK = {
         "type": "function",
-        "function": {}
+        "function": {
+            "name": "handle_attack",
+            "description": "Handles player attack against another entity, be it player, enemy, or NPC.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "target": {
+                        "type": "string",
+                        "description": "The name of the entity being attacked."
+                    },
+                    "weapon": {
+                        "type": "string",
+                        "description": "The name of the weapon being used for the attack."
+                    }
+                },
+                "required": ["target", "weapon"],
+            }
+        }
     }
 
 
@@ -215,9 +254,23 @@ def handle_movement(moving_into: str, game_map: Map):
 
 
 # Create functions to be called by GPT via Tool-calls.
-# TODO: Make a handle_attack() function.
-def handle_attack(weapon, target, **kwargs):
-    pass  # You can add/remove/edit the parameters as needed.
+
+# Attack Function: You can add/remove/edit the parameters as needed.
+# TODO: Damage Calculator
+# TODO: Handle variations of attacks (weapon, spells, ???)
+def handle_attack(attacker: Character, target: Character, weapon: Item):
+    print(f"[Battle Event] ChatGPT wanted to perform an Attack from {attacker.name} onto {target.name} using {weapon.name}")
+
+    target.health -= weapon.damage # TODO: Replace once Calculator is ready
+
+    return {"attacker": attacker, 
+            "target": target, 
+            "weapon": weapon, 
+            "event": create_event(
+                "Attack", 
+                "Attack from {attacker.name} onto {target.name} using {weapon.name}",
+                "Attack Generated"
+            )}
 
 
 def handle_examine(obj_type: str, obj_name: str, new_description: str, **kwargs):

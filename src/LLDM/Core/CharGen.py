@@ -7,4 +7,4 @@ from LLDM.Core.Scene import Character
 # Use Core.Scene's Character.
 
 def setup_character():
-    return Character("player1", 100)
+    return Character("player1", 100, 10, 10)

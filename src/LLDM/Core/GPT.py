@@ -217,24 +217,30 @@ def chat_complete_story(user_input: str, **kwargs):
 
 
 # TODO: Create another 2-phase input parse>process>apply using gpt_tools strictly for Battle!
-def chat_complete_battle(user_input, **kwargs):
-    # Some POTENTIAL kwargs
+def chat_complete_battle(user_input: str, **kwargs):
+    print("[BATTLE AGENT]:", end = " ")
+
+    # Some POTENTIAL kwargs / important things to update
     location = kwargs.get('location')
-    characters = kwargs.get('characters')
+    turnCharacter = kwargs.get('turnCharacter')
+    party = kwargs.get('characters')
+    enemies = kwargs.get('enemies')
+    events = []
 
     # Load GPT Dialogue
     messages = [
         {"role": "system", "content": CONTEXT_SIMPLE_EVENT},
         {"role": "user", "content": "\n Location: " + str(location) +
-                                    "\n Characters: " + str(characters) +
+                                    "\n Current Turn: " + str(turnCharacter) +
+                                    "\n Party: " + str(party) +
+                                    "\n Enemies: " + str(enemies) +
                                     "\n User Input: " + user_input
-         }
-    ]
+         }]
+    
     # Load GPT Functions
     tools = [
+        Tools.CREATE_BATTLE_EVENT.value,
         Tools.ILLEGAL_ACTION.value
-        # Tools.CREATE_BATTLE_EVENT
-        # Tools.HANDLE_ATTACK
     ]
 
     # Execute OpenAI API call
@@ -250,12 +256,107 @@ def chat_complete_battle(user_input, **kwargs):
     # TODO: Handle the response of the first call to make Battle_Events
     tool_calls = response.choices[0].message.tool_calls
     print(tool_calls)
-    for tool_call in tool_calls:
-        pass
 
-    # TODO: Add the second call below to handle the result of the response in a loop
-    # for battle_event in battle_events:
-    #     pass
+    for tool_call in tool_calls:
+        # Retrieve name and parameters of GPT function call
+        function_name = tool_call.function.name
+        function_args = json.loads(tool_call.function.arguments)
+
+        # Setup common argument aliases
+        title = function_args.get('title')
+        summary = function_args.get('summary')
+        category = function_args.get('category')
+
+        # Execute function according to matched name
+        match function_name:
+            case "create_battle_event":
+                event = create_event(title, summary, category)
+                events.append(event)
+            case "illegal_action":
+                print("Illegal Operation - Stop trying to coerce my AI!")
+                return illegal_action(title)
+
+    # Call GPT a second time. One new call per event, using different tools, and updated dialogue.
+    # Load GPT Functions into prompt
+    tools = [
+        Tools.HANDLE_ATTACK.value
+    ]
+    resolved_events = []
+    for event in events:
+        # Load GPT Dialogue into Prompt (With Specific Event Data)
+        messages = [{"role": "system", "content": CONTEXT_SIMPLE_AGENT},
+                    {"role": "user", "content":
+                        f"\n Game Map: {location} "
+                        f"\n Character: {turnCharacter} "
+                        f"\n User Input/Event Description:{obj_to_json(event)}"
+                     }]
+
+        # Force use of function based on Event category. This helps reduce GPT confusion
+        event_tool_name = None
+        match event.category:
+            case "Attack":
+                event_tool_name = "handle_attack"
+
+        if event_tool_name is None:
+            event_tool = "auto"
+        else:
+            event_tool = {
+                "type": "function",
+                "function": {"name": event_tool_name}
+            }
+
+        # Execute OpenAI API call (Second call, for modifying data structures)
+        print("[OPENAI]: REQUEST SENT", end=" ")
+        response = openai.ChatCompletion.create(
+            model=MODEL,
+            messages=messages,
+            tools=tools,
+            tool_choice=event_tool
+        )
+        print("| RESPONSE RECEIVED")
+
+        tool_calls = response.choices[0].message.tool_calls
+        print(tool_calls)
+
+        for tool_call in tool_calls:
+            # Retrieve name and parameters of GPT function call
+            function_name = tool_call.function.name
+            function_args = json.loads(tool_call.function.arguments)
+
+            # Setup common argument aliases
+            targetName = function_args.get('target')
+            weaponName = function_args.get('weapon')
+            
+            while target is None:
+                for enemy in enemies:
+                    if targetName == enemy.name:
+                        target = enemy
+                        break
+
+                if target is None:
+                    # TODO: User Input?
+                    print("TODO")
+            
+            weapon = target.getItemFromInventory(weaponName)
+
+            # Execute function according to matched name
+            match function_name:
+                case "handle_attack":
+                    attack_info = handle_attack(turnCharacter, target, weapon)
+                    turnCharacter = attack_info["attacker"]
+                    target = attack_info["target"]
+                    weapon = attack_info["weapon"]
+                    resolved_events.append(attack_info["event"])
+
+    # Log the new Reaction Events created from the Event Actions
+    for event in resolved_events:
+        events.append(event)
+
+    for event in events:
+        # Dump Events into Log
+        append(PATH_LOG_EVENTS, str(event))
+
+    return {'events': events, 'location': location, 'character': turnCharacter, 'party': party, 'enemies': enemies}
 
 
 # Function to generate images, using an input text and an optional title (for the filename)
