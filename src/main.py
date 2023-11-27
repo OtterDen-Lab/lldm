@@ -19,7 +19,7 @@ def init_map():
 
 
 def init_char():
-    character = Character("player1", 100, 10, 10)
+    character = Character("player1", 100, 10, 10, entity="party")
 
     sword = Item("Sword", "A sturdy blade crafted from the finest steel.", damage=100, amount=1)
     character.inventory.append(sword)

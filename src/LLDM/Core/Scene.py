@@ -31,7 +31,7 @@ class Event:
 # Simplified Character object.
 # TODO: Optional: Add parameters
 class Character(PrettyPrinter):
-    def __init__(self, name: str, health: int, attack: int, defense: int, **kwargs):
+    def __init__(self, name: str, health: int, attack: int, defense: int, dexterity=0, entity="neutral", **kwargs):
         description = kwargs.get("description")
         inventory = kwargs.get("inventory")
         super().__init__(name, description)
@@ -40,6 +40,8 @@ class Character(PrettyPrinter):
         self._health = health
         self._attack = attack
         self._defense = defense
+        self._dexterity = dexterity
+        self._entity = entity
         self._inventory = inventory if inventory is not None else []
 
     @property
@@ -57,6 +59,14 @@ class Character(PrettyPrinter):
     @property
     def defense(self):
         return self._defense
+    
+    @property
+    def dexterity(self):
+        return self._dexterity
+    
+    @property
+    def entity(self):
+        return self._entity
 
     @property
     def inventory(self):

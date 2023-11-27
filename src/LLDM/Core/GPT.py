@@ -229,7 +229,7 @@ def chat_complete_battle(user_input: str, **kwargs):
 
     # Load GPT Dialogue
     messages = [
-        {"role": "system", "content": CONTEXT_SIMPLE_EVENT},
+        {"role": "system", "content": BATTLE_CONTEXT_SIMPLE_EVENT},
         {"role": "user", "content": "\n Location: " + str(location) +
                                     "\n Current Turn: " + str(turnCharacter) +
                                     "\n Party: " + str(party) +
@@ -284,7 +284,7 @@ def chat_complete_battle(user_input: str, **kwargs):
     resolved_events = []
     for event in events:
         # Load GPT Dialogue into Prompt (With Specific Event Data)
-        messages = [{"role": "system", "content": CONTEXT_SIMPLE_AGENT},
+        messages = [{"role": "system", "content": BATTLE_CONTEXT_SIMPLE_AGENT},
                     {"role": "user", "content":
                         f"\n Game Map: {location} "
                         f"\n Character: {turnCharacter} "
