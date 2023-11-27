@@ -108,8 +108,13 @@ class Location(PrettyPrinter):
     def __init__(self, name: str, description: str, adjacent=None):
         super().__init__(name, description)
 
+        self._name = name
         self.adjacent = adjacent if adjacent is not None else {}
         # Dictionary to hold adjacent locations and their respective distances
+
+    @property
+    def name(self):
+        return self._name
 
     def __str__(self):
         # Create a string with the name of the location and its connections
