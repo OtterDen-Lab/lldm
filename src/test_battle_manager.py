@@ -73,6 +73,8 @@ class Mock_test_1(unittest.TestCase):
             self.assertEqual(self.fastGoblin, firstInfo[1])
             self.assertEqual(self.warrior, secondInfo[1])
 
+
+
 # Test 2: Battle testing with GPT calls
 class Mock_test_2(unittest.TestCase):
     def setUp(self):
@@ -99,10 +101,10 @@ class Mock_test_2(unittest.TestCase):
 
         for info in battle._order:
             if info[1].id == 1:
-                self.assertEqual(90, info[1].health)
+                self.assertEqual(95, info[1].health)
                 break
             else:
-                self.assertEqual(10, info[1].health)
+                self.assertEqual(15, info[1].health)
 
     # TODO SECTION: 
     # [Unfinished] Check that Battle object resets properly
@@ -117,10 +119,38 @@ class Mock_test_2(unittest.TestCase):
     #     self.assertEqual("unknown", self.battle._battle_result)
     #     self.assertEqual(2, self.battle._turn)
 
+# Test 2: Manual Battle Test
+class Mock_test_3(unittest.TestCase):
+    def setUp(self):
+        Character.reset()
+        self.players = []
+        self.enemies = []
+        self.location = Location("testName2", "TestDescription")
+
+        self.sword = Item("Sword", "A sturdy blade crafted from the finest steel.", damage=15, amount=1)
+
+        self.warrior = Character("WarriorA", 100, 10, 10, 0, "party", inventory=[self.sword])
+        self.goblin = Character("GoblinA", 20, 10, 10, 0, "enemy", True)
+        self.fastWarrior = Character("WarriorB", 100, 10, 10, 30, "party", inventory=[self.sword])
+        self.fastGoblin = Character("GoblinB", 20, 10, 10, 30, "enemy", True)
+
+    # Check that Battle object can run to completion
+    def test_battle_1_finish(self):
+        print("\n[NEW TEST]: Battle Start -> Complete")
+        self.players.append(self.fastWarrior)
+        self.enemies.append(self.fastGoblin)
+        self.enemies.append(self.goblin)
+        battle = Battle(self.location, self.players, self.enemies, turnLimit=1)
+
+        battle.start_battle()
+        self.assertEqual("unknown", battle._battle_result)
+        self.assertEqual(2, battle._turn)
+
 # For future mock tests
 if __name__ == '__main__':
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
-    suite.addTest(loader.loadTestsFromTestCase(Mock_test_1))
+    # suite.addTest(loader.loadTestsFromTestCase(Mock_test_1))
     # suite.addTest(loader.loadTestsFromTestCase(Mock_test_2))
+    suite.addTest(loader.loadTestsFromTestCase(Mock_test_3))
     unittest.TextTestRunner().run(suite)

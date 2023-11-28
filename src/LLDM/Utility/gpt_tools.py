@@ -158,7 +158,7 @@ class Tools(Enum):
                 "properties": {
                     "input_string": {
                         "type": "string",
-                        "description": "The description of the combat action taken against another character, including weapon used against which target.",
+                        "description": "The description of the combat action taken. If this is an Attack action, use the following sentence structure, replacing anything within and including {}: {My character} used {this weapon in my character's inventory} against {A target which has a different Entity type then my character}.",
                     }
                 },
                 "required": ["input_string"]
@@ -179,16 +179,16 @@ class Tools(Enum):
                 "properties": {
                     "title": {
                         "type": "string",
-                        "description": "The title of the event stemming from the resolved player action.",
+                        "description": "The title of the event stemming from the resolved character action. It should be concise, but include at minimum the character name and category type. Other relevant information may be included if provided by User Input string.",
                     },
                     "category": {
                         "type": "string",
-                        "enum": ["Attack"],
-                        "description": "What category the event is most like. Attack is an action which deals damage to an enemy. Pick one from the enum."
+                        "enum": ["Attack", "Wait"],
+                        "description": "What category the event is most like. Attack is an action which deals damage to an enemy. Wait is an action where the character does nothing or waits around. Pick one from the enum."
                     },
                     "summary": {
                         "type": "string",
-                        "description": "The eloquent narration of what occurred in the event"
+                        "description": "The eloquent narration of what occurred in the event."
                     }
                 },
                 "required": ["title", "category", "summary"]
@@ -196,9 +196,9 @@ class Tools(Enum):
         }
     }
 
-    # Attack information
-    # TODO: Add anything else needed to compute an attack.
+    # Second Call - Apply described action to game data
     HANDLE_ATTACK = {
+        # TODO: Add anything else needed to compute an attack.
         "type": "function",
         "function": {
             "name": "handle_attack",
@@ -208,14 +208,31 @@ class Tools(Enum):
                 "properties": {
                     "targetID": {
                         "type": "integer",
-                        "description": "The ID of the character being attacked."
+                        "description": "The ID of the character being attacked, ignoring capitalization for character names. Set to -1 if no character is specified or the character being attacked doesn't have an ID."
                     },
                     "weapon": {
                         "type": "string",
-                        "description": "The name of the weapon being used for the attack."
+                        "description": "The name of the weapon being used for the attack. If a weapon is not specified or the character doesn't have the weapon, set this to None."
                     }
                 },
                 "required": ["targetID", "weapon"],
+            }
+        }
+    }
+    HANDLE_WAIT = {
+        "type": "function",
+        "function": {
+            "name": "handle_wait",
+            "description": "Handles player waiting around and passing their turn.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "summary": {
+                        "type": "string",
+                        "description": "The description of the character waiting around."
+                    }
+                },
+                "required": ["summary"]
             }
         }
     }
@@ -293,6 +310,14 @@ def handle_attack(attacker: Character, target: Character, weapon: Item):
                 "Attack Generated"
             )}
 
+def handle_wait(character: Character, summary: str):
+    print(f"[Battle Event] ChatGPT wanted to perform a Wait action for {character.name}.")
+    print(f"[Battle Event Resolve] {summary}")
+    return {"event": create_event(
+        f"Wait from {character.name}",
+        summary,
+        "Wait Generated"
+    )}
 
 def handle_examine(obj_type: str, obj_name: str, new_description: str, **kwargs):
     # print("\nEntered handle_examine function!\n")

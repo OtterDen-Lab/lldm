@@ -34,7 +34,7 @@ class Battle():
       # Update Motivations, surprise, distance for each (Defaults: normal (mood), surprise factor of 0 (no effect), distance factor of 0 (no effect), normal (state / status))
     def __init__(self, location: Scene, enemies:[], party: [], turnLimit=1000, TESTMODE=False):
         self.TESTMODE = TESTMODE
-        self._actions = ["Attack"]
+        self._actions = ["Attack", "Wait"]
         
         self._location = location
         self._create_full_Character_list_([party, enemies])
@@ -80,7 +80,8 @@ class Battle():
         while True:
             if (self.TESTMODE or turnCharacter.npc):
                 print(f"Prompting for {turnCharacter.name}'s action")
-                prompt_input = chat_complete_battle_AI_input(location=self._location, turnCharacter=turnCharacter, charactersInfo=self._order, randomAction=random.randint(1,len(self._actions)+1))
+                randomActionNum = 0 if self.TESTMODE else random.randint(0, len(self._actions)-1)
+                prompt_input = chat_complete_battle_AI_input(location=self._location, turnCharacter=turnCharacter, charactersInfo=self._order, randomAction=self._actions[randomActionNum])
             else:
                 print(f"Give {turnCharacter.name} something to do this turn. Provide target and other information as needed: ")
                 prompt_input = str(input())

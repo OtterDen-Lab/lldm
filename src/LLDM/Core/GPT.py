@@ -266,6 +266,7 @@ def chat_complete_battle(user_input: str, **kwargs):
         title = function_args.get('title')
         summary = function_args.get('summary')
         category = function_args.get('category')
+        # print(f"{title} || {summary} || {category}")
 
         # Execute function according to matched name
         match function_name:
@@ -279,15 +280,18 @@ def chat_complete_battle(user_input: str, **kwargs):
     # Call GPT a second time. One new call per event, using different tools, and updated dialogue.
     # Load GPT Functions into prompt
     tools = [
-        Tools.HANDLE_ATTACK.value
+        Tools.HANDLE_ATTACK.value,
+        Tools.HANDLE_WAIT.value
     ]
     resolved_events = []
     for event in events:
+        print(obj_to_json(event))
         # Load GPT Dialogue into Prompt (With Specific Event Data)
         messages = [{"role": "system", "content": BATTLE_CONTEXT_SIMPLE_AGENT},
                     {"role": "user", "content":
                         f"\n Game Map: {location} "
                         f"\n Character: {turnCharacter} "
+                        f"\n Characters Involved: {charactersInvolved}"
                         f"\n User Input/Event Description:{obj_to_json(event)}"
                      }]
 
@@ -296,6 +300,8 @@ def chat_complete_battle(user_input: str, **kwargs):
         match event.category:
             case "Attack":
                 event_tool_name = "handle_attack"
+            case "Wait":
+                event_tool_name = "handle_wait"
 
         if event_tool_name is None:
             event_tool = "auto"
@@ -326,13 +332,24 @@ def chat_complete_battle(user_input: str, **kwargs):
             # Setup common argument aliases
             targetID = function_args.get('targetID')
             weaponName = function_args.get('weapon')
-            
-            target = next((info[1] for info in charactersInvolved if info[1].id == targetID), None)
-            weapon = target.getItemFromInventory(weaponName)
+            print(f"Found Target: {targetID} | Found Weapon : {weaponName}")
+            summary = function_args.get('summary')
 
             # Execute function according to matched name
             match function_name:
                 case "handle_attack":
+                    target = next((info[1] for info in charactersInvolved if info[1].id == targetID), None)
+                    if target is None:
+                        print(f"[ERROR MESSAGE]: targetID {targetID} NOT FOUND,", end = " ")
+                        target = next((info[1] for info in charactersInvolved if info[1].entity != turnCharacter.entity), None)
+                        print(f"DEFAULTING TO {target.name}")
+
+                    weapon = turnCharacter.getItemFromInventory(weaponName)
+                    if weapon is None:
+                        print(f"[ERROR MESSAGE]: weapon {weaponName} NOT FOUND,", end=" ")
+                        weapon = turnCharacter.inventory[0]
+                        print(f"DEFAULTING TO FIRST ITEM IN INVENTORY:  {weapon.name}")
+
                     attack_info = handle_attack(turnCharacter, target, weapon)
                     turnCharacter = attack_info["attacker"]
                     target = attack_info["target"]
@@ -345,6 +362,10 @@ def chat_complete_battle(user_input: str, **kwargs):
                             info = info[0], target
 
                     resolved_events.append(attack_info["event"])
+                
+                case "handle_wait":
+                    wait_info = handle_wait(turnCharacter, summary)
+                    resolved_events.append(wait_info["event"])
 
     # Log the new Reaction Events created from the Event Actions
     for event in resolved_events:

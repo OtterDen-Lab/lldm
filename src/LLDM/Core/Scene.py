@@ -51,7 +51,7 @@ class Character(PrettyPrinter):
         self._entity = entity
         self._npc = npc
         self._inventory = inventory if inventory is not None else []
-        self._inventory.append(Item("Fist", "Punch enemies for a bit of damage", damage=10))
+        self._inventory.append(Item("Fist", "Punch enemies for a bit of damage", damage=5))
 
     @property
     def id(self):
@@ -84,6 +84,10 @@ class Character(PrettyPrinter):
     @property
     def entity(self):
         return self._entity
+    
+    @property
+    def npc(self):
+        return self._npc
 
     @property
     def inventory(self):
@@ -92,6 +96,10 @@ class Character(PrettyPrinter):
     def getItemFromInventory(self, itemName: str):
         return next((item for item in self._inventory if itemName == item.name), None)
     
+    def printInventory(self):
+        inventory_str = f"{self.name} : {[item.name for item in self._inventory]}"
+        print(inventory_str)
+
     def reset():
         Character.all_characters.clear()
         Character.id_counter = 1

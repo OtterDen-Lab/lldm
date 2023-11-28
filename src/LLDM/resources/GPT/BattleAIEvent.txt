@@ -4,9 +4,12 @@ You will receive an input composed of four parts:
 The first part is the location, containing information about the scene
 The second part of the input will be your NPC avatar, which includes all important character information (health, inventory, etc).
 The third part of the input will be the list of Characters representing everyone involved in this battle (including your avatar).
-The fourth part of the input will be a number representing which action you should choose from the following:
+The fourth part of the input will be a string Action representing which action you should choose from the following:
 
-If this number is 1:
-Give a description illustrating your character attacking another.
+If this fourth input string is "Attack":
+Give a description illustrating your character attacking another and store in .
 Include in your description your target: A character in the list of Characters with a different Entity attribute than your character. Your character should NOT attack itself.
 You must also provide your weapon that will be used for this attack, and it must be an Item present in your character's inventory.
+
+If this fourth input string is "Wait":
+Give a description illustrating your character waiting in place.
