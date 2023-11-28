@@ -36,7 +36,7 @@ class Mock_test_1(unittest.TestCase):
     #     self.battle.start_battle()
     #     self.assertEqual("unknown", self.battle._battle_result)
     #     self.assertEqual(2, self.battle._turn)
-
+    #
     #     print ("Test 3 part 2")
     #     self.battle.start_battle()
     #     self.assertEqual("unknown", self.battle._battle_result)

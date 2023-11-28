@@ -61,7 +61,11 @@ class Character(PrettyPrinter):
     @property
     def health(self):
         return self._health
-    
+
+    @health.setter
+    def health(self, value: int):
+        self._health = value
+
     @property
     def attack(self):
         return self._attack
@@ -101,12 +105,6 @@ class Item(PrettyPrinter):
 
     @property
     def damage(self):
-        return self._damage
-    
-    def getAmount(self):
-        return self._amount
-    
-    def getDamage(self):
         return self._damage
 
 

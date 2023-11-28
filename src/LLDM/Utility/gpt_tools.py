@@ -158,7 +158,7 @@ class Tools(Enum):
                 "properties": {
                     "input_string": {
                         "type": "string",
-                        "description": "The input response of GPT.",
+                        "description": "The description of the combat action taken against another character, including weapon used against which target.",
                     }
                 },
                 "required": ["input_string"]
@@ -207,7 +207,7 @@ class Tools(Enum):
                 "type": "object",
                 "properties": {
                     "targetID": {
-                        "type": "int",
+                        "type": "integer",
                         "description": "The ID of the character being attacked."
                     },
                     "weapon": {
@@ -279,7 +279,7 @@ def handle_movement(moving_into: str, game_map: Map):
 def handle_attack(attacker: Character, target: Character, weapon: Item):
     print(f"[Battle Event] ChatGPT wanted to perform an Attack from {attacker.name} onto {target.name} using {weapon.name}")
 
-    target.health -= weapon.damage # TODO: Replace once Calculator is ready
+    target.health -= weapon.damage  # TODO: Replace once Calculator is ready
 
     # TODO: Handle possible weapon durability?
     return {"attacker": attacker, 

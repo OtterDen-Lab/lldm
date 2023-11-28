@@ -223,7 +223,7 @@ def chat_complete_battle(user_input: str, **kwargs):
     # Some POTENTIAL kwargs / important things to update
     location = kwargs.get('location')
     turnCharacter = kwargs.get('turnCharacter')
-    charactersInvolved = kwargs.get('characters')
+    charactersInvolved = kwargs.get('charactersInfo')
     events = []
 
     # Load GPT Dialogue
@@ -338,9 +338,9 @@ def chat_complete_battle(user_input: str, **kwargs):
 
                     for info in charactersInvolved:
                         if info[1].id == turnCharacter.id:
-                            info[1] = turnCharacter
+                            info = info[0], turnCharacter
                         elif info[1].id == target.id:
-                            info[1] = target
+                            info = info[0], target
 
                     resolved_events.append(attack_info["event"])
 
@@ -361,7 +361,7 @@ def chat_complete_battle_AI_input(**kwargs):
     # Some POTENTIAL kwargs / important things to update
     location = kwargs.get('location')
     turnCharacter = kwargs.get('turnCharacter')
-    charactersInvolved = kwargs.get('characters')
+    charactersInvolved = kwargs.get('charactersInfo')
 
     # Load GPT Dialogue
     messages = [
@@ -375,19 +375,28 @@ def chat_complete_battle_AI_input(**kwargs):
     tools = [
         Tools.CREATE_AI_INPUT.value
     ]
-
+    tool_create_ai_input = {
+        "type": "function",
+        "function": {"name": "create_ai_input"}
+    }
     # Execute OpenAI API call
     print("[OPENAI]: REQUEST SENT", end=" ")
     response = openai.ChatCompletion.create(
         model=MODEL,
         messages=messages,
         tools=tools,
-        tool_choice="auto"
+        tool_choice=tool_create_ai_input
     )
     print("| RESPONSE RECEIVED")
 
     # TODO: Handle the response of the first call to make Battle_Events
-    return create_ai_input(str(response.choices[0].message.content))
+    input_string = ""
+    tool_calls = response.choices[0].message.tool_calls
+    for tool_call in tool_calls:
+        function_args = json.loads(tool_call.function.arguments)
+        input_string += function_args.get('input_string')
+
+    return create_ai_input(input_string)
 
 # Function to generate images, using an input text and an optional title (for the filename)
 def sdprompter(subject: str, title: str = None):

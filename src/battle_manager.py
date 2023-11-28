@@ -32,7 +32,7 @@ class Battle():
     '''
     # TODO: Character Annotations now just optional attributes of Character, account for this
       # Update Motivations, surprise, distance for each (Defaults: normal (mood), surprise factor of 0 (no effect), distance factor of 0 (no effect), normal (state / status))
-    def __init__(self, location: Scene, enemies: [], party: []):
+    def __init__(self, location: Scene, enemies:[], party: []):
         self._location = location
         self._id_counter = 1
         self._create_full_Character_list_([party, enemies])
