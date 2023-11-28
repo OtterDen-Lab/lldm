@@ -277,17 +277,19 @@ def handle_movement(moving_into: str, game_map: Map):
 # TODO: Damage Calculator
 # TODO: Handle variations of attacks (weapon, spells, ???)
 def handle_attack(attacker: Character, target: Character, weapon: Item):
-    print(f"[Battle Event] ChatGPT wanted to perform an Attack from {attacker.name} onto {target.name} using {weapon.name}")
+    print(f"[Battle Event] ChatGPT wanted to perform an Attack from {attacker.name} onto {target.name} using {weapon.name}.")
 
     target.health -= weapon.damage  # TODO: Replace once Calculator is ready
+    eventSummary = f"Attack from {attacker.name} onto {target.name} using {weapon.name}. This did {weapon.damage} damage, and now {target.name} has {target.health} health left."
 
+    print(f"[Battle Event Resolve] {eventSummary}")
     # TODO: Handle possible weapon durability?
     return {"attacker": attacker, 
             "target": target, 
             "weapon": weapon, 
             "event": create_event(
-                "Attack", 
-                "Attack from {attacker.name} onto {target.name} using {weapon.name}",
+                f"Attack from {attacker.name} on {target.name} using {weapon.name}", 
+                eventSummary,
                 "Attack Generated"
             )}
 

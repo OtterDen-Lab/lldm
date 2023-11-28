@@ -32,13 +32,17 @@ class Battle():
     '''
     # TODO: Character Annotations now just optional attributes of Character, account for this
       # Update Motivations, surprise, distance for each (Defaults: normal (mood), surprise factor of 0 (no effect), distance factor of 0 (no effect), normal (state / status))
-    def __init__(self, location: Scene, enemies:[], party: []):
+    def __init__(self, location: Scene, enemies:[], party: [], turnLimit=1000, TESTMODE=False):
+        self.TESTMODE = TESTMODE
+        self._actions = ["Attack"]
+        
         self._location = location
-        self._id_counter = 1
         self._create_full_Character_list_([party, enemies])
         self._party_alive_count = len(party)
         self._enemy_alive_count = len(enemies)
         self._dead = []
+        self._ran_away = []
+        self._turnLimit = turnLimit
 
     def start_battle(self):
         # Before battle starts
@@ -59,10 +63,12 @@ class Battle():
             self._character_index = (min(self._character_index, orderSize-1) + 1) % orderSize
             if (self._character_index == 0):
                 self._turn += 1
-                print(f"Turn complete. Starting Turn {self._turn}")
                 # self._reset_temp_mods()
 
-                break  # ! For debug purposes, only one turn happens, otherwise infinite
+                if (self._turnLimit < self._turn):
+                    break
+                
+                print(f"Turn complete. Starting Turn {self._turn}")
 
         print("Battle Complete\n")
         return self.finalize_objects()
@@ -72,9 +78,9 @@ class Battle():
         print(f"It is currently {turnCharacter.name}'s time to act!")
 
         while True:
-            if (turnCharacter.entity != "party"):
+            if (self.TESTMODE or turnCharacter.npc):
                 print(f"Prompting for {turnCharacter.name}'s action")
-                prompt_input = chat_complete_battle_AI_input(location=self._location, turnCharacter=turnCharacter, charactersInfo=self._order)
+                prompt_input = chat_complete_battle_AI_input(location=self._location, turnCharacter=turnCharacter, charactersInfo=self._order, randomAction=random.randint(1,len(self._actions)+1))
             else:
                 print(f"Give {turnCharacter.name} something to do this turn. Provide target and other information as needed: ")
                 prompt_input = str(input())
@@ -107,10 +113,9 @@ class Battle():
         ! Currently assigns randomly, maybe a future update where we query user input for rolls.
           ONLY IF ABSOLUTELY REQUIRED.
         """
-        for info in self._order:
-            # print(f"\nRolling initiative for {character.name}: ")
-            info = random.randint(1, 20) + info[1].dexterity, info[1]
+        self._order = [(random.randint(1, 20) + chr.dexterity, chr) for _, chr in self._order]
         self._order = sorted(self._order, key=lambda x: x[0], reverse=True)
+        # print(self._order)
 
 
     #########################################

@@ -218,7 +218,7 @@ def chat_complete_story(user_input: str, **kwargs):
 
 # TODO: Create another 2-phase input parse>process>apply using gpt_tools strictly for Battle!
 def chat_complete_battle(user_input: str, **kwargs):
-    print("[BATTLE AGENT]:", end = " ")
+    print("\n[BATTLE AGENT]:", end = " ")
 
     # Some POTENTIAL kwargs / important things to update
     location = kwargs.get('location')
@@ -251,9 +251,11 @@ def chat_complete_battle(user_input: str, **kwargs):
     )
     print("| RESPONSE RECEIVED")
 
+    # print(response)
+
     # TODO: Handle the response of the first call to make Battle_Events
     tool_calls = response.choices[0].message.tool_calls
-    print(tool_calls)
+    # print(tool_calls)
 
     for tool_call in tool_calls:
         # Retrieve name and parameters of GPT function call
@@ -304,7 +306,7 @@ def chat_complete_battle(user_input: str, **kwargs):
             }
 
         # Execute OpenAI API call (Second call, for modifying data structures)
-        print("[OPENAI]: REQUEST SENT", end=" ")
+        print("\n[OPENAI]: REQUEST SENT", end=" ")
         response = openai.ChatCompletion.create(
             model=MODEL,
             messages=messages,
@@ -314,7 +316,7 @@ def chat_complete_battle(user_input: str, **kwargs):
         print("| RESPONSE RECEIVED")
 
         tool_calls = response.choices[0].message.tool_calls
-        print(tool_calls)
+        # print(tool_calls)
 
         for tool_call in tool_calls:
             # Retrieve name and parameters of GPT function call
@@ -356,19 +358,21 @@ def chat_complete_battle(user_input: str, **kwargs):
 
 # Function to get an input string for NPC actions
 def chat_complete_battle_AI_input(**kwargs):
-    print("[BATTLE AI INPUT]:", end = " ")
+    print("\n[BATTLE AI INPUT]:", end = " ")
 
     # Some POTENTIAL kwargs / important things to update
     location = kwargs.get('location')
     turnCharacter = kwargs.get('turnCharacter')
     charactersInvolved = kwargs.get('charactersInfo')
+    randomActionNum = kwargs.get('randomAction')
 
     # Load GPT Dialogue
     messages = [
         {"role": "system", "content": BATTLE_CONTEXT_AI_EVENT},
         {"role": "user", "content": "\n Location: " + str(location) +
                                     "\n Current Turn: " + str(turnCharacter) +
-                                    "\n Characters Involved: " + str(charactersInvolved)
+                                    "\n Characters Involved: " + str(charactersInvolved) +
+                                    "\n Action Number: " + str(randomActionNum)
          }]
     
     # Load GPT Functions

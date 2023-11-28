@@ -32,14 +32,16 @@ class Event:
 # TODO: Optional: Add parameters
 class Character(PrettyPrinter):
     id_counter = 1
+    all_characters = {}
 
-    def __init__(self, name: str, health: int, attack: int, defense: int, dexterity=0, entity="neutral", **kwargs):
+    def __init__(self, name: str, health: int, attack: int, defense: int, dexterity=0, entity="neutral", npc=False, **kwargs):
         description = kwargs.get("description")
         inventory = kwargs.get("inventory")
         super().__init__(name, description)
 
         self._id = Character.id_counter
         Character.id_counter += 1
+        Character.all_characters[self.id] = self
 
         self._name = name
         self._health = health
@@ -47,6 +49,7 @@ class Character(PrettyPrinter):
         self._defense = defense
         self._dexterity = dexterity
         self._entity = entity
+        self._npc = npc
         self._inventory = inventory if inventory is not None else []
         self._inventory.append(Item("Fist", "Punch enemies for a bit of damage", damage=10))
 
@@ -88,6 +91,10 @@ class Character(PrettyPrinter):
     
     def getItemFromInventory(self, itemName: str):
         return next((item for item in self._inventory if itemName == item.name), None)
+    
+    def reset():
+        Character.all_characters.clear()
+        Character.id_counter = 1
 
 
 # Item object, with keyword arguments for optional attributes.
