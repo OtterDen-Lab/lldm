@@ -32,13 +32,13 @@ class Battle():
     '''
     # TODO: Character Annotations now just optional attributes of Character, account for this
       # Update Motivations, surprise, distance for each (Defaults: normal (mood), surprise factor of 0 (no effect), distance factor of 0 (no effect), normal (state / status))
-    def __init__(self, location: Scene, enemies: [Character], party: [Character]):
+    def __init__(self, location: Scene, enemies: [], party: []):
         self._location = location
         self._id_counter = 1
         self._create_full_Character_list_([party, enemies])
         self._party_alive_count = len(party)
         self._enemy_alive_count = len(enemies)
-        self._dead = [Character]
+        self._dead = []
 
     def start_battle(self):
         # Before battle starts
@@ -96,7 +96,7 @@ class Battle():
     #
     #########################################
 
-    def _create_full_Character_list_(self, teams: [[Character]]):
+    def _create_full_Character_list_(self, teams: []):
         self._order = []
         for team in teams:
             for character in team:
@@ -109,7 +109,7 @@ class Battle():
         """
         for info in self._order:
             # print(f"\nRolling initiative for {character.name}: ")
-            info[0] = random.randint(1, 20) + info[1].getDexterity()
+            info = random.randint(1, 20) + info[1].dexterity, info[1]
         self._order = sorted(self._order, key=lambda x: x[0])
 
 
@@ -135,8 +135,8 @@ class Battle():
         pass
 
     def finalize_objects(self):
-        party = [Character]
-        enemies = [Character]
+        party = []
+        enemies = []
 
         for info in self._order:
             party.append(info[1]) if info[1].entity == 'party' else enemies.append(info[1])

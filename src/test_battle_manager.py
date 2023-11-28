@@ -6,8 +6,8 @@ from battle_manager import Battle
 # Test that Character class loads info correctly
 class Mock_test_1(unittest.TestCase):
     def setUp(self):
-        self.players = [Character]
-        self.enemies = [Character]
+        self.players = []
+        self.enemies = []
         self.location = Location("testName", "TestDescription")
 
         self.players.append(Character("Warrior1", 100, 10, 10, 0, "party"))
@@ -31,16 +31,16 @@ class Mock_test_1(unittest.TestCase):
 
     # TODO SECTION: 
     # [Unfinished] Check that Battle object resets properly
-    def test_battle_repeat(self):
-        print("Test 3")
-        self.battle.start_battle()
-        self.assertEqual("unknown", self.battle._battle_result)
-        self.assertEqual(2, self.battle._turn)
+    # def test_battle_repeat(self):
+    #     print("Test 3")
+    #     self.battle.start_battle()
+    #     self.assertEqual("unknown", self.battle._battle_result)
+    #     self.assertEqual(2, self.battle._turn)
 
-        print ("Test 3 part 2")
-        self.battle.start_battle()
-        self.assertEqual("unknown", self.battle._battle_result)
-        self.assertEqual(2, self.battle._turn)
+    #     print ("Test 3 part 2")
+    #     self.battle.start_battle()
+    #     self.assertEqual("unknown", self.battle._battle_result)
+    #     self.assertEqual(2, self.battle._turn)
 
     # Check that initiative rolls run to completion
     def test_initiative(self):

@@ -48,6 +48,7 @@ class Character(PrettyPrinter):
         self._dexterity = dexterity
         self._entity = entity
         self._inventory = inventory if inventory is not None else []
+        self._inventory.append(Item("Fist", "Punch enemies for a bit of damage", damage=10))
 
     @property
     def id(self):
@@ -79,27 +80,6 @@ class Character(PrettyPrinter):
 
     @property
     def inventory(self):
-        return self._inventory
-    
-    def getId(self):
-        return self._id
-    
-    def getHealth(self):
-        return self._health
-    
-    def getAttack(self):
-        return self._attack
-    
-    def getDefense(self):
-        return self._defense
-    
-    def getDexterity(self):
-        return self._dexterity
-    
-    def getEntity(self):
-        return self._entity
-
-    def getInventory(self):
         return self._inventory
     
     def getItemFromInventory(self, itemName: str):
