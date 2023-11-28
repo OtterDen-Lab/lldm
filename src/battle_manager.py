@@ -110,7 +110,7 @@ class Battle():
         for info in self._order:
             # print(f"\nRolling initiative for {character.name}: ")
             info = random.randint(1, 20) + info[1].dexterity, info[1]
-        self._order = sorted(self._order, key=lambda x: x[0])
+        self._order = sorted(self._order, key=lambda x: x[0], reverse=True)
 
 
     #########################################
