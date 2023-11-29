@@ -49,9 +49,28 @@ def setup_dungeon():
         rooms[i] = Location(room_name,room_description)  # I'm not even sure if we need to pass the flags since they'll be in the description
         map1.add_location(rooms[i])  # Add to map, only issue is that it'll always add something just called room I'll have to ask about this
 
-        # Currently I'll just set rooms to be connected to one another i.e 1->2->3->etc
-        if i > 0:
-            map1.connect_locations(rooms[i-1],rooms[i])
+        # Currently I'll just set rooms to be connected to one another i.e 1->2->3->etc old code only uncomment if DFS below fails
+        # if i > 0:
+        #     map1.connect_locations(rooms[i-1],rooms[i])
+
+    # Using a DFS algorithm we try to make it so all rooms are able to traverse from any starting room, i.e 1->4 is possibly through 1->3->5->4
+    connected = set()
+    stack = [0]  # Start from the first room
+    connected.add(0)
+
+    while stack:
+        current_room = stack.pop()
+        neighbors = [i for i in range(num_rooms) if i != current_room and i not in connected]
+
+        if neighbors:
+            next_room = random.choice(neighbors)
+            map1.connect_locations(rooms[current_room], rooms[next_room])
+            stack.append(next_room)
+            connected.add(next_room)
+        else:
+            # Backtrack if no unconnected neighbors left
+            if stack:
+                stack.pop()
 
     # At the end we return the map1
     return map1
