@@ -1,7 +1,7 @@
 import unittest
 
 from LLDM.Core.Scene import *
-from battle_manager import Battle
+from LLDM.Core.BattleManager import Battle
 
 # Test 1: Test on functions that don't use GPT calls
 class Mock_test_1(unittest.TestCase):

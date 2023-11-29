@@ -1,4 +1,5 @@
 from enum import Enum
+from LLDM.Core.BattleManager import Battle
 from LLDM.Core.Scene import Event, Item, Location, Map, Character
 
 
@@ -18,8 +19,8 @@ class Tools(Enum):
                     },
                     "category": {
                         "type": "string",
-                        "enum": ["Item Generation", "Movement", "Exploration", "Examine"],
-                        "description": "What category the event is most like. Exploration includes opening doors or actions that would reveal locations. Movement is character locomotion. Examine gives more information about something. Pick one from the enum."
+                        "enum": ["Item Generation", "Movement", "Exploration", "Examine", "Battle"],
+                        "description": "What category the event is most like. Exploration includes opening doors or actions that would reveal locations. Movement is character locomotion. Examine gives more information about something. Battle is the party choosing to fight the enemy (or enemies) in the current room. Pick one from the enum."
                     },
                     "summary": {
                         "type": "string",
@@ -143,7 +144,24 @@ class Tools(Enum):
             }
         }
     }
-
+    # TODO: Implement properties
+    HANDLE_BATTLE = {
+        "type": "function",
+        "function": {
+            "name": "handle_battle",
+            "description": "Handles a battle between the party and the enemies in the given location on the map.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "": {
+                        "type": "string",
+                        "description": ""
+                    }
+                },
+                "required": [""],
+            }
+        }
+    }
 
     # Battle Division Calls
 
@@ -289,6 +307,11 @@ def handle_movement(moving_into: str, game_map: Map):
 
 
 # Create functions to be called by GPT via Tool-calls.
+# Call Battle Function
+def handle_battle(location: Location, party: [], enemies: []):
+    print(f"[Event]: ChatGPT wanted to start a Battle.")
+    battle = Battle(location, party, enemies)
+    return battle.start_battle()
 
 # Attack Function: You can add/remove/edit the parameters as needed.
 # TODO: Damage Calculator

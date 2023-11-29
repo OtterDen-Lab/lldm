@@ -89,7 +89,8 @@ def chat_complete_story(user_input: str, **kwargs):
         Tools.CREATE_ITEM.value,
         Tools.CREATE_LOCATION.value,
         Tools.HANDLE_MOVEMENT.value,
-        Tools.HANDLE_EXAMINE.value
+        Tools.HANDLE_EXAMINE.value,
+        Tools.HANDLE_BATTLE.value
     ]
     resolved_events = []
     for event in events:
@@ -112,6 +113,8 @@ def chat_complete_story(user_input: str, **kwargs):
                 event_tool_name = "handle_movement"
             case "Examine":
                 event_tool_name = "handle_examine"
+            case "Battle":
+                event_tool_name = "handle_battle"
 
         if event_tool_name is None:
             event_tool = "auto"
@@ -204,6 +207,10 @@ def chat_complete_story(user_input: str, **kwargs):
                                 #         break
                     else:
                         print(f"No updates made for {obj_name}")
+                case "handle_battle":
+                    party = []
+                    enemies = []
+                    response = handle_battle(current_location, party, enemies)
 
     # Log the new Reaction Events created from the Event Actions
     for event in resolved_events:
