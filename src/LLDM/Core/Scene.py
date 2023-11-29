@@ -59,6 +59,17 @@ class Character(NestedFormatter):
     @property
     def tyep(self):
         return self._type
+    
+    def print_inventory(self):
+        if not self._inventory:
+            print(f"{self._name}'s inventory is empty.")
+        else:
+            for item in self._inventory:
+                print(f"{item.name}: {item.description}")
+                if item.damage is not None:
+                    print(f"Damage: {item.damage}")
+                elif item.amount is not None:
+                    print(f"Amount: {item.amount}")
 
 # Item object, with keyword arguments for optional attributes.
 class Item(NestedFormatter):
