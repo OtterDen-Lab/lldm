@@ -14,22 +14,6 @@ from LLDM.Core.GPT import chat_complete_battle, chat_complete_battle_AI_input
 
 class Battle():
     ## Initialize the battle object
-    '''
-    If you want to start a battle, you must provide:
-      - Location (Scene object)
-      - Enemies (List of Character objects which would be the mobs)
-      - Party (List of Character objects which would be the party)
-        - Can add neutral / helpful NPCs into party for now, might separate later
-
-    Example: 
-      battle = Battle(location, enemies, party)
-      response = battle.start_battle() # Battle will update party accordingly
-      party = response["party"]
-
-      ## If needed
-      # enemies = response["enemies"]
-      # location = response["location"]
-    '''
     # TODO: Character Annotations now just optional attributes of Character, account for this
       # Update Motivations, surprise, distance for each (Defaults: normal (mood), surprise factor of 0 (no effect), distance factor of 0 (no effect), normal (state / status))
     def __init__(self, location: Scene, enemies:[], party: [], turnLimit=1000, TESTMODE=False):
@@ -57,9 +41,16 @@ class Battle():
         while (self._party_alive_count > 0 and self._enemy_alive_count > 0):
             self.current_turn()
             
+            # Add anyone who is dead into the dead list
+            for info in self._order:
+                if info[1].health > 0: continue
+                self._dead.append(info)
+
+            # Update order to no longer include those who have died
             self._order[:] = [info for info in self._order if info[1].health > 0]
             orderSize = len(self._order)
 
+            # Get next character in order, might also start next turn
             self._character_index = (min(self._character_index, orderSize-1) + 1) % orderSize
             if (self._character_index == 0):
                 self._turn += 1
@@ -121,7 +112,7 @@ class Battle():
 
     #########################################
     #
-    #    End of Battle Functions - Richard
+    #    End of Battle Functions
     #
     #########################################
 

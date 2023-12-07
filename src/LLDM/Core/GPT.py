@@ -208,6 +208,7 @@ def chat_complete_story(user_input: str, **kwargs):
                     else:
                         print(f"No updates made for {obj_name}")
                 case "handle_battle":
+                    # Need to figure out how to access party and enemies
                     party = []
                     enemies = []
                     response = handle_battle(current_location, party, enemies)

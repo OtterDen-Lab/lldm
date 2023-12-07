@@ -16,6 +16,7 @@ If the location a player seeks to enter is new to the map, this would be Explora
 Counterintuitively, if a player is looking around, investigating an object, or otherwise surveying their environment (items or locations), this would be an Examine.
 If the character is explicitly traversing between EXISTING locations (referencing the game map), call the Movement function.
 If the description has somebody pick up, receive, or loot one or more items, whether directly or indirectly as a result of opening a container, this is Item Generation.
+If the description has somebody fighting or starting to attack another character, call the Battle function.
 
 If the player action denotes multiple events, you must create multiple Event objects.
 When creating Events, make sure to include all the required properties (title, summary, event_category).
