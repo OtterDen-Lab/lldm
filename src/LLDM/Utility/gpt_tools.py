@@ -157,12 +157,12 @@ class Tools(Enum):
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "": {
+                    "summary": {
                         "type": "string",
-                        "description": ""
+                        "description": "A descriptive summary of how the characters start to prepare themselves to fight."
                     }
                 },
-                "required": [""],
+                "required": ["summary"],
             }
         }
     }
@@ -205,8 +205,8 @@ class Tools(Enum):
                     },
                     "category": {
                         "type": "string",
-                        "enum": ["Attack", "Wait"],
-                        "description": "What category the event is most like. Attack is an action which deals damage to an enemy. Wait is an action where the character does nothing or waits around. Pick one from the enum."
+                        "enum": ["Attack", "Wait", "Item"],
+                        "description": "What category the event is most like. Attack is an action which deals damage to an enemy. Wait is an action where the character does nothing or waits around. Item is an action where the character uses an item that does not deal damage. Pick one from the enum."
                     },
                     "summary": {
                         "type": "string",
@@ -255,6 +255,28 @@ class Tools(Enum):
                     }
                 },
                 "required": ["summary"]
+            }
+        }
+    }
+    HANDLE_ITEM = {
+        # TODO: Add anything else needed to use the Item.
+        "type": "function",
+        "function": {
+            "name": "handle_item",
+            "description": "Handles player action to use an item. The item's effect will vary depending on the item's description.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "targetID": {
+                        "type": "integer",
+                        "description": "The ID of the character being targetted for the item use, ignoring capitalization for character names. Set to -1 if no character is specified or the character being targetted doesn't have an ID."
+                    },
+                    "item": {
+                        "type": "string",
+                        "description": "The name of the item being used. If an item is not specified or the character doesn't have the item, set this to None."
+                    }
+                },
+                "required": ["targetID", "item"],
             }
         }
     }
@@ -342,6 +364,27 @@ def handle_attack(attacker: Character, target: Character, weapon: Item):
             )}
 
 
+def handle_item(user: Character, target: Character, item: Item):
+    print(
+        f"[Battle Event] ChatGPT wanted to perform an Item action from {user.name} onto {target.name} using {item.name}.")
+
+    eventSummary = f"{user.name} attempted to user {item.name} onto {target.name}. But no effect happened."
+    if item.healing is not None:
+        target.health += item.healing  # TODO: Replace once Calculator is ready
+        eventSummary = f"{item.name} used by {user.name} onto {target.name}. This healed {item.healing} damage, and now {target.name} has {target.health} health left."
+
+    print(f"[Battle Event Resolve] {eventSummary}")
+    # TODO: Handle possible weapon durability?
+    return {"user": user,
+            "target": target,
+            "item": item,
+            "event": create_event(
+                f"{item.name} used by {user.name} on {target.name}.",
+                eventSummary,
+                "Item Used"
+            )}
+
+
 def handle_wait(character: Character, summary: str):
     print(f"[Battle Event] ChatGPT wanted to perform a Wait action for {character.name}.")
     print(f"[Battle Event Resolve] {summary}")
@@ -408,7 +451,7 @@ def handle_examine(obj_type: str, obj_name: str, new_description: str, **kwargs)
         print(f"Unknown type: {obj_type}")
 
     # You can add/remove/edit the parameters as needed.
-    # The core part of this function is to append that information to an alread-existing object.
+    # The core part of this function is to append that information to an already-existing object.
     # Example: Appending newly produced information into the description of a location.
 
     # I am handed (string)subject(name, description) and new description which is the new fluff append and return the two descriptions

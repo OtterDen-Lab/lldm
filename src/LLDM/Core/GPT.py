@@ -22,8 +22,14 @@ def chat_complete_story(user_input: str, **kwargs):
     print("[AGENT]:", end=" ")
 
     # Setup return values / important things to update
-    game_map = kwargs.get('game_map')
-    character = kwargs.get('character')
+    scene = kwargs.get('scene')
+
+    character = None
+    for c in scene.characters:
+        if c.entity == "party":
+            character = c
+            break
+
     events = []
     image_path = None
 
@@ -38,7 +44,7 @@ def chat_complete_story(user_input: str, **kwargs):
     messages = [{"role": "system", "content": CONTEXT_SIMPLE_EVENT},
                 {"role": "user", "content":
                     f"\n Game Map: {str(relevant_locations)} "
-                    f"\n Character: {character}"
+                    f"\n Characters: {scene.characters}"
                     f"\n User Input:{user_input}"
                  }]
 
@@ -99,7 +105,7 @@ def chat_complete_story(user_input: str, **kwargs):
         messages = [{"role": "system", "content": CONTEXT_SIMPLE_AGENT},
                     {"role": "user", "content":
                         f"\n Game Map: {str(relevant_locations)} "
-                        f"\n Character: {character}"
+                        f"\n Characters: {scene.characters}"
                         f"\n User Input/Event Description:{obj_to_json(event)}"
                      }]
 
@@ -298,7 +304,8 @@ def chat_complete_battle(user_input: str, **kwargs):
     # Load GPT Functions into prompt
     tools = [
         Tools.HANDLE_ATTACK.value,
-        Tools.HANDLE_WAIT.value
+        Tools.HANDLE_WAIT.value,
+        Tools.HANDLE_ITEM.value
     ]
     resolved_events = []
     for event in events:
@@ -319,6 +326,8 @@ def chat_complete_battle(user_input: str, **kwargs):
                 event_tool_name = "handle_attack"
             case "Wait":
                 event_tool_name = "handle_wait"
+            case "Item":
+                event_tool_name = "handle_item"
 
         if event_tool_name is None:
             event_tool = "auto"
@@ -348,13 +357,13 @@ def chat_complete_battle(user_input: str, **kwargs):
 
             # Setup common argument aliases
             targetID = function_args.get('targetID')
-            weaponName = function_args.get('weapon')
-            print(f"Found Target: {targetID} | Found Weapon : {weaponName}")
-            summary = function_args.get('summary')
 
             # Execute function according to matched name
             match function_name:
                 case "handle_attack":
+                    weaponName = function_args.get('weapon')
+                    # print(f"Found Target: {targetID} | Found Weapon : {weaponName}")
+
                     target = next((info[1] for info in charactersInvolved if info[1].id == targetID), None)
                     if target is None:
                         print(f"[ERROR MESSAGE]: targetID {targetID} NOT FOUND,", end = " ")
@@ -381,8 +390,34 @@ def chat_complete_battle(user_input: str, **kwargs):
                     resolved_events.append(attack_info["event"])
                 
                 case "handle_wait":
+                    summary = function_args.get('summary')
                     wait_info = handle_wait(turnCharacter, summary)
                     resolved_events.append(wait_info["event"])
+                case "handle_item":
+                    itemName = function_args.get('item')
+                    target = next((info[1] for info in charactersInvolved if info[1].id == targetID), None)
+                    if target is None:
+                        print(f"[ERROR MESSAGE]: targetID {targetID} NOT FOUND,", end=" ")
+                        target = next((info[1] for info in charactersInvolved if info[1].entity == turnCharacter.entity), None)
+                        print(f"DEFAULTING TO {target.name}")
+
+                    item = turnCharacter.getItemFromInventory(itemName)
+                    if item is None:
+                        print(f"[ERROR MESSAGE]: item {itemName} NOT FOUND,", end=" ")
+                        print(f"SKIPPING ITEM ACTION")
+                    else:
+                        item_info = handle_item(turnCharacter, target, item)
+                        turnCharacter = item_info["user"]
+                        target = item_info["target"]
+
+                        for info in charactersInvolved:
+                            if info[1].id == turnCharacter.id:
+                                info = info[0], turnCharacter
+                            elif info[1].id == target.id:
+                                info = info[0], target
+
+                        resolved_events.append(item_info["event"])
+
 
     # Log the new Reaction Events created from the Event Actions
     for event in resolved_events:

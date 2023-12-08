@@ -15,6 +15,7 @@ Else, if the input feels valid for a role-playing game, perform the following:
 
 Resolve the player action by Creating one or more Event(s) to describe them:
 If the player is attempting to use an attack, call the Attack function, and if multiple targets are specified, call the Attack function for each target separately.
+If the player is attempting to use an item that DOES NOT have a damage attribute specified to it, call the Item function.
 Otherwise, call the Wait function.
 
 If the player action denotes multiple events, you must create multiple Event objects.

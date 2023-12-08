@@ -34,9 +34,9 @@ def init_map():
 def init_char():
     character = Character("Ray", 100, 10, 10, entity="party")
 
-    sword = Item("Sword", "A sturdy blade crafted from the finest steel.", damage=100, amount=1)
+    sword = Item("Sword", "A sturdy blade crafted from the finest steel.", damage=15, amount=1)
     character.inventory.append(sword)
-    potion = Item("Health Potion", "A small vial of red liquid.", amount=1)
+    potion = Item("Health Potion", "A small vial of red liquid.", healing=10, amount=1)
     character.inventory.append(potion)
 
     return character

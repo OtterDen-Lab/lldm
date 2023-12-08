@@ -12,19 +12,20 @@ class Mock_test_1(unittest.TestCase):
         Character.reset()
         self.players = []
         self.enemies = []
-        self.location = Location("testName", "TestDescription")
 
         self.warrior = Character("Warrior1", 100, 10, 10, 0, "party")
         self.goblin = Character("Goblin1", 20, 10, 10, 0, "enemy", True)
         self.fastWarrior = Character("Warrior2", 100, 10, 10, 30, "party")
         self.fastGoblin = Character("Goblin2", 20, 10, 10, 30, "enemy", True)
 
+        self.scene = Scene(fake_init_map())
+
     # Check that Battle object is created correctly
     def test_battle_1_init(self):
         print("\n[NEW TEST]: Battle Init")
-        self.players.append(self.warrior)
-        self.enemies.append(self.goblin)
-        battle = Battle(self.location, self.players, self.enemies, turnLimit=1, TESTMODE=True)
+        self.scene.add_character(self.warrior)
+        self.scene.add_character(self.goblin)
+        battle = Battle(self.scene, turnLimit=1, TESTMODE=True)
 
         self.assertEqual(1, battle._party_alive_count)
         self.assertEqual(1, battle._enemy_alive_count)
@@ -37,10 +38,10 @@ class Mock_test_1(unittest.TestCase):
     # Check that initative function works correctly
     def test_battle_2_initiative_ordering_Warrior(self):
         print("\n[NEW TEST]: Initiative Ordering Warrior")
-        self.players.append(self.fastWarrior)
-        self.enemies.append(self.goblin)
+        self.scene.add_character(self.fastWarrior)
+        self.scene.add_character(self.goblin)
 
-        battle = Battle(self.location, self.players, self.enemies, turnLimit=1, TESTMODE=True)
+        battle = Battle(self.scene, turnLimit=1, TESTMODE=True)
         for _ in range(50):
             battle._assign_initiative_()
 
@@ -58,10 +59,10 @@ class Mock_test_1(unittest.TestCase):
     # Check that initiative function works correctly
     def test_battle_3_initiative_ordering_Goblin(self):
         print("\n[NEW TEST]: Initiative Ordering Goblin")
-        self.players.append(self.warrior)
-        self.enemies.append(self.fastGoblin)
+        self.scene.add_character(self.warrior)
+        self.scene.add_character(self.fastGoblin)
 
-        battle = Battle(self.location, self.players, self.enemies, turnLimit=1, TESTMODE=True)
+        battle = Battle(self.scene, turnLimit=1, TESTMODE=True)
         for _ in range(50):
             battle._assign_initiative_()
 
@@ -83,19 +84,21 @@ class Mock_test_2(unittest.TestCase):
         Character.reset()
         self.players = []
         self.enemies = []
-        self.location = Location("testName2", "TestDescription")
 
         self.warrior = Character("Warrior1", 100, 10, 10, 0, "party")
         self.goblin = Character("Goblin1", 20, 10, 10, 0, "enemy", True)
         self.fastWarrior = Character("Warrior2", 100, 10, 10, 30, "party")
         self.fastGoblin = Character("Goblin2", 20, 10, 10, 30, "enemy", True)
 
+        self.scene = Scene(fake_init_map())
+        self.scene.add_character(self.fastWarrior)
+        self.scene.add_character(self.fastGoblin)
+        self.scene.add_character(self.goblin)
+
     # Check that Battle object can run to completion
     def test_battle_1_finish(self):
         print("\n[NEW TEST]: Battle Start -> Complete")
-        self.players.append(self.warrior)
-        self.enemies.append(self.goblin)
-        battle = Battle(self.location, self.players, self.enemies, turnLimit=1, TESTMODE=True)
+        battle = Battle(self.scene, turnLimit=1, TESTMODE=True)
 
         battle.start_battle()
         self.assertEqual("unknown", battle._battle_result)
@@ -128,14 +131,14 @@ class Mock_test_3(unittest.TestCase):
         Character.reset()
         self.players = []
         self.enemies = []
-        self.location = Location("testName2", "TestDescription")
 
         self.sword = Item("Sword", "A sturdy blade crafted from the finest steel.", damage=15, amount=1)
+        self.potion = Item("Health Potion", "A small vial of red liquid.", healing=10, amount=1)
 
-        self.warrior = Character("WarriorA", 100, 10, 10, 0, "party", inventory=[self.sword])
-        self.goblin = Character("GoblinA", 20, 10, 10, 0, "enemy", True)
-        self.fastWarrior = Character("WarriorB", 100, 10, 10, 30, "party", inventory=[self.sword])
-        self.fastGoblin = Character("GoblinB", 20, 10, 10, 30, "enemy", True)
+        self.warrior = Character("Ray", 100, 10, 10, 0, "party", inventory=[self.sword, self.potion])
+        self.goblin = Character("David", 20, 10, 10, 0, "enemy", True)
+        self.fastWarrior = Character("Dominic", 100, 10, 10, 30, "party", inventory=[self.sword, self.potion])
+        self.fastGoblin = Character("Richard", 20, 10, 10, 30, "enemy", True)
 
     # Check that Battle object can run to completion
     def test_battle_1_finish(self):
@@ -143,7 +146,14 @@ class Mock_test_3(unittest.TestCase):
         self.players.append(self.fastWarrior)
         self.enemies.append(self.fastGoblin)
         self.enemies.append(self.goblin)
-        battle = Battle(self.location, self.players, self.enemies, turnLimit=1)
+
+        scene = Scene(fake_init_map())
+        scene.add_character(self.warrior)
+        scene.add_character(self.fastWarrior)
+        scene.add_character(self.fastGoblin)
+        scene.add_character(self.goblin)
+
+        battle = Battle(scene, turnLimit=1)
 
         battle.start_battle()
         self.assertEqual("unknown", battle._battle_result)

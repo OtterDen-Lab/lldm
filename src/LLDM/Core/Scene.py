@@ -114,6 +114,8 @@ class Item(PrettyPrinter):
             self._damage = kwargs.get("damage")
         if kwargs.get("amount") is not None:
             self._amount = kwargs.get("amount")
+        if kwargs.get("healing") is not None:
+            self._healing = kwargs.get("healing")
 
     @property
     def amount(self):
@@ -122,6 +124,10 @@ class Item(PrettyPrinter):
     @property
     def damage(self):
         return self._damage
+
+    @property
+    def healing(self):
+        return self._healing
 
 
 # Node of a graph with bidirectional connections. Each connection has a distance (currently unused)

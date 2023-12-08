@@ -13,4 +13,11 @@ If the character is trying to use an attack, call the Attack function: 'handle_a
 
 If the character is trying to wait, call the Wait function: 'handle_wait'.
 
+If the character is trying to use an item, call the Item function: 'handle_item'.
+    If a target character is specified in the Summary provided, ensure that the target of handle_item matches a Character ID within the charactersInvolved list.
+    If no target character is specified in the Summary provided or the target character in the Summary does not match a Character ID within the charactersInvolved list, set the targetID to -1.
+
+    If an item is specified in the Summary provided, ensure that the item name matches the name of an Item in the current character's Inventory.
+    If no item is specified in the Summary provided, the item name in the Summary does not match any Item in the current character's Inventory, or the item has a "Damage" attribute, set the weapon to None.
+
 For the rewritten description, do not include a description of the character action/what they did, but only the stated description of the object being described.
