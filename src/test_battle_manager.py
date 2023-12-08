@@ -1,7 +1,10 @@
 import unittest
 
-from LLDM.Core.Scene import *
+from LLDM.Core.Scene import *  # safe
 from LLDM.Core.BattleManager import Battle
+
+
+
 
 # Test 1: Test on functions that don't use GPT calls
 class Mock_test_1(unittest.TestCase):
@@ -74,7 +77,6 @@ class Mock_test_1(unittest.TestCase):
             self.assertEqual(self.warrior, secondInfo[1])
 
 
-
 # Test 2: Battle testing with GPT calls
 class Mock_test_2(unittest.TestCase):
     def setUp(self):
@@ -119,7 +121,8 @@ class Mock_test_2(unittest.TestCase):
     #     self.assertEqual("unknown", self.battle._battle_result)
     #     self.assertEqual(2, self.battle._turn)
 
-# Test 2: Manual Battle Test
+
+# Test 3: Manual Battle Test
 class Mock_test_3(unittest.TestCase):
     def setUp(self):
         Character.reset()
@@ -145,6 +148,22 @@ class Mock_test_3(unittest.TestCase):
         battle.start_battle()
         self.assertEqual("unknown", battle._battle_result)
         self.assertEqual(2, battle._turn)
+
+
+def fake_init_map():
+    # TODO: Use a DungeonGenerator to pass main a fully-structured dungeon with notable locations and entrance/exit.
+    # Create the Map. Note: the technical term for our map is a 'graph'.
+    room1 = Location("Room 1", "The first room of a sprawling dungeon. It has a closed door off to the side.")
+    # room2 = Location("Room 2", "The second room. It has a door to the first room, and another door-to an unknown area.")
+    map1 = Map()
+    map1.add_location(room1)
+    # map1.add_location(Room2)
+    # map1.connect_locations(room1, room2)
+
+    # Set the initial location with a move_to
+    map1.move_to(room1)
+    return map1
+
 
 # For future mock tests
 if __name__ == '__main__':

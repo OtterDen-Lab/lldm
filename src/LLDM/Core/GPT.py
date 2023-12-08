@@ -1,10 +1,12 @@
 ﻿import os
 import json
 import openai
+
+from LLDM.Core.Scene import Scene
 from LLDM.Core.StableDiffusion import generate, is_url_alive
 from LLDM.Utility.FileControl import *  # Also imports json in path_config.py
 from LLDM.Utility.ObjectSerializer import obj_to_json
-from LLDM.Utility.gpt_tools import *
+from LLDM.Utility.gpt_tools import Tools, create_event, illegal_action, create_item, handle_examine, handle_movement, create_location, handle_attack, handle_wait, handle_item, create_ai_input, handle_battle
 from LLDM.Utility.path_config import *  # Also imports os in path_config.py
 
 # Using Sam Ogden's provided API Key for LLDM
@@ -26,11 +28,10 @@ def chat_complete_story(user_input: str, **kwargs):
     image_path = None
 
     # send only relevant Location objects (subset of graph) to each API prompt
-    current_location = game_map.get_current_location()
-    adjacent_locations = game_map.get_adjacent_to_current()
+    adjacent_locations = scene.loc_map.get_adjacent_to_current()
 
     locations = '\n'.join(str(location) for location in adjacent_locations)
-    relevant_locations = f"[Map]: {locations}\nCurrent Location: [{current_location}]"
+    relevant_locations = f"[Map]: {locations}\nCurrent Location: [{scene.loc_map.current_location}]"
     # later, overwrite the graph entries using the list
 
     # Load GPT Dialogue (Add game information and user input)
@@ -164,25 +165,25 @@ def chat_complete_story(user_input: str, **kwargs):
                     image_path = sdprompter(new_item.description, title=new_item.name)
 
                 case "create_location":
-                    location_response = create_location(name, description, game_map)
-                    game_map = location_response[0]
+                    location_response = create_location(name, description, scene.loc_map)
+                    scene.loc_map = location_response[0]
                     resolved_events.append(location_response[1])
 
                     # Generate Image of new current Location
-                    image_path = sdprompter(game_map.get_current_location().description, title=game_map.get_current_location().name)
+                    image_path = sdprompter(scene.loc_map.current_location.description, title=scene.loc_map.current_location.name)
 
                 case "handle_movement":
-                    game_map = handle_movement(moving_into, game_map)
+                    scene.loc_map = handle_movement(moving_into, scene.loc_map)
 
                 case "handle_examine":
                     # Retrieve parameters for the examine function
                     examine_type = function_args.get('type')
                     obj_name = function_args.get('obj_name')
+                    obj_owner_name = function_args.get('obj_owner_name')
                     new_description = function_args.get('description')
 
                     # Call the examine function
-                    updated_object = handle_examine(examine_type, obj_name, new_description, game_map=game_map,
-                                                    character=character)
+                    updated_object = handle_examine(examine_type, obj_name, new_description, scene=scene, obj_owner_name=obj_owner_name)
 
                     # Update the game state based on the type of object examined
                     if updated_object:
@@ -195,7 +196,7 @@ def chat_complete_story(user_input: str, **kwargs):
                                         break
                             case "Location":
                                 # Update the game map
-                                game_map = updated_object
+                                scene.loc_map = updated_object
                                 break
                             case "Character":
                                 character = updated_object
@@ -208,20 +209,28 @@ def chat_complete_story(user_input: str, **kwargs):
                     else:
                         print(f"No updates made for {obj_name}")
                 case "handle_battle":
-                    # Need to figure out how to access party and enemies
-                    party = []
-                    enemies = []
-                    response = handle_battle(current_location, party, enemies)
+                    response = handle_battle(scene)
 
     # Log the new Reaction Events created from the Event Actions
     for event in resolved_events:
         events.append(event)
 
-    for event in events:
-        # Dump Events into Log
-        append(PATH_LOG_EVENTS, str(event))
+    # A bit confusing, but going into this section, 'events' is the array of all newly generated events.
+    # a copy of 'events' is sent to 'new_events', and scene's events are merged with 'events'.
+    # new_events = events
+    # for event in scene.events:
+    #     events.append(event)
+    #     # Dump Events into Log
+    #     append(PATH_LOG_EVENTS, str(event))
 
-    return {'events': events, 'game_map': game_map, 'character': character, 'image_path': image_path}
+    scene = Scene(scene.loc_map, events, scene.characters)
+    return {'scene': scene, 'image_path': image_path}
+
+
+
+
+
+
 
 
 # TODO: Create another 2-phase input parse>process>apply using gpt_tools strictly for Battle!
@@ -385,6 +394,9 @@ def chat_complete_battle(user_input: str, **kwargs):
 
     return {'events': events, 'location': location, 'characters': charactersInvolved}
 
+
+
+
 # Function to get an input string for NPC actions
 def chat_complete_battle_AI_input(**kwargs):
     print("\n[BATTLE AI INPUT]:", end = " ")
@@ -458,3 +470,5 @@ def sdprompter(subject: str, title: str = None):
     # Invoke the local SD instance to create an image based on the prompt
     print(str(response.choices[0].message.content))
     return generate(title=title)
+
+

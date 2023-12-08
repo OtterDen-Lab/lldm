@@ -1,6 +1,5 @@
 from enum import Enum
-from LLDM.Core.BattleManager import Battle
-from LLDM.Core.Scene import Event, Item, Location, Map, Character
+from LLDM.Core.Scene import Event, Item, Location, Map, Character, Scene
 
 
 class Tools(Enum):
@@ -135,6 +134,11 @@ class Tools(Enum):
                         "type": "string",
                         "description": "The name of best fitting object"
                     },
+                    "obj_owner_name": {
+                        "type": "string",
+                        "description": "If applicable, this is the name of whoever possesses the item"
+                    },
+
                     "description": {
                         "type": "string",
                         "description": "A rewritten description, retaining all important details but also including new ones. Just the facts, no addressing any observers."
@@ -265,13 +269,14 @@ def create_event(title: str, summary: str, category: str):
     print(f"[Event] ChatGPT wanted to make an Event: [{category}] {title}")
     return Event(title, summary, category)
 
+
 def create_location(name: str, description: str, game_map: Map):
     print(f"[Event] ChatGPT wanted to make a Location: {name}")
     if game_map.get_location_by_name(name) is None:
         new_location = Location(name, description)
         game_map.add_location(new_location)
         # Only linear connections (if working as intended): New location & Old location. (then move)
-        game_map.connect_locations(game_map.get_current_location(), new_location)
+        game_map.connect_locations(game_map.current_location, new_location)
         # Atomic move into new location (could be decoupled, but harder to define)
         # print("Moving into new location")
         game_map = handle_movement(new_location.name, game_map)
@@ -308,30 +313,34 @@ def handle_movement(moving_into: str, game_map: Map):
 
 # Create functions to be called by GPT via Tool-calls.
 # Call Battle Function
-def handle_battle(location: Location, party: [], enemies: []):
+def handle_battle(scene: Scene):
+    from LLDM.Core.BattleManager import Battle
     print(f"[Event]: ChatGPT wanted to start a Battle.")
-    battle = Battle(location, party, enemies)
+    battle = Battle(scene)
     return battle.start_battle()
+
 
 # Attack Function: You can add/remove/edit the parameters as needed.
 # TODO: Damage Calculator
 # TODO: Handle variations of attacks (weapon, spells, ???)
 def handle_attack(attacker: Character, target: Character, weapon: Item):
-    print(f"[Battle Event] ChatGPT wanted to perform an Attack from {attacker.name} onto {target.name} using {weapon.name}.")
+    print(
+        f"[Battle Event] ChatGPT wanted to perform an Attack from {attacker.name} onto {target.name} using {weapon.name}.")
 
     target.health -= weapon.damage  # TODO: Replace once Calculator is ready
     eventSummary = f"Attack from {attacker.name} onto {target.name} using {weapon.name}. This did {weapon.damage} damage, and now {target.name} has {target.health} health left."
 
     print(f"[Battle Event Resolve] {eventSummary}")
     # TODO: Handle possible weapon durability?
-    return {"attacker": attacker, 
-            "target": target, 
-            "weapon": weapon, 
+    return {"attacker": attacker,
+            "target": target,
+            "weapon": weapon,
             "event": create_event(
-                f"Attack from {attacker.name} on {target.name} using {weapon.name}", 
+                f"Attack from {attacker.name} on {target.name} using {weapon.name}",
                 eventSummary,
                 "Attack Generated"
             )}
+
 
 def handle_wait(character: Character, summary: str):
     print(f"[Battle Event] ChatGPT wanted to perform a Wait action for {character.name}.")
@@ -342,28 +351,30 @@ def handle_wait(character: Character, summary: str):
         "Wait Generated"
     )}
 
+
 def handle_examine(obj_type: str, obj_name: str, new_description: str, **kwargs):
+    scene = kwargs.get('scene')
+
+    character = None
+
     # print("\nEntered handle_examine function!\n")
     if obj_type == "Item":
         print("\nType Item\n")
-        # Retrieve the inventory from kwargs
-        character = kwargs.get('character')
-        # print(f"\nCharacter inside handle_examine: {character}\n")
-        if character.inventory:
-            # Find the item in the inventory
-            for item in character.inventory:
-                if item.name == obj_name:
-                    # Update the item's description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
-                    item.description = new_description
-                    return item  # Return the updated item
-            print(f"Item named {obj_name} not found in inventory.")
-        else:
-            print("Inventory not provided.")
+        obj_owner_name = kwargs.get('obj_owner_name')
+        if obj_owner_name is not None:
+            for char in scene.characters:
+                if char.name == obj_owner_name:
+                    # Find the item in the inventory
+                    for item in char.inventory:
+                        if item.name == obj_name:
+                            # Update the item's description
+                            item.description = new_description
+                            return item  # Return the updated item
+                    print(f"Item named {obj_name} not found in inventory.")
 
     elif obj_type == "Location":
         print("\nType Location\n")
-        # Retrieve the game map from kwargs
-        game_map = kwargs.get('game_map')
+        game_map = scene.loc_map
         if game_map:
             # Find the location in the game map
             location = game_map.get_location_by_name(obj_name)
@@ -377,10 +388,10 @@ def handle_examine(obj_type: str, obj_name: str, new_description: str, **kwargs)
             print("Game map not provided.")
 
     elif obj_type == "Character":
-        # Retrieve the character list from kwargs
-        character = kwargs.get('character')
-        character.description += " " + new_description
-        return character  # Return the updated character
+        for char in scene.characters:
+            if char.name == obj_name:
+                char.description += " " + new_description
+                return char  # Return the updated character
 
         # if characters:
         #     # Find the character
@@ -396,24 +407,18 @@ def handle_examine(obj_type: str, obj_name: str, new_description: str, **kwargs)
     else:
         print(f"Unknown type: {obj_type}")
 
-
-
-
-
-
     # You can add/remove/edit the parameters as needed.
     # The core part of this function is to append that information to an alread-existing object.
     # Example: Appending newly produced information into the description of a location.
 
-    #I am handed (string)subject(name, description) and new description which is the new fluff append and return the two descriptions
-    
+    # I am handed (string)subject(name, description) and new description which is the new fluff append and return the two descriptions
+
+
 def create_ai_input(input_string: str):
     print(f"[AI INPUT] ChatGPT wanted to make an AI INPUT: [{input_string}]")
     return input_string
 
-
-
-
 #   GPTTOOLs I need to make the parameter generating function the big json text and I need the logic function to add the descriptions to objects with an openai call
 # GPT after the events been made i get a category back its a check to ensure chatgpt is only runnign the tool we want it tot use when we want it to use we are not giving it freedom if we know what its suppsoe to run 
-#line 110 in gpt.py
+# line 110 in gpt.py
+

@@ -34,8 +34,9 @@ class Character(PrettyPrinter):
     id_counter = 1
     all_characters = {}
 
-    def __init__(self, name: str, health: int, attack: int, defense: int, dexterity=0, entity="neutral", npc=False, **kwargs):
-        description = kwargs.get("description")
+    def __init__(self, name: str, health: int, attack: int, defense: int, dexterity=0, entity="neutral", npc=False,
+                 **kwargs):
+        description = kwargs.get("description") if kwargs.get("description") is not None else ""
         inventory = kwargs.get("inventory")
         super().__init__(name, description)
 
@@ -56,7 +57,7 @@ class Character(PrettyPrinter):
     @property
     def id(self):
         return self._id
-    
+
     @property
     def name(self):
         return self._name
@@ -72,19 +73,19 @@ class Character(PrettyPrinter):
     @property
     def attack(self):
         return self._attack
-    
+
     @property
     def defense(self):
         return self._defense
-    
+
     @property
     def dexterity(self):
         return self._dexterity
-    
+
     @property
     def entity(self):
         return self._entity
-    
+
     @property
     def npc(self):
         return self._npc
@@ -92,10 +93,10 @@ class Character(PrettyPrinter):
     @property
     def inventory(self):
         return self._inventory
-    
+
     def getItemFromInventory(self, itemName: str):
         return next((item for item in self._inventory if itemName == item.name), None)
-    
+
     def printInventory(self):
         inventory_str = f"{self.name} : {[item.name for item in self._inventory]}"
         print(inventory_str)
@@ -152,15 +153,16 @@ class Location(PrettyPrinter):
 class Map:
     def __init__(self):
         self.locations = {}  # Holds Location objects. Which have their own list of adjacent locations
-        self.current_location = None  # Location object
+        self._current_location = None  # Location object
 
     def __str__(self):
         # Create a string representation of the map with all locations and their connections
         locations = '\n'.join(str(location) for location in self.locations)
-        return f"[Map]: Current Location: [{self.current_location.name}]\n{locations}"
+        return f"[Map]: Current Location: [{self._current_location.name}]\n{locations}"
 
-    def get_current_location(self):
-        return self.current_location
+    @property
+    def current_location(self):
+        return self._current_location
 
     def get_location_by_name(self, name: str):
         # Search for the Location by name and return it
@@ -179,16 +181,17 @@ class Map:
                 loc2.add_adjacent(loc1, distance)  # For undirected graph (bidirectional paths)
 
     def move_to(self, destination: Location):
-        if self.current_location is None:
+        if self._current_location is None:
             # If there is no current location, set the initial location
             if isinstance(destination, Location):
-                self.current_location = destination
+                self._current_location = destination
         else:
             # If trying to move to a new location, check if it's adjacent
-            if self.are_adjacent(self.current_location, destination):
-                self.current_location = self.locations[destination]
+            if self.are_adjacent(self._current_location, destination):
+                self._current_location = self.locations[destination]
             else:
-                print(f"Cannot move to [{destination.name}] from [{self.current_location.name}]. Location not adjacent.")
+                print(
+                    f"Cannot move to [{destination.name}] from [{self._current_location.name}]. Location not adjacent.")
 
     def are_adjacent(self, loc1: Location, loc2: Location):
         if loc1 in self.locations and loc2 in self.locations:
@@ -197,8 +200,8 @@ class Map:
         return False
 
     def get_adjacent_to_current(self):
-        if self.current_location:
-            return self.current_location.get_adjacent_locations()
+        if self._current_location:
+            return self._current_location.get_adjacent_locations()
         else:
             return None
 
@@ -208,22 +211,35 @@ class Map:
 class Scene(NestedFormatter):
     time = 0
 
-    def __init__(self, loc_map: Map):
+    def __init__(self, loc_map: Map, events=None, characters=None):
         self._loc_map = loc_map
-        self._events = []
-        self._characters = []
-
-    def set_map(self, loc_map: Map):
-        self._loc_map = loc_map
-
-    def add_event(self, event: Event):
-        self._events.append(event)
-
-    def add_character(self, character: Character):
-        self._characters.append(character)
+        self._events = events if events is not None else []
+        self._characters = characters if characters is not None else []
 
     def get_character_by_name(self, name: str):
         for character in self._characters:
             if character.name == name:
                 return character
         return None
+
+    @property
+    def loc_map(self):
+        return self._loc_map
+
+    @loc_map.setter
+    def loc_map(self, loc_map: Map):
+        self._loc_map = loc_map
+
+    @property
+    def events(self):
+        return self._events
+
+    def add_event(self, event: Event):
+        self._events.append(event)
+
+    @property
+    def characters(self):
+        return self._characters
+
+    def add_character(self, character: Character):
+        self._characters.append(character)

@@ -12,7 +12,7 @@ import random
 from LLDM.Core.Scene import Character, Scene
 from LLDM.Core.GPT import chat_complete_battle, chat_complete_battle_AI_input
 
-class Battle():
+class Battle:
     ## Initialize the battle object
     # TODO: Character Annotations now just optional attributes of Character, account for this
       # Update Motivations, surprise, distance for each (Defaults: normal (mood), surprise factor of 0 (no effect), distance factor of 0 (no effect), normal (state / status))
@@ -29,6 +29,9 @@ class Battle():
         self._turnLimit = turnLimit
 
     def start_battle(self):
+        global inBattle
+        inBattle = True
+
         # Before battle starts
         print("Starting Battle\n")
         self._assign_initiative_()
@@ -40,7 +43,7 @@ class Battle():
         # Check that there is still at least one of each team left
         while (self._party_alive_count > 0 and self._enemy_alive_count > 0):
             self.current_turn()
-            
+
             # Add anyone who is dead into the dead list
             for info in self._order:
                 if info[1].health > 0: continue
@@ -58,7 +61,7 @@ class Battle():
 
                 if (self._turnLimit < self._turn):
                     break
-                
+
                 print(f"Turn complete. Starting Turn {self._turn}")
 
         print("Battle Complete\n")
@@ -74,10 +77,24 @@ class Battle():
                 randomActionNum = 0 if self.TESTMODE else random.randint(0, len(self._actions)-1)
                 prompt_input = chat_complete_battle_AI_input(location=self._location, turnCharacter=turnCharacter, charactersInfo=self._order, randomAction=self._actions[randomActionNum])
             else:
-                print(f"Give {turnCharacter.name} something to do this turn. Provide target and other information as needed: ")
-                prompt_input = str(input())
+                print(
+                    f"Give {turnCharacter.name} something to do this turn. Provide target and other information as needed: ")
+                while web_app_message is None:
+                    continue
+                prompt_input = web_app_message
+                web_app_message = None
+                # prompt_input = str(input())
 
-            response = chat_complete_battle(prompt_input, location=self._location, turnCharacter=turnCharacter, charactersInfo=self._order)
+            response = chat_complete_battle(prompt_input, location=self._location, turnCharacter=turnCharacter,
+                                            charactersInfo=self._order)
+
+            # Figure out who is going / Check order array (purely to assign input to character)
+            # Send call with input and object metadata
+            # Use response to update global battle_events
+            # Return 0
+            # // Outside (App.py)
+            #   Fetch global battle_events
+            #   Post to dialogue
 
             if response:
                 # self._events = response.get('events')
@@ -86,7 +103,6 @@ class Battle():
                 break
 
         print(f"End of {turnCharacter.name}'s turn\n")
-
 
     #########################################
     #
@@ -108,7 +124,6 @@ class Battle():
         self._order = [(random.randint(1, 20) + chr.dexterity, chr) for _, chr in self._order]
         self._order = sorted(self._order, key=lambda x: x[0], reverse=True)
         # print(self._order)
-
 
     #########################################
     #
@@ -144,6 +159,36 @@ class Battle():
                 'enemies': enemies
                 }
 
+
+# Battle Controller:
+# Init Battle: Determine order and generate initiative array
+#
+# Current Turn() Iterates from index in initiative array, processing the input and resolving it.
+#   No output, but overwrites battle_events
+#
+# If at the end of this turn, if one side (enemy/party) is dead, end the battle and set inBattle to False
+#
+
+
+def process_input_battle(user_input):
+    global web_app_message
+    web_app_message = user_input
+
+
+web_app_message = None
+
+# Whether a battle is in session
+inBattle = False
+
+# Events: Each turn generates one or more Event(s) of what just happened
+battle_events = []
+
+
+def get_battle_events():
+    # Return new events generated per turn
+    global battle_events
+    return battle_events
+
     #########################################
     #
     #               Unused
@@ -160,7 +205,6 @@ class Battle():
     #     print(replay)
     #     self.action_log.append(replay)
     #     # TODO: Update Vector DB with Chat GPT's summary:
-
 
     # def grand_sum(self):
     #     auto_text = "Summarize the following events of the battle: "
