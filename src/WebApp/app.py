@@ -64,7 +64,6 @@ def send_message():
     if inBattle:
         process_input_battle(message_text)
         bot_responses = [get_battle_events()]
-
     else:
         process_input(message_text)  # This updates what the getter functions return
         bot_responses = [get_new_events()]
