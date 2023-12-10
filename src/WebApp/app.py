@@ -45,7 +45,7 @@ def index():
 @app.route('/chat/', methods=['GET'])
 def chat():
     global background_image_filename
-    return render_template('chat.html', filename=background_image_filename, messages=messages, box1=get_map(),
+    return render_template('chat.html', filename="Room 1.png", messages=messages, box1=get_map(),
                            box2=get_main_character())
 
 

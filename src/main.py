@@ -20,11 +20,11 @@ def init_map():
     # TODO: Use a DungeonGenerator to pass main a fully-structured dungeon with notable locations and entrance/exit.
     # Create the Map. Note: the technical term for our map is a 'graph'.
     room1 = Location("Room 1", "The first room of a sprawling dungeon. It has a closed door off to the side.")
-    room2 = Location("Room 2", "The second room. It has a door to the first room, and another door-to an unknown area.")
+    # room2 = Location("Room 2", "The second room. It has a door to the first room, and another door-to an unknown area.")
     map1 = Map()
     map1.add_location(room1)
-    map1.add_location(room2)
-    map1.connect_locations(room1, room2)
+    # map1.add_location(room2)
+    # map1.connect_locations(room1, room2)
 
     # Set the initial location with a move_to
     map1.move_to(room1)
