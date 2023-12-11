@@ -6,7 +6,7 @@ from LLDM.Core.Scene import Scene
 from LLDM.Core.StableDiffusion import generate, is_url_alive
 from LLDM.Utility.FileControl import *  # Also imports json in path_config.py
 from LLDM.Utility.ObjectSerializer import obj_to_json
-from LLDM.Utility.gpt_tools import Tools, create_event, illegal_action, create_item, handle_examine, handle_movement, create_location, handle_attack, handle_wait, handle_item, create_ai_input, handle_battle
+from LLDM.Utility.gpt_tools import *
 from LLDM.Utility.path_config import *  # Also imports os in path_config.py
 
 # Using Sam Ogden's provided API Key for LLDM
@@ -216,6 +216,12 @@ def chat_complete_story(user_input: str, **kwargs):
                         print(f"No updates made for {obj_name}")
                 case "handle_battle":
                     response = handle_battle(scene)
+                    if response is not None:
+                        scene.characters = response.get('party')
+
+                    battle_events = get_new_battle_events_GPT_Tools()
+                    for event in battle_events:
+                        resolved_events.append(event)
 
     # Log the new Reaction Events created from the Event Actions
     for event in resolved_events:
@@ -507,3 +513,8 @@ def sdprompter(subject: str, title: str = None):
     return generate(title=title)
 
 
+def process_new_input_battle(userInput: str):
+    return handle_input_battle(userInput)
+
+def get_new_battle_events_GPT():
+    return get_new_battle_events_GPT_Tools()

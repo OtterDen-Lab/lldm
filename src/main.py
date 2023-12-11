@@ -2,7 +2,6 @@
 from LLDM.Core.GPT import *
 from LLDM.Core.Scene import Scene, Location, Character, Map, Item
 
-
 def init_scene():
     global scene
     scene = Scene(init_map())
@@ -59,6 +58,13 @@ def process_input(user_input):
 
         image_path = response.get('image_path')
 
+def process_input_battle(user_input):
+    response = process_input_battle(user_input)
+    if response:
+        scene.characters = response.get('party')
+
+def get_new_battle_events():
+    return get_new_battle_events_GPT()
 
 def main_gen_img():
     return sdprompter("test for dead url", "test")

@@ -53,18 +53,19 @@ class Battle:
             return self.finalize_objects()
         
         turnCharacter = self._order[self._character_index][1]
+        self._turnCharacter = turnCharacter
         print(f"It is currently {turnCharacter.name}'s time to act!")
 
         while True:
             if self.TESTMODE or turnCharacter.npc:
                 print(f"Prompting for {turnCharacter.name}'s action")
                 randomActionNum = 0 if self.TESTMODE else random.randint(0, len(self._enemy_actions) - 1)
-                return chat_complete_battle_AI_input(
+                return {'prompt_input': chat_complete_battle_AI_input(
                     location=self._location, 
                     turnCharacter=turnCharacter,
                     charactersInfo=self._order,
                     randomAction=self._enemy_actions[randomActionNum]
-                )
+                )}
             else:
                 return None
             
@@ -164,15 +165,17 @@ class Battle:
             party.append(info[1]) if info[1].entity == 'party' else enemies.append(info[1])
 
         return {'party': party,
-                'dead': self._dead,
-                'location': self._location,
                 'enemies': enemies,
-                'outcome': self._battle_result
+                'outcome': self._battle_result,
+                'prompt_input': "END"
                 }
 
-def get_battle_events(self):
-    # Return new events generated per turn
-    return self._battle_events
+    def get_battle_events(self):
+        # Return new events generated per turn
+        return self._battle_events
+
+    def get_turn_character(self):
+        return self._turnCharacter
 
     #########################################
     #

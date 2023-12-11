@@ -5,8 +5,8 @@ import random
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 
 from LLDM.Utility.path_config import WEB_APP_IMAGES
-from main import process_input, get_map, get_main_character, get_img, get_new_events, main_gen_img
-from LLDM.Core.BattleManager import process_input_battle, inBattle, get_battle_events
+from main import *
+from LLDM.Core.BattleManager import inBattle
 
 app = Flask(__name__)
 app.secret_key = 'some_secret_key'  # for flash messages
@@ -63,7 +63,7 @@ def send_message():
 
     if inBattle:
         process_input_battle(message_text)
-        bot_responses = [get_battle_events()]
+        bot_responses = [get_new_battle_events()]
     else:
         process_input(message_text)  # This updates what the getter functions return
         bot_responses = [get_new_events()]

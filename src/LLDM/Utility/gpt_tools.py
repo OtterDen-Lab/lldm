@@ -1,6 +1,7 @@
 from enum import Enum
 from LLDM.Core.Scene import Event, Item, Location, Map, Character, Scene
 
+battle = None
 
 class Tools(Enum):
     # First Call - Resolve Input into described action
@@ -338,9 +339,30 @@ def handle_movement(moving_into: str, game_map: Map):
 def handle_battle(scene: Scene):
     from LLDM.Core.BattleManager import Battle
     print(f"[Event]: ChatGPT wanted to start a Battle.")
-    battle = Battle(scene)
-    return battle.start_battle()
 
+    global battle
+    battle = Battle(scene, turnLimit=10)
+    battle.start_battle()
+    initial_input = battle.get_action_input()
+    
+    return handle_input_battle(initial_input)
+    
+def handle_input_battle(user_input):
+    global battle
+    while user_input is not None:
+        response = battle.get_action_response(user_input, battle.get_turn_character())
+        if response is None: 
+            # Web app needs to print something about the action being invalid?
+            break
+
+        battle.resolve_turn(battle.get_turn_character())
+        user_input = battle.get_action_input()
+
+    return 
+
+def get_new_battle_events_GPT_Tools():
+    global battle
+    return battle.get_battle_events()
 
 # Attack Function: You can add/remove/edit the parameters as needed.
 # TODO: Damage Calculator
