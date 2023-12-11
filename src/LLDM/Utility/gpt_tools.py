@@ -343,22 +343,31 @@ def handle_battle(scene: Scene):
     global battle
     battle = Battle(scene, turnLimit=10)
     battle.start_battle()
-    initial_input = battle.get_action_input()
+
+    response = battle.get_action_input()
+    if response is None: return response    # Need player input
+
+    initial_input = response.get('prompt_input')
+    return handle_input_battle(initial_input, response)
     
-    return handle_input_battle(initial_input)
-    
-def handle_input_battle(user_input):
+def handle_input_battle(user_input, resolve_response = None):
     global battle
-    while user_input is not None:
+
+    # If user_input == "END", the battle has ended and response contains updated object info
+    while user_input != "END": 
         response = battle.get_action_response(user_input, battle.get_turn_character())
         if response is None: 
-            # Web app needs to print something about the action being invalid?
+            # Web app needs to print something about the action being invalid and to go again?
             break
 
         battle.resolve_turn(battle.get_turn_character())
-        user_input = battle.get_action_input()
 
-    return 
+        resolve_response = battle.get_action_input()
+        if resolve_response is None: break      # New player input required
+
+        user_input = resolve_response.get('prompt_input')
+
+    return resolve_response
 
 def get_new_battle_events_GPT_Tools():
     global battle

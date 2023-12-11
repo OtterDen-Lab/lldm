@@ -59,6 +59,7 @@ def process_input(user_input):
         image_path = response.get('image_path')
 
 def process_input_battle(user_input):
+    global scene
     response = process_input_battle(user_input)
     if response:
         scene.characters = response.get('party')
