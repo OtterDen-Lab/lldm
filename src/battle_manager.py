@@ -7,7 +7,7 @@
 
     Update BattleSDPrompter.txt to make images for enemies?
 '''
-
+import re
 import random
 from LLDM.Core.Scene import Character, Scene
 from LLDM.Core.GPT import chat_complete_battle, chat_complete_battle_AI_input
@@ -125,14 +125,34 @@ class Battle():
     #
     #########################################
 
+    #For use with end of battle functions
+    # def search_specific_words(description, words_to_search):
+
+    #     found_words = []
+    #     for word in words_to_search:
+    #         pattern = re.compile(rf'\b{re.escape(word)}\b', flags=re.IGNORECASE)
+    #         if re.search(pattern, description):
+    #             found_words.append(word)
+    
+    #     return found_words
+    
     def conclusion_summary_GPT(self, outcome):
         # TODO: Check LLDM MasterDoc (Should be in slack group DM)
-
+        # words_to_search_list = ["flee", "fled", "ran", "run", "escape", "escaped"]
+        # keyword_list = search_specific_words(outcome, words_to_search_list)
+        # print(outcome)
+        
+        
         pass
 
-    def rewards_distribution(self):
+    def rewards_distribution(self, outcome):
         # TODO: Check LLDM MasterDoc
-
+        # words_to_search_list = ["defeat", "defeated", "kill", "killed"]
+        # keyword_list = search_specific_words(outcome, words_to_search_list)
+        # if(len(words_to_search_list) > 0)
+        #     print(f"entity.item_drop was received"
+        
+            
         pass
 
     def reset_battle_check(self):
