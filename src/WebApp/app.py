@@ -2,17 +2,18 @@
 # from LLDM.helpers.JSONControl import *
 import os
 import random
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, url_for, jsonify
 
-from LLDM.Utility.path_config import WEB_APP_IMAGES
-from main import *
-from LLDM.Core.BattleManager import inBattle
+from LLDM.Core.GPT import Battle
+from LLDM.Utility import Routes
+from main import get_main_character, main_gen_img, get_img, get_map, scene, handle_input
+
 
 app = Flask(__name__)
 app.secret_key = 'some_secret_key'  # for flash messages
 
 # Select a random image from our static folder
-background_image_filename = random.choice(os.listdir(WEB_APP_IMAGES))
+background_image_filename = random.choice(os.listdir(Routes.WEB_APP_IMAGES))
 print(f"Background Image: {background_image_filename}")
 
 # Accepted file formats for uploads
@@ -29,14 +30,16 @@ def allowed_file(filename):
 # Storage of messages to be sent to frontend
 messages = [
     {"sender": "bot",
-     "text": "I am LLDM, your narrator for this session. \nDetails of this adventure are listed on the right, and will be updated as you progress. \nPlease enter your actions in the field below."}
+     "text": "I am LLDM, your narrator for this session. \n"
+             "Details of this adventure are listed on the right, and will be updated as you progress. \n"
+             "Please enter your actions in the field below."}
 ]
 
 
 @app.route('/')
 def index():
     global background_image_filename
-    files = [f for f in os.listdir(WEB_APP_IMAGES) if f != background_image_filename]
+    files = [f for f in os.listdir(Routes.WEB_APP_IMAGES) if f != background_image_filename]
     new_random_file = random.choice(files)
     background_image_filename = new_random_file
     return render_template('home.html', filename=background_image_filename)
@@ -59,25 +62,20 @@ def generate_image():
 def send_message():
     message_text = request.form['message']
     messages.append({"sender": "user", "text": message_text})
-    bot_responses = []
 
-    if inBattle:
-        process_input_battle(message_text)
-        bot_responses = [get_new_battle_events()]
-    else:
-        process_input(message_text)  # This updates what the getter functions return
-        bot_responses = [get_new_events()]
-
+    bot_responses = handle_input(message_text)
+    str_responses = []
     for response in bot_responses:
-        messages.append({"sender": "bot", "text": response})
+        messages.append({"sender": "bot", "text": str(response)})
+        str_responses.append(str(response))
 
     if get_img():
         image_name = get_img().removesuffix(".png")
         image_path = url_for('static', filename='images/' + get_img())
 
-        return jsonify({"bot_responses": bot_responses, "character_info": get_main_character(), "map_info": get_map(),
+        return jsonify({"bot_responses": str_responses, "character_info": get_main_character(), "map_info": get_map(),
                         "image_path": image_path, "image_name": image_name})
-    return jsonify({"bot_responses": bot_responses, "character_info": get_main_character(), "map_info": get_map()})
+    return jsonify({"bot_responses": str_responses, "character_info": get_main_character(), "map_info": get_map()})
 
 
 if __name__ == '__main__':

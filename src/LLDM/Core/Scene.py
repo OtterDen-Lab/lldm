@@ -51,8 +51,11 @@ class Character(PrettyPrinter):
         self._dexterity = dexterity
         self._entity = entity
         self._npc = npc
+        self._alive = True
         self._inventory = inventory if inventory is not None else []
         self._inventory.append(Item("Fist", "Punch enemies for a bit of damage", damage=5))
+
+        self.is_alive = True
 
     @property
     def id(self):
@@ -91,17 +94,22 @@ class Character(PrettyPrinter):
         return self._npc
 
     @property
+    def alive(self):
+        return self._alive
+
+    @alive.setter
+    def alive(self, value: bool):
+        self._alive = value
+
+    @property
     def inventory(self):
         return self._inventory
-
-    def getItemFromInventory(self, itemName: str):
-        return next((item for item in self._inventory if itemName == item.name), None)
 
     def printInventory(self):
         inventory_str = f"{self.name} : {[item.name for item in self._inventory]}"
         print(inventory_str)
 
-    def reset():
+    def reset(self):
         Character.all_characters.clear()
         Character.id_counter = 1
 
@@ -136,12 +144,21 @@ class Location(PrettyPrinter):
         super().__init__(name, description)
 
         self._name = name
+        self._visited = False
         self.adjacent = adjacent if adjacent is not None else {}
         # Dictionary to hold adjacent locations and their respective distances
 
     @property
     def name(self):
         return self._name
+
+    @property
+    def visited(self):
+        return self._visited
+
+    @visited.setter
+    def visited(self, value: bool):
+        self._visited = value
 
     def __str__(self):
         # Create a string with the name of the location and its connections
@@ -164,11 +181,15 @@ class Map:
     def __str__(self):
         # Create a string representation of the map with all locations and their connections
         locations = '\n'.join(str(location) for location in self.locations)
-        return f"[Map]: Current Location: [{self._current_location.name}]\n{locations}"
+        return f"[Map]: Current Location: [{self.current_location.name}]\n{locations}"
 
     @property
     def current_location(self):
         return self._current_location
+
+    @current_location.setter
+    def current_location(self, new_location: Location):
+        self._current_location = new_location
 
     def get_location_by_name(self, name: str):
         # Search for the Location by name and return it
@@ -187,17 +208,17 @@ class Map:
                 loc2.add_adjacent(loc1, distance)  # For undirected graph (bidirectional paths)
 
     def move_to(self, destination: Location):
-        if self._current_location is None:
+        if self.current_location is None:
             # If there is no current location, set the initial location
             if isinstance(destination, Location):
-                self._current_location = destination
+                self.current_location = destination
         else:
             # If trying to move to a new location, check if it's adjacent
-            if self.are_adjacent(self._current_location, destination):
-                self._current_location = self.locations[destination]
+            if self.are_adjacent(self.current_location, destination):
+                self.current_location = self.locations[destination]
             else:
                 print(
-                    f"Cannot move to [{destination.name}] from [{self._current_location.name}]. Location not adjacent.")
+                    f"Cannot move to [{destination.name}] from [{self.current_location.name}]. Location not adjacent.")
 
     def are_adjacent(self, loc1: Location, loc2: Location):
         if loc1 in self.locations and loc2 in self.locations:
@@ -206,10 +227,14 @@ class Map:
         return False
 
     def get_adjacent_to_current(self):
-        if self._current_location:
-            return self._current_location.get_adjacent_locations()
+        if self.current_location:
+            return self.current_location.get_adjacent_locations()
         else:
             return None
+
+    def get_relevant_locations_str(self):
+        locations = '\n'.join(str(location) for location in self.get_adjacent_to_current())
+        return str(f"[Map]: {locations}\nCurrent Location: [{self.current_location}]")
 
 
 # Scene represent the top level object.
@@ -249,3 +274,7 @@ class Scene(NestedFormatter):
 
     def add_character(self, character: Character):
         self._characters.append(character)
+
+    @characters.setter
+    def characters(self, characters):
+        self._characters = characters

@@ -1,7 +1,8 @@
 from enum import Enum
-from LLDM.Core.Scene import Event, Item, Location, Map, Character, Scene
+from LLDM.Core.Scene import Event, Item, Location, Map, Character
 
 battle = None
+
 
 class Tools(Enum):
     # First Call - Resolve Input into described action
@@ -174,17 +175,26 @@ class Tools(Enum):
     CREATE_AI_INPUT = {
         "type": "function",
         "function": {
-            "name": "create_ai_input",
-            "description": "Creates an input for NPCs to follow some random action",
+            "name": "npc_action_description",
+            "description": "Describe a combat action taken by an NPC",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "input_string": {
+                    "title": {
                         "type": "string",
-                        "description": "The description of the combat action taken. If this is an Attack action, use the following sentence structure, replacing anything within and including {}: {My character} used {this weapon in my character's inventory} against {A target which has a different Entity type then my character}.",
+                        "description": "The title of the event stemming from the resolved character action. It should be concise.",
+                    },
+                    "category": {
+                        "type": "string",
+                        "enum": ["Attack", "Wait", "Item"],
+                        "description": "What category the event is most like. Attack is an action which deals damage to an enemy. Wait is an action where the character does nothing or waits around. Item is an action where the character uses an item that does not deal damage. Pick one from the enum."
+                    },
+                    "summary": {
+                        "type": "string",
+                        "description": "The description of the combat action taken"
                     }
                 },
-                "required": ["input_string"]
+                "required": ["title", "category", "summary"]
             }
         }
     }
@@ -231,7 +241,7 @@ class Tools(Enum):
                 "properties": {
                     "targetID": {
                         "type": "integer",
-                        "description": "The ID of the character being attacked, ignoring capitalization for character names. Set to -1 if no character is specified or the character being attacked doesn't have an ID."
+                        "description": "The _id attribute of the character being attacked, ignoring capitalization for character names. Set to -1 if no character is specified or the character being attacked doesn't have an _id attribute."
                     },
                     "weapon": {
                         "type": "string",
@@ -335,43 +345,31 @@ def handle_movement(moving_into: str, game_map: Map):
 
 
 # Create functions to be called by GPT via Tool-calls.
-# Call Battle Function
-def handle_battle(scene: Scene):
-    from LLDM.Core.BattleManager import Battle
-    print(f"[Event]: ChatGPT wanted to start a Battle.")
 
-    global battle
-    battle = Battle(scene, turnLimit=10)
-    battle.start_battle()
-
-    response = battle.get_action_input()
-    if response is None: return response    # Need player input
-
-    initial_input = response.get('prompt_input')
-    return handle_input_battle(initial_input, response)
-    
-def handle_input_battle(user_input, resolve_response = None):
+def handle_input_battle(user_input, resolve_response=None):
     global battle
 
     # If user_input == "END", the battle has ended and response contains updated object info
-    while user_input != "END": 
+    while user_input != "END":
         response = battle.get_action_response(user_input, battle.get_turn_character())
-        if response is None: 
+        if response is None:
             # Web app needs to print something about the action being invalid and to go again?
             break
 
         battle.resolve_turn(battle.get_turn_character())
 
         resolve_response = battle.get_action_input()
-        if resolve_response is None: break      # New player input required
+        if resolve_response is None: break  # New player input required
 
         user_input = resolve_response.get('prompt_input')
 
     return resolve_response
 
+
 def get_new_battle_events_GPT_Tools():
     global battle
     return battle.get_battle_events()
+
 
 # Attack Function: You can add/remove/edit the parameters as needed.
 # TODO: Damage Calculator
@@ -380,49 +378,47 @@ def handle_attack(attacker: Character, target: Character, weapon: Item):
     print(
         f"[Battle Event] ChatGPT wanted to perform an Attack from {attacker.name} onto {target.name} using {weapon.name}.")
 
-    target.health -= weapon.damage  # TODO: Replace once Calculator is ready
-    eventSummary = f"Attack from {attacker.name} onto {target.name} using {weapon.name}. This did {weapon.damage} damage, and now {target.name} has {target.health} health left."
+    target.health -= weapon.damage
 
-    print(f"[Battle Event Resolve] {eventSummary}")
-    # TODO: Handle possible weapon durability?
-    return {"attacker": attacker,
-            "target": target,
-            "weapon": weapon,
-            "event": create_event(
-                f"Attack from {attacker.name} on {target.name} using {weapon.name}",
-                eventSummary,
-                "Attack Generated"
-            )}
+    if target.health <= 0:
+        target.health = 0
+        target.alive = False
+
+    event_summary = f"Attack from {attacker.name} onto {target.name} using {weapon.name}. This did {weapon.damage} damage, and now {target.name} has {target.health} health left."
+
+    print(f"[Battle Event Resolve] {event_summary}")
+    return {"target": target, "event": create_event("Attack:", event_summary, "Attack")}
 
 
-def handle_item(user: Character, target: Character, item: Item):
-    print(
-        f"[Battle Event] ChatGPT wanted to perform an Item action from {user.name} onto {target.name} using {item.name}.")
+def handle_item(user: Character, item: Item, target: Character):
+    # Internal function for actual item application (extend this for more item effects)
+    def apply_item_effect(character: Character):
+        if item.healing is not None:
+            character.health += item.healing
+            return f"{item.name} used by {user.name} onto {character.name}. This healed {item.healing} damage, and now {character.name} has {character.health} health left."
+        return f"{user.name} attempted to use {item.name} onto {character.name}. But no effect happened."
 
-    eventSummary = f"{user.name} attempted to user {item.name} onto {target.name}. But no effect happened."
-    if item.healing is not None:
-        target.health += item.healing  # TODO: Replace once Calculator is ready
-        eventSummary = f"{item.name} used by {user.name} onto {target.name}. This healed {item.healing} damage, and now {target.name} has {target.health} health left."
+    # Target Designation for item application
+    print(f"[Battle Event] ChatGPT wanted to perform an Item action: {item.name} | {user.name} -> {target.name}")
+    user.inventory.remove(item)
+    if user.id == target.id:
+        target = None
+        event_summary = apply_item_effect(user)
+    else:
+        event_summary = apply_item_effect(target)
 
-    print(f"[Battle Event Resolve] {eventSummary}")
-    # TODO: Handle possible weapon durability?
-    return {"user": user,
-            "target": target,
-            "item": item,
-            "event": create_event(
-                f"{item.name} used by {user.name} on {target.name}.",
-                eventSummary,
-                "Item Used"
-            )}
+    result = {"user": user, "target": target, "item": item, "event": create_event("", event_summary, "Item")}
+    print(f"[Battle Event Resolve] {event_summary}")
+    return result
 
 
 def handle_wait(character: Character, summary: str):
     print(f"[Battle Event] ChatGPT wanted to perform a Wait action for {character.name}.")
     print(f"[Battle Event Resolve] {summary}")
     return {"event": create_event(
-        f"Wait from {character.name}",
+        "",
         summary,
-        "Wait Generated"
+        "Wait"
     )}
 
 
@@ -481,18 +477,9 @@ def handle_examine(obj_type: str, obj_name: str, new_description: str, **kwargs)
     else:
         print(f"Unknown type: {obj_type}")
 
-    # You can add/remove/edit the parameters as needed.
-    # The core part of this function is to append that information to an already-existing object.
-    # Example: Appending newly produced information into the description of a location.
 
-    # I am handed (string)subject(name, description) and new description which is the new fluff append and return the two descriptions
-
-
-def create_ai_input(input_string: str):
-    print(f"[AI INPUT] ChatGPT wanted to make an AI INPUT: [{input_string}]")
-    return input_string
-
-#   GPTTOOLs I need to make the parameter generating function the big json text and I need the logic function to add the descriptions to objects with an openai call
-# GPT after the events been made i get a category back its a check to ensure chatgpt is only runnign the tool we want it tot use when we want it to use we are not giving it freedom if we know what its suppsoe to run 
-# line 110 in gpt.py
+def create_ai_input(title: str, summary: str, category: str):
+    npc_action_event = create_event(title, summary, category)
+    print(f"[AI INPUT] ChatGPT wanted to make an AI INPUT: {npc_action_event}")
+    return npc_action_event
 

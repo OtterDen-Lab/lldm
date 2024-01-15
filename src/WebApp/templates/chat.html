@@ -116,7 +116,7 @@
             .then(data => {
                 // Add bot responses (Chat Column)
                 data.bot_responses.forEach((response) => {
-                    addMessage('bot-message', response);
+                    addMessage('bot-message', response.toString());
                 });
                 // Update the info-boxes. This also replaces newline characters with proper break tags.
                 // The reason this is done client-side because console output server-side should also be readable.
