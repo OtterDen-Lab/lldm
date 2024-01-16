@@ -1,21 +1,42 @@
-from LLDM.Core.Scene import Location, Map
+import random
+import networkx as nx
+import matplotlib.pyplot as plt
 
-# TODO: Generate a fully-structured dungeon with notable locations and entrance/exit.
-# Create the Map. Note: the technical term for our map is a 'graph'.
+
+# Create flags for notable features
+class RoomFlags:
+    def __init__(self):
+        self.has_chest = False
+        self.has_npc = False
+
+    def __repr__(self):
+        return ' '.join(f"{key}: {value} |" for key, value in self.__dict__.items())
 
 
-def setup_dungeon():
-    # Replace the following with a randomly made graph and adjacent nodes. (or seek sizing via user input)
-    # You can use random numbers for the names, and write bare-bones flags for descriptions (e.g. Has Chest, Has NPC)
+def setup_dungeon(num_nodes):
+    graph = nx.barabasi_albert_graph(num_nodes, 1)
 
-    # You may create an Enum to hold the flag types if you think that would give more clarity.
-    # At minimum, include a flag denoting start point, places with loot/chests, and places that will have an NPC (enemy)
+    # Draw the dungeon map using Matplotlib
+    nx.draw(graph, with_labels=True, font_weight='bold', node_size=700, node_color='lightgray', font_color='black',
+            font_size=8)
+    plt.show()
 
-    room1 = Location("Room 1", "The first room of a sprawling dungeon. It has a closed door off to the side.")
-    room2 = Location("Room 2", "The second room. It has a door to the first room, and another door-to an unknown area.")
-    map1 = Map()
-    map1.add_location(room1)
-    map1.add_location(room2)
-    map1.connect_locations(room1, room2)
+    for i in range(len(graph.nodes)):
+        graph.add_node(i, name=f'Room {i + 1}')
+        graph.add_node(i, description=f'Description {i + 1}')
 
-    return map1
+        flags = set_flags()
+        graph.add_node(i, flags=flags)
+
+    return graph
+
+
+def set_flags():
+    flags = RoomFlags()
+    if random.random() < 0.2:
+        flags.has_chest = True
+    if random.random() < 0.2:
+        flags.has_npc = True
+    return flags
+
+

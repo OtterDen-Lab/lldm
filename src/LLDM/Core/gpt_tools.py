@@ -344,33 +344,6 @@ def handle_movement(moving_into: str, game_map: Map):
     return game_map
 
 
-# Create functions to be called by GPT via Tool-calls.
-
-def handle_input_battle(user_input, resolve_response=None):
-    global battle
-
-    # If user_input == "END", the battle has ended and response contains updated object info
-    while user_input != "END":
-        response = battle.get_action_response(user_input, battle.get_turn_character())
-        if response is None:
-            # Web app needs to print something about the action being invalid and to go again?
-            break
-
-        battle.resolve_turn(battle.get_turn_character())
-
-        resolve_response = battle.get_action_input()
-        if resolve_response is None: break  # New player input required
-
-        user_input = resolve_response.get('prompt_input')
-
-    return resolve_response
-
-
-def get_new_battle_events_GPT_Tools():
-    global battle
-    return battle.get_battle_events()
-
-
 # Attack Function: You can add/remove/edit the parameters as needed.
 # TODO: Damage Calculator
 # TODO: Handle variations of attacks (weapon, spells, ???)
