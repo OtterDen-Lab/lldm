@@ -6,7 +6,7 @@ from LLDM.Core.GameLogic import Battle
 
 def init_scene():
     global scene
-    scene = Scene(init_map())
+    scene = Scene(Map(5))
 
     sword = Item("Sword", "A sturdy blade crafted from the finest steel.", damage=15, amount=1)
     iron_sword = Item("Iron Sword", "A rough blade crafted from sturdy iron.", damage=13, amount=1)
@@ -17,15 +17,6 @@ def init_scene():
     scene.add_character(Character("Richard", 20, 10, 10, 1, "enemy", True))
 
     return scene
-
-
-def init_map():
-    # TODO: Use a DungeonGenerator to pass main a fully-structured dungeon with notable locations and entrance/exit.
-    room1 = Location("Room 1", "The first room of a sprawling dungeon. It has a closed door off to the side.")
-    map1 = Map()
-    map1.add_location(room1)
-    map1.move_to(room1)
-    return map1
 
 
 def handle_input(user_input):
@@ -73,7 +64,7 @@ def get_img():
 
 def get_map():
     global scene
-    return str(scene.loc_map)
+    return f'Current Node: {scene.loc_map.current_node}\n{scene.loc_map}'
 
 
 def get_main_character():

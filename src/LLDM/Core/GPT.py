@@ -86,7 +86,6 @@ def second_call(event: Event, scene: Scene, str_locations: str):
     # Load GPT Functions into prompt
     tools = [
         Tools.CREATE_ITEM.value,
-        Tools.CREATE_LOCATION.value,
         Tools.HANDLE_MOVEMENT.value,
         Tools.HANDLE_EXAMINE.value,
         Tools.HANDLE_BATTLE.value
@@ -111,7 +110,7 @@ def second_call(event: Event, scene: Scene, str_locations: str):
     description = function_args.get('description')
     damage = function_args.get('damage')
     amount = function_args.get('amount')
-    moving_into = function_args.get('moving_into')
+    target_index = function_args.get('target_index')
 
     # Execute function according to matched name
     match tool_data.get('name'):
@@ -124,17 +123,8 @@ def second_call(event: Event, scene: Scene, str_locations: str):
             # Generate Image of new item
             image = sdprompter(new_item.description, title=new_item.name)
 
-        case "create_location":
-            location_response = create_location(name, description, scene.loc_map)
-            scene.loc_map = location_response[0]
-            resolved_events.append(location_response[1])
-
-            # Generate Image of new current Location
-            image = sdprompter(scene.loc_map.current_location.description,
-                               title=scene.loc_map.current_location.name)
-
         case "handle_movement":
-            scene.loc_map = handle_movement(moving_into, scene.loc_map)
+            scene.loc_map = handle_movement(target_index, scene.loc_map)
 
         case "handle_examine":
             # Retrieve parameters for the examine function

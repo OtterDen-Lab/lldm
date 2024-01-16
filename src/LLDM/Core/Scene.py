@@ -1,4 +1,7 @@
+import networkx as nx
+
 from LLDM.Utility.PrettyPrinter import NestedFormatter, PrettyPrinter
+from LLDM.Core.DunGen import setup_dungeon
 
 
 # Events are the descriptions of actions or reactions created through play.
@@ -138,103 +141,62 @@ class Item(PrettyPrinter):
         return self._healing
 
 
-# Node of a graph with bidirectional connections. Each connection has a distance (currently unused)
-class Location(PrettyPrinter):
-    def __init__(self, name: str, description: str, adjacent=None):
-        super().__init__(name, description)
-
-        self._name = name
-        self._visited = False
-        self.adjacent = adjacent if adjacent is not None else {}
-        # Dictionary to hold adjacent locations and their respective distances
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def visited(self):
-        return self._visited
-
-    @visited.setter
-    def visited(self, value: bool):
-        self._visited = value
-
-    def __str__(self):
-        # Create a string with the name of the location and its connections
-        adjacent_names = ', '.join(adj.name for adj in self.adjacent)
-        return f"[{self.name}] | Connections: [{adjacent_names}] | {self.description}"
-
-    def add_adjacent(self, location, distance=1):
-        self.adjacent[location] = distance
-
-    def get_adjacent_locations(self):
-        return self.adjacent.keys()
-
-
-# Map. Holds Locations as in a node-based graph structure
+# Map. Wrapper to manage a Graph. (Node/Graph by NetworkX)
 class Map:
-    def __init__(self):
-        self.locations = {}  # Holds Location objects. Which have their own list of adjacent locations
-        self._current_location = None  # Location object
+    def __init__(self, size: int):
+        self._map = setup_dungeon(size)
 
     def __str__(self):
-        # Create a string representation of the map with all locations and their connections
-        locations = '\n'.join(str(location) for location in self.locations)
-        return f"[Map]: Current Location: [{self.current_location.name}]\n{locations}"
+        # Create a string representation of the graph listing all nodes, connections, and attributes
+        def neighbors(node: int):
+            nbrs = ' '.join(str(node) for node in nx.neighbors(self._map, node))
+            attrs = ' | '.join(str(value) for value in self._map.nodes[node].values())
+            return f'{nbrs} | {attrs} '
+
+        return '\n'.join(f'Node: {str(node)} -> {neighbors(node)}' for node in self._map.nodes)
 
     @property
-    def current_location(self):
-        return self._current_location
+    def map(self):
+        return self._map
 
-    @current_location.setter
-    def current_location(self, new_location: Location):
-        self._current_location = new_location
+    @property
+    def current_node(self):
+        print(f"Current Node Called: {self._map.graph['current_node']}")
+        return self._map.graph['current_node']
 
-    def get_location_by_name(self, name: str):
+    @current_node.setter
+    def current_node(self, new_node: int):
+        # Access the Node Index, NOT the attrs
+        new_num = [entry[0] for entry in self._map.nodes.data()][new_node]
+        print(f'New Num: {new_num}')
+
+        self._map.graph['current_node'] = new_num
+
+    def get_node_num_by_name(self, name: str):
         # Search for the Location by name and return it
-        for location in self.locations:
-            if location.name == name:
-                return location
+        for node, data in self._map.nodes.data():
+            if data["name"] == name:
+                return node
         return None
 
-    def add_location(self, new_location: Location):
-        self.locations[new_location] = new_location
+    def set_node_attrs(self, node_index: int, key: str, value):
+        self._map.nodes[node_index][key] = value
 
-    def connect_locations(self, loc1: Location, loc2: Location, distance=1):
-        if loc1 in self.locations and loc2 in self.locations:
-            if loc1 and loc2:
-                loc1.add_adjacent(loc2, distance)
-                loc2.add_adjacent(loc1, distance)  # For undirected graph (bidirectional paths)
-
-    def move_to(self, destination: Location):
-        if self.current_location is None:
-            # If there is no current location, set the initial location
-            if isinstance(destination, Location):
-                self.current_location = destination
+    def move_to(self, destination: int):
+        if destination in nx.neighbors(self._map, self.current_node):
+            print(f'Found {destination} in neighbors. Attempting to move')
+            self.current_node = destination
         else:
-            # If trying to move to a new location, check if it's adjacent
-            if self.are_adjacent(self.current_location, destination):
-                self.current_location = self.locations[destination]
-            else:
-                print(
-                    f"Cannot move to [{destination.name}] from [{self.current_location.name}]. Location not adjacent.")
-
-    def are_adjacent(self, loc1: Location, loc2: Location):
-        if loc1 in self.locations and loc2 in self.locations:
-            if loc1 and loc2:
-                return loc2 in loc1.adjacent  # FOR USE ONLY IN FULLY BIDIRECTIONAL GRAPHS. Edit for directed graphs.
-        return False
-
-    def get_adjacent_to_current(self):
-        if self.current_location:
-            return self.current_location.get_adjacent_locations()
-        else:
-            return None
+            print(f"Cannot move from [{self.current_node}] to [{destination}] . Node not adjacent.")
 
     def get_relevant_locations_str(self):
-        locations = '\n'.join(str(location) for location in self.get_adjacent_to_current())
-        return str(f"[Map]: {locations}\nCurrent Location: [{self.current_location}]")
+        def attrs(node: int):
+            return ' | '.join(str(value) for value in self._map.nodes[node].values())
+
+        # return str(f"[Relevant Map]: \n{neighbors(node) for node in }\nCurrent Node: [{str(self.current_node)}]")
+        current = f'Node: {self.current_node} | {attrs(self.current_node)}'
+        adjacent = '\n'.join(f'Node: {self.current_node} -> {str(node)} | {attrs(node)}' for node in nx.neighbors(self._map, self.current_node))
+        return f'[Current Node]\n{current}\n[Relevant Map]\n{adjacent}'
 
 
 # Scene represent the top level object.
@@ -242,7 +204,7 @@ class Map:
 class Scene(NestedFormatter):
     time = 0
 
-    def __init__(self, loc_map: Map, events=None, characters=None):
+    def __init__(self, loc_map, events=None, characters=None):
         self._loc_map = loc_map
         self._events = events if events is not None else []
         self._characters = characters if characters is not None else []

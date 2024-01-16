@@ -160,7 +160,7 @@ class Battle:
 
     def __init__(self, scene):
         # Unpack Entities from Scene
-        self._location = scene.loc_map.current_location
+        self._location = scene.loc_map.current_node
 
         self._dead = []
         self._ran_away = []

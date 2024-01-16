@@ -4,15 +4,12 @@ You will receive as input the game map, the Character, and the description of on
 
 Your job is to use the tools available to you in order to apply those actions onto the world.
 
-If you know where the character is going (referencing the game map), call the Movement function: 'handle_movement'.
-
-If you DO NOT know where they are going, e.g. if the connection isn't present, call the 'create_location' function.
-(Make sure the location you create has a new door or another exit. Do NOT address the character in the description.)
+If you know where the character is going (referencing the game map), call the Movement function: 'handle_movement' and provide the destination node's integer index.
 
 If the description has somebody pick up, receive, or loot one or more items, call the 'create_item' function as many times as makes sense.
 
-If the character is discerning more details from an existing location, item, or even themselves, call the 'handle_examine' function to rewrite the subject's description, retaining all details and also including new details.
-Ensure that the obj_name of handle_examine matches the name of a Character, the name of one of their Items in their Inventory, OR a location in the game map.
+If the character is discerning more details from an existing node, item, or even themselves, call the 'handle_examine' function to rewrite the subject's description, retaining all details and also including new details.
+Ensure that the obj_name of handle_examine matches the name of a Character, the name of one of their Items in their Inventory, OR a node in the game map.
 If examining and Item, ensure that you also provide in the function the 'obj_owner_name', or the name of the Character that hold the Item.
 If a character examines their own Item, provide their own name as 'obj_owner_name'
 

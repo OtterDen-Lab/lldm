@@ -81,38 +81,17 @@ class Tools(Enum):
             }
         }
     }
-    CREATE_LOCATION = {
-        "type": "function",
-        "function": {
-            "name": "create_location",
-            "description": "Create a new Location (a location not present in the game map). Make sure you only describe the features, which must include a new exit.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "description": "The name of the new location."
-                    },
-                    "description": {
-                        "type": "string",
-                        "description": "The description of the new location. Make sure it has some sort of exit. This is only the description of the LOCATION, and should not be addressed to anybody"
-                    }
-                },
-                "required": ["name", "description"],
-            }
-        }
-    }
     HANDLE_MOVEMENT = {
         "type": "function",
         "function": {
             "name": "handle_movement",
-            "description": "Handles player movement between existing locations in the game map",
+            "description": "Handles player movement between nodes in the game map",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "moving_into": {
-                        "type": "string",
-                        "description": "The name of the entered location (provided in the game map)."
+                    "target_index": {
+                        "type": "integer",
+                        "description": "The node index of the node (first number provided in the game map)."
                     }
                 },
                 "required": ["moving_into"],
@@ -303,29 +282,6 @@ def create_event(title: str, summary: str, category: str):
     return Event(title, summary, category)
 
 
-def create_location(name: str, description: str, game_map: Map):
-    print(f"[Event] ChatGPT wanted to make a Location: {name}")
-    if game_map.get_location_by_name(name) is None:
-        new_location = Location(name, description)
-        game_map.add_location(new_location)
-        # Only linear connections (if working as intended): New location & Old location. (then move)
-        game_map.connect_locations(game_map.current_location, new_location)
-        # Atomic move into new location (could be decoupled, but harder to define)
-        # print("Moving into new location")
-        game_map = handle_movement(new_location.name, game_map)
-    else:
-        print(f"[EventError] ChatGPT wanted to make a Location that already exists. Skipping creation")
-
-    return game_map, create_event(name, description, "Location Generated")
-    # Trying to make non-linear connections by having adjacency given by gpt
-    # print(f"ChatGPT wanted to connect them to: {adjacent_names}")
-    # print(f"connecting {new_location} to")
-    # for adjacent_name in adjacent_names:
-    #     print(f"{adjacent_name}")
-    #     adjacent_location = game_map.get_location_by_name(adjacent_name)
-    #     game_map.connect_locations(new_location, adjacent_location)
-
-
 def create_item(name: str, description: str, **kwargs):
     print(f"[Event] ChatGPT wanted to make an Item: {name}")
     # Assuming Item can take damage and amount as None
@@ -333,14 +289,13 @@ def create_item(name: str, description: str, **kwargs):
     return item, create_event(name, description, "Item Generated")
 
 
-def handle_movement(moving_into: str, game_map: Map):
-    print(f"[Event] ChatGPT wanted to perform a Movement into {moving_into}")
-    possible_location = game_map.get_location_by_name(moving_into)
-    if possible_location is not None:
-        game_map.move_to(possible_location)
-        # print(f"Current location: {game_map.get_current_location()}")
+def handle_movement(target_node: int, game_map: Map):
+    print(f"[Event] ChatGPT wanted to perform a Movement into Node {target_node}")
+    possible_node = game_map.map.nodes[target_node]
+    if possible_node is not None:
+        game_map.move_to(target_node)
     else:
-        print(f"Move failed: No location found with matching name. Was ChatGPT supposed to create a location instead?")
+        print(f"Move failed: No Node found with matching name.")
     return game_map
 
 
@@ -419,11 +374,11 @@ def handle_examine(obj_type: str, obj_name: str, new_description: str, **kwargs)
         print("\nType Location\n")
         game_map = scene.loc_map
         if game_map:
-            # Find the location in the game map
-            location = game_map.get_location_by_name(obj_name)
-            if location:
-                # Update the location's description
-                location.description = new_description
+            # Find the node in the game map
+            node_index = game_map.get_node_num_by_name(obj_name)
+            if node_index:
+                # Update the node's description
+                game_map.set_node_attrs(node_index, "description", new_description)
                 return game_map  # Return the updated game_map
             else:
                 print(f"Location named {obj_name} not found.")
