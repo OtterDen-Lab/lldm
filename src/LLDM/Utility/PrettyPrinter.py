@@ -1,8 +1,10 @@
 # This class in inherited by most Deprecated, and handles their returns/to_strings and setters for name/descriptions
-from abc import ABC
 
 
 class PrettyPrinter(object):
+    """
+    Inheritable Class to add name, description, and custom to-str/return
+    """
     def __init__(self, name: str = None, description: str = None):
         if name is not None:
             self._name = name
@@ -39,6 +41,9 @@ class PrettyPrinter(object):
 
 
 class NestedFormatter(object):
+    """
+    PrettyPrinter, only the custom to-str/repr and no inherited variables
+    """
     def __str__(self):
         lines = [self.__class__.__name__ + ':']
         for key, val in vars(self).items():

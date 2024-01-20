@@ -29,6 +29,7 @@ class Routes:
     PATH_CONTEXT_SDPROMPTER = os.path.join(RES_GPT_DIR, "SDPrompter.txt")
     PATH_CONTEXT_SIMPLE_AGENT = os.path.join(RES_GPT_DIR, "SimpleDungeonAgent.txt")
     PATH_CONTEXT_SIMPLE_EVENT = os.path.join(RES_GPT_DIR, "SimpleDungeonEvent.txt")
+    PATH_CONTEXT_DUNGEON = os.path.join(RES_GPT_DIR, "DungeonDetailer.txt")
 
     PATH_CONTEXT_BATTLE_SDPROMPTER = os.path.join(RES_GPT_DIR, "BattleSDPrompter.txt")
     PATH_CONTEXT_BATTLE_SIMPLE_AGENT = os.path.join(RES_GPT_DIR, "BattleSimpleAgent.txt")
@@ -73,6 +74,7 @@ class Routes:
     CONTEXT_SDPROMPTER = read(PATH_CONTEXT_SDPROMPTER)
     CONTEXT_SIMPLE_AGENT = read(PATH_CONTEXT_SIMPLE_AGENT)
     CONTEXT_SIMPLE_EVENT = read(PATH_CONTEXT_SIMPLE_EVENT)
+    CONTEXT_DUNGEON = read(PATH_CONTEXT_DUNGEON)
     RESOURCE_SAMPLE_CHARACTER = read(PATH_RESOURCE_SAMPLE_CHARACTER)
 
     # Battle variations

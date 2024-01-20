@@ -14,6 +14,9 @@ url = "http://127.0.0.1:7860"
 
 
 def is_url_alive():
+    """
+    :return: boolean representing image generator service accessibility
+    """
     try:
         response = requests.get(url)
         # If the response status code is 200, the URL is alive
@@ -24,6 +27,11 @@ def is_url_alive():
 
 
 def generate(title=None):
+    """
+    Image Generator using an HTTP call to StableDiffusion
+    :param title: optional title for filename
+    :return: file path to static image
+    """
     filename = title if title is not None else "output"
 
     # Read config parameters from file
@@ -68,8 +76,12 @@ def generate(title=None):
         return os.path.basename(static_img_path)
 
 
-# Helper function to ensure unique filenames.
 def uniquify(path):
+    """
+    Helper function to ensure unique filenames.
+    :param path: the filepath
+    :return: unique filepath
+    """
     filename, extension = os.path.splitext(path)
     counter = 1
 

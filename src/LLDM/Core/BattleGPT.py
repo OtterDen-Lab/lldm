@@ -91,7 +91,7 @@ def chat_complete_battle_resolve(event: Event, **kwargs):
         Tools.HANDLE_WAIT.value,
         Tools.HANDLE_ITEM.value
     ]
-    resolved_events = []
+    resolved_events = [event]
 
     # Load GPT Dialogue into Prompt (With Specific Event Data)
     messages = [{"role": "system", "content": Routes.BATTLE_CONTEXT_SIMPLE_AGENT},

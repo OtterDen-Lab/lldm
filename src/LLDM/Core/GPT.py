@@ -23,13 +23,18 @@ MODEL_PREVIEW = "gpt-4-1106-preview"
 
 
 # ================================ Functions: =======================================
-# Main Loop 2-Stage GPT Processor
 def chat_complete_story(user_input: str, scene: Scene):
+    """
+    # Two-Stage GPT Processor
+    :param user_input: input from the user/webapp
+    :param scene: the current Scene
+    :return: the results of the second call, which is a Scene and an image
+    """
     # send only relevant Location objects (subset of graph) to each API prompt
     relevant_locations = scene.loc_map.get_relevant_locations_str()
 
     # Create an Event (Does not mutate data/information)
-    event = first_call(user_input, relevant_locations, scene.characters)
+    event = first_call(user_input, relevant_locations, scene.loc_map.get_current_characters())
 
     # Resolve Event (Updates data/information) or return False
     return second_call(event, scene, relevant_locations) if event else None
@@ -37,9 +42,14 @@ def chat_complete_story(user_input: str, scene: Scene):
 
 # First Call - Returns an Event object
 def first_call(user_input: str, str_locations: str, characters):
-    print("[AGENT]:", end=" ")
+    """
 
-    # later, overwrite the graph entries using the list
+    :param user_input: input from the user/webapp passed into the calling function
+    :param str_locations: data of relevant locations (Current & Adjacent Nodes)
+    :param characters: characters within the current Node
+    :return: an Event object constructed to hold an action processed from player input
+    """
+    print("[AGENT]:", end=" ")
 
     # Load GPT Dialogue (Add game information and user input)
     messages = [{"role": "system", "content": Routes.CONTEXT_SIMPLE_EVENT},
@@ -74,10 +84,16 @@ def first_call(user_input: str, str_locations: str, characters):
 
 
 def second_call(event: Event, scene: Scene, str_locations: str):
+    """
+    :param event: the Event created from the first call
+    :param scene: the current Scene object
+    :param str_locations: data of relevant locations (Current & Adjacent Nodes)
+    :return: a new Scene (to update/replace the current) and image
+    """
     # Second Call
     image = None
     character = None
-    for c in scene.characters:
+    for c in scene.loc_map.get_current_characters():
         if c.entity == "party":
             character = c
             break
@@ -95,7 +111,7 @@ def second_call(event: Event, scene: Scene, str_locations: str):
     messages = [{"role": "system", "content": Routes.CONTEXT_SIMPLE_AGENT},
                 {"role": "user", "content":
                     f"\n Game Map: {str_locations} "
-                    f"\n Characters: {scene.characters}"
+                    f"\n Characters: {scene.loc_map.get_current_characters()}"
                     f"\n User Input/Event Description:{obj_to_json(event)}"
                  }]
 
@@ -167,13 +183,16 @@ def second_call(event: Event, scene: Scene, str_locations: str):
                 resolved_events.append(battle_event)
             print("Exited Battle Recursion")
 
-    return {'scene': Scene(scene.loc_map, resolved_events, scene.characters), 'image': image}
+    return {'scene': Scene(scene.loc_map, resolved_events), 'image': image}
 
 
-# Helper functions to force use of function based on Event category.
 def tool_for(category=None):
+    """
+    Helper function to force use of function based on Event category.
+    :param category: Enum type of action as determined by GPT
+    :return: a snippet of json that determines tool use in a ChatCompletion call
+    """
     event_tool_map = {
-        "Exploration": "create_location",
         "Item Generation": "create_item",
         "Movement": "handle_movement",
         "Examine": "handle_examine",
@@ -188,6 +207,12 @@ def tool_for(category=None):
 
 
 def get_response_tool(messages, tools, category=None):
+    """
+    :param messages: the dialogue to be processed by GPT
+    :param tools: the functions to be made accessible to GPT
+    :param category: optional arg to force use of a specific tool
+    :return: tuple of the function name and arguments used by GPT
+    """
     # Execute OpenAI API call
     print("\n[OPENAI]: REQUEST SENT", end=" ")
     response = openai.ChatCompletion.create(
@@ -203,8 +228,13 @@ def get_response_tool(messages, tools, category=None):
     return {"name": tool_call.function.name, "args": json.loads(tool_call.function.arguments)}
 
 
-# Function to generate images, using an input text and an optional title (for the filename)
 def sdprompter(subject: str, title: str = None):
+    """
+    Function to generate images and perform file I/O to log and save them.
+    :param subject: input text / image prompt
+    :param title: optional title (for the filename)
+    :return: a filepath to the image
+    """
     # Check if SD service is alive (Don't waste a GPT call if sdprompt is dead)
     if not is_url_alive():
         return title

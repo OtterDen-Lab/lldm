@@ -4,9 +4,8 @@ import os
 import random
 from flask import Flask, render_template, request, url_for, jsonify
 
-from LLDM.Core.GPT import Battle
 from LLDM.Utility import Routes
-from main import get_main_character, main_gen_img, get_img, get_map, scene, handle_input
+from main import get_main_character, main_gen_img, get_img, get_map, handle_input
 
 
 app = Flask(__name__)
@@ -18,7 +17,6 @@ print(f"Background Image: {background_image_filename}")
 
 # Accepted file formats for uploads
 ALLOWED_EXTENSIONS = {'pdf'}
-
 
 # app.config['PATH_UPLOAD_FOLDER'] = PATH_UPLOAD_FOLDER
 
@@ -38,6 +36,7 @@ messages = [
 
 @app.route('/')
 def index():
+    """Home Page for the Web Application"""
     global background_image_filename
     files = [f for f in os.listdir(Routes.WEB_APP_IMAGES) if f != background_image_filename]
     new_random_file = random.choice(files)
@@ -47,6 +46,7 @@ def index():
 
 @app.route('/chat/', methods=['GET'])
 def chat():
+    """Main Content Page for the chat interface"""
     global background_image_filename
     return render_template('chat.html', filename="Room 1.png", messages=messages, box1=get_map(),
                            box2=get_main_character())
@@ -54,12 +54,14 @@ def chat():
 
 @app.route('/generate_image', methods=['POST'])
 def generate_image():
+    """A debug tool test function for image generation. Ex: use when the image generator is offline"""
     test = main_gen_img()
     return jsonify({"image_path": test, "image_name": test})
 
 
 @app.route('/send_message', methods=['POST'])
 def send_message():
+    """POST function for user input. Handles updating page content and interfaces with LLDM"""
     message_text = request.form['message']
     messages.append({"sender": "user", "text": message_text})
 
@@ -80,8 +82,4 @@ def send_message():
 
 if __name__ == '__main__':
     # app.run()
-    app.run(host="0.0.0.0", port=5000)
-
-
-def start():
     app.run(host="0.0.0.0", port=5000)

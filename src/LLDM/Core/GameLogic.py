@@ -1,12 +1,13 @@
-# GameLogic manages game states to determine whether there is an ongoing battle.
-# This module is intended to serve a middle-man layer between Main, GPT, BattleManager, and WebApp
 import random
-
 from LLDM.Core.BattleGPT import chat_complete_battle_AI_input, chat_complete_battle_resolve, \
     chat_complete_battle_player_input, generate_conclusion
 
 
 class Battle:
+    """
+    Class to manage game states to determine whether there is an ongoing battle.
+    Executes a variety of game-logic involving battles.
+    """
     _in_battle = False
     current_battle = None
     enemy_actions = ["Attack", "Wait"]
@@ -18,6 +19,11 @@ class Battle:
 
     @classmethod
     def start_battle(cls, scene):
+        """
+        Instantiates a Battle object
+        :param scene: the Scene to be used for this battle
+        :return: a log of the Events produced by this battle.
+        """
         if cls.in_battle():
             print("Already in a Battle!")
             return
@@ -29,11 +35,20 @@ class Battle:
 
     @classmethod
     def cycle_logs(cls):
+        """
+        Empties the Class variable buffer holding Events
+        :return: a log of the Events produced up to this point.
+        """
         new_events = cls.current_battle.get_events()
         cls.current_battle.empty_events()
         return new_events
 
     def next_turn(self, acting_char):
+        """
+        Handler for executing turns in a battle
+        :param acting_char: The character whose turn it is.
+        :return: None - Early return if there is no active battle.
+        """
         if not Battle.in_battle():
             print("Not in a Battle!")
             return
@@ -51,13 +66,16 @@ class Battle:
             # Wait for <input>, which is main's handle_input()
 
     def ai_turn(self, acting_char):
-        # Steps for AI during Battles:
+        """
+        # Steps for AI during Battles.
+        :param acting_char: The active Character (NPC)
+        """
+
         # Generate Action and Execute in one call.
         print(f"Targets: " + ' '.join(str(target.name) for target in self._living_party))
 
         # Auto-Generate Prompt [Returns an Event)
         prompt_input = chat_complete_battle_AI_input(
-            location=self._location,
             self=acting_char,
             targets='\n'.join(f"{target.name} (id:{target.id})" for target in self._living_party),
             action=Battle.enemy_actions[random.randint(0, len(self.enemy_actions) - 1)]
@@ -74,7 +92,11 @@ class Battle:
         self.cleanup(response)
 
     def player_turn(self, acting_char, user_input):
-        # Execute GPT calls to handle player input
+        """
+        Execute GPT calls to handle player input
+        :param acting_char: the currently active Character (Player)
+        :param user_input: user-inputted string
+        """
         print(f"Enemies: " + ' '.join(str(enemy.name) for enemy in self._living_enemies))
 
         # Produce Event from raw input
@@ -95,6 +117,12 @@ class Battle:
         self.cleanup(response)
 
     def cleanup(self, response):
+        """
+        Handles cleanup of turns by logging events, updating characters, and determining whether the battle is over.
+        Recurse to the next player if the battle is not over.
+        :param response:
+        :return:
+        """
         if response:
             # Log Accrued Battle Events
             for event in response.get('events'):
@@ -119,6 +147,10 @@ class Battle:
             self.next_turn(self.find_next_living_character())
 
     def find_next_living_character(self):
+        """
+        Helper function to fetch characters from their order
+        :return: the next living Character from the initiative order (looping around)
+        """
         while True:
             self._turn = (self._turn + 1) % len(self._order)
             if self._order[self._turn].alive:
@@ -132,7 +164,10 @@ class Battle:
         self._battle_events = []
 
     def update_char(self, updated_char):
-        # faction-agnostic update a character across relevant lists (Living List, Order)
+        """
+        faction-agnostic update a character across relevant lists (Living List, Order)
+        :param updated_char: the character to be updated
+        """
         target_index = None
         for i, character in enumerate(self._living_party if updated_char.entity == "party" else self._living_enemies):
             if character.id == updated_char.id:
@@ -159,15 +194,16 @@ class Battle:
         self._order[target_index] = updated_char
 
     def __init__(self, scene):
-        # Unpack Entities from Scene
-        self._location = scene.loc_map.current_node
-
+        """
+        Unpack Entities from Scene
+        :param scene: the Scene object used to start this battle encounter
+        """
         self._dead = []
         self._ran_away = []
 
         self._living_party = []
         self._living_enemies = []
-        self._order = self.initiative(scene.characters)
+        self._order = self.initiative(scene.loc_map.get_current_characters())
 
         self._turn = 0
         self._battle_result = "unknown"
@@ -177,7 +213,11 @@ class Battle:
         Battle.current_battle = self
 
     def initiative(self, all_characters):
-        # Unpack participating characters and sort them by their Dexterity
+        """
+        Unpack participating characters and sort them by their Dexterity
+        :param all_characters:
+        :return: a sorted list of Characters
+        """
         incl_chars = []
         for character in all_characters:
             if character.entity == "party" or character.entity == "enemy":

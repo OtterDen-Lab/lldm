@@ -1,10 +1,17 @@
 from enum import Enum
-from LLDM.Core.Scene import Event, Item, Location, Map, Character
+
+from LLDM.Core.Character import Character
+from LLDM.Core.Item import Item
+from LLDM.Core.Map import Map
+from LLDM.Core.Scene import Event
 
 battle = None
 
 
 class Tools(Enum):
+    """
+    Enum Class to hold the various JSON function/tools for GPT to use
+    """
     # First Call - Resolve Input into described action
     CREATE_EVENT = {
         "type": "function",
@@ -20,7 +27,7 @@ class Tools(Enum):
                     },
                     "category": {
                         "type": "string",
-                        "enum": ["Item Generation", "Movement", "Exploration", "Examine", "Battle"],
+                        "enum": ["Item Generation", "Movement", "Examine", "Battle"],
                         "description": "What category the event is most like. Exploration includes opening doors or actions that would reveal locations. Movement is character locomotion. Examine gives more information about something. Battle is the party choosing to fight the enemy (or enemies) in the current room. Pick one from the enum."
                     },
                     "summary": {
@@ -113,7 +120,7 @@ class Tools(Enum):
                     },
                     "obj_name": {
                         "type": "string",
-                        "description": "The name of best fitting object"
+                        "description": "The name of best fitting object. If object is a node/location, provide only the integer index"
                     },
                     "obj_owner_name": {
                         "type": "string",
@@ -122,14 +129,13 @@ class Tools(Enum):
 
                     "description": {
                         "type": "string",
-                        "description": "A rewritten description, retaining all important details but also including new ones. Just the facts, no addressing any observers."
+                        "description": "A rewritten description, safelky extrapolating upon details (such as node connections, or other characteristics). Just the facts, no addressing any observers."
                     }
                 },
                 "required": ["type", "obj_name", "description"]
             }
         }
     }
-    # TODO: Implement properties
     HANDLE_BATTLE = {
         "type": "function",
         "function": {
@@ -180,7 +186,6 @@ class Tools(Enum):
 
     # This is the battle-equivalent of CREATE_EVENT.
     # This is an input-processor specifically tailored to analyze user inputs in the context of a battle.
-    # TODO: Add more battle events
     CREATE_BATTLE_EVENT = {
         "type": "function",
         "function": {
@@ -278,11 +283,24 @@ def illegal_action(title: str):
 
 
 def create_event(title: str, summary: str, category: str):
+    """
+
+    :param title: the name of the event
+    :param summary: a brief description of what occurred
+    :param category: an Enum string assigning what type of Event this is
+    :return:
+    """
     print(f"[Event] ChatGPT wanted to make an Event: [{category}] {title}")
     return Event(title, summary, category)
 
 
 def create_item(name: str, description: str, **kwargs):
+    """
+    :param name: the item's name
+    :param description: standard description of the item
+    :param kwargs: extra parameters afforded to certain Items.
+    :return: tuple of the Item object and the Event associated with its creation
+    """
     print(f"[Event] ChatGPT wanted to make an Item: {name}")
     # Assuming Item can take damage and amount as None
     item = Item(name, description, damage=kwargs.get("damage"), amount=kwargs.get("amount"))
@@ -290,19 +308,30 @@ def create_item(name: str, description: str, **kwargs):
 
 
 def handle_movement(target_node: int, game_map: Map):
+    """
+    Determine viability of move to a neighboring node, and then update the graph's Current Node attribute to reflect the change
+    :param target_node: integer of a node in the NetworkX Barabasi_Albert Graph
+    :param game_map: the current Map object (holding the graph, which has the node)
+    :return: the game map (may or may not be updated)
+    """
     print(f"[Event] ChatGPT wanted to perform a Movement into Node {target_node}")
     possible_node = game_map.map.nodes[target_node]
     if possible_node is not None:
         game_map.move_to(target_node)
     else:
         print(f"Move failed: No Node found with matching name.")
+
     return game_map
 
 
-# Attack Function: You can add/remove/edit the parameters as needed.
-# TODO: Damage Calculator
-# TODO: Handle variations of attacks (weapon, spells, ???)
 def handle_attack(attacker: Character, target: Character, weapon: Item):
+    """
+    Attack Function: You can add/remove/edit the parameters as needed.
+    :param attacker: a Character object performing the attack
+    :param target: a Character object receiving the attack
+    :param weapon: the weapon (Item) used in the attack
+    :return: tuple containing updated target object, and associated Event
+    """
     print(
         f"[Battle Event] ChatGPT wanted to perform an Attack from {attacker.name} onto {target.name} using {weapon.name}.")
 
@@ -319,8 +348,19 @@ def handle_attack(attacker: Character, target: Character, weapon: Item):
 
 
 def handle_item(user: Character, item: Item, target: Character):
-    # Internal function for actual item application (extend this for more item effects)
+    """
+    Handles item usage.
+    :param user: the Character activating/consuming the Item
+    :param item: the used Item
+    :param target: the Character receiving the effects
+    :return: tuple containing the updated user, target, item, and associated Event
+    """
     def apply_item_effect(character: Character):
+        """
+        Internal function for actual item application (extend this for more item effects)
+        :param character: recipient Character
+        :return: string communicating item effect
+        """
         if item.healing is not None:
             character.health += item.healing
             return f"{item.name} used by {user.name} onto {character.name}. This healed {item.healing} damage, and now {character.name} has {character.health} health left."
@@ -341,6 +381,12 @@ def handle_item(user: Character, item: Item, target: Character):
 
 
 def handle_wait(character: Character, summary: str):
+    """
+    Battle function to handle character skipping turn
+    :param character: active Character
+    :param summary: brief description of the character waiting in place
+    :return:
+    """
     print(f"[Battle Event] ChatGPT wanted to perform a Wait action for {character.name}.")
     print(f"[Battle Event Resolve] {summary}")
     return {"event": create_event(
@@ -351,16 +397,24 @@ def handle_wait(character: Character, summary: str):
 
 
 def handle_examine(obj_type: str, obj_name: str, new_description: str, **kwargs):
-    scene = kwargs.get('scene')
+    """
+    Handler Function to rewrite an object's description given subject metadata by GPT
+    :param obj_type: class of the Item
+    :param obj_name: name (or index, in the case of nodes) of the object
+    :param new_description: successor description
+    :param kwargs: extra information
+    :return: updated object
+    """
 
+    scene = kwargs.get('scene')
     character = None
 
     # print("\nEntered handle_examine function!\n")
     if obj_type == "Item":
-        print("\nType Item\n")
+        print("\nExamine Type: Item\n")
         obj_owner_name = kwargs.get('obj_owner_name')
         if obj_owner_name is not None:
-            for char in scene.characters:
+            for char in scene.loc_map.get_current_characters():
                 if char.name == obj_owner_name:
                     # Find the item in the inventory
                     for item in char.inventory:
@@ -371,12 +425,12 @@ def handle_examine(obj_type: str, obj_name: str, new_description: str, **kwargs)
                     print(f"Item named {obj_name} not found in inventory.")
 
     elif obj_type == "Location":
-        print("\nType Location\n")
+        print("\nExamine Type: Location\n")
         game_map = scene.loc_map
         if game_map:
             # Find the node in the game map
-            node_index = game_map.get_node_num_by_name(obj_name)
-            if node_index:
+            node_index = int(obj_name)
+            if node_index in game_map.map:
                 # Update the node's description
                 game_map.set_node_attrs(node_index, "description", new_description)
                 return game_map  # Return the updated game_map
@@ -386,7 +440,7 @@ def handle_examine(obj_type: str, obj_name: str, new_description: str, **kwargs)
             print("Game map not provided.")
 
     elif obj_type == "Character":
-        for char in scene.characters:
+        for char in scene.loc_map.get_current_characters():
             if char.name == obj_name:
                 char.description += " " + new_description
                 return char  # Return the updated character
@@ -407,6 +461,9 @@ def handle_examine(obj_type: str, obj_name: str, new_description: str, **kwargs)
 
 
 def create_ai_input(title: str, summary: str, category: str):
+    """
+    Event instantiating handler for AI input processing
+    """
     npc_action_event = create_event(title, summary, category)
     print(f"[AI INPUT] ChatGPT wanted to make an AI INPUT: {npc_action_event}")
     return npc_action_event
