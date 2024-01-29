@@ -1,13 +1,71 @@
+import json
+import os
 from enum import Enum
+
+import openai
 
 from LLDM.Core.Character import Character
 from LLDM.Core.Item import Item
 from LLDM.Core.Map import Map
 from LLDM.Core.Scene import Event
 
-battle = None
+
+# Using Sam Ogden's provided API Key for LLDM, add an environment variable keyed 'GPTAPI' with the value of the API key.
+# noinspection SpellCheckingInspection
+openai.api_key = os.environ['GPTAPI']
+MODEL = "gpt-3.5-turbo"
+MODEL_PREVIEW = "gpt-4-1106-preview"
+
+# ChatCompletion Helper functions to reduce duplication
+def tool_for(category=None):
+    """
+    Helper function to force use of function based on Event category.
+    :param category: Enum type of action as determined by GPT
+    :return: a snippet of json that determines tool use in a ChatCompletion call
+    """
+    event_tool_map = {
+        # StoryGPT Tools
+        "Item Generation": "create_item",
+        "Movement": "handle_movement",
+        "Examine": "handle_examine",
+        "Battle": "handle_battle",
+        # BattleGPT Tools
+        "Attack": "handle_attack",
+        "Wait": "handle_wait",
+        "Item": "handle_item",
+        "AI": "npc_action_description"
+    }
+
+    # Selecting the appropriate tool based on the event category
+    event_tool_name = event_tool_map.get(category)
+
+    # Constructing the tool dictionary
+    return {"type": "function", "function": {"name": event_tool_name}} if event_tool_name else "auto"
 
 
+def get_response_tool(messages, tools, category=None):
+    """
+    :param messages: the dialogue to be processed by GPT
+    :param tools: the functions to be made accessible to GPT
+    :param category: optional arg to force use of a specific tool
+    :return: tuple of the function name and arguments used by GPT
+    """
+    # Execute OpenAI API call
+    print("\n[OPENAI]: REQUEST SENT", end=" ")
+    response = openai.ChatCompletion.create(
+        model=MODEL,
+        messages=messages,
+        tools=tools,
+        tool_choice=tool_for(category)
+    )
+    print("| RESPONSE RECEIVED")
+
+    # Retrieve name and parameters of GPT function call
+    tool_call = response.choices[0].message.tool_calls[0]
+    return {"name": tool_call.function.name, "args": json.loads(tool_call.function.arguments)}
+
+
+# ChatCompletion Tools & Handlers
 class Tools(Enum):
     """
     Enum Class to hold the various JSON function/tools for GPT to use
@@ -307,21 +365,25 @@ def create_item(name: str, description: str, **kwargs):
     return item, create_event(name, description, "Item Generated")
 
 
-def handle_movement(target_node: int, game_map: Map):
+def handle_movement(target_index: int, game_map: Map):
     """
     Determine viability of move to a neighboring node, and then update the graph's Current Node attribute to reflect the change
-    :param target_node: integer of a node in the NetworkX Barabasi_Albert Graph
+    :param target_index: integer of a node in the NetworkX Barabasi_Albert Graph
     :param game_map: the current Map object (holding the graph, which has the node)
     :return: the game map (may or may not be updated)
     """
-    print(f"[Event] ChatGPT wanted to perform a Movement into Node {target_node}")
-    possible_node = game_map.map.nodes[target_node]
+    print(f"[Event] ChatGPT wanted to perform a Movement into Node {target_index}")
+    possible_node = game_map.map.nodes[target_index]
+    img_req = False
     if possible_node is not None:
-        game_map.move_to(target_node)
+        # If the destination node is unvisited, set img_visited to false
+        if not game_map.is_node_visited(target_index):
+            img_req = True
+        game_map.move_to(target_index)
     else:
         print(f"Move failed: No Node found with matching name.")
 
-    return game_map
+    return {"game_map": game_map, "img_gen": img_req}
 
 
 def handle_attack(attacker: Character, target: Character, weapon: Item):

@@ -42,7 +42,7 @@ def setup_dungeon(num_nodes: int, starting_character):
     Dungeon Node-Graph Initialization
     :param num_nodes: the number of nodes in this graph. Ex. Rooms in a Dungeon.
     :param starting_character: a character that will be initialized in the first room.
-    :return: A NetworkX Barabasi_Albert Graph Object, with attributes holding game information inside the Graph & it's Nodes.
+    :return: A NetworkX Barabasi_Albert Graph Object, with attributes holding game information inside the Graph & its Nodes.
     """
 
     g = nx.barabasi_albert_graph(num_nodes, 1)
@@ -60,7 +60,7 @@ def setup_dungeon(num_nodes: int, starting_character):
 
     # Render first node (explicitly, rest are done through Scene>Map's move_to()
     print(f'Rendering First Node...')
-    name, description, npc = node_detailer(g.nodes[0].get('flags'))
+    name, description, npc = node_detailer(g.nodes[0].get('flags'), "A dark room in a deep dungeon")
     g.add_node(0, name=f'{name}', description=f'{description}', characters=[starting_character])
     if npc:
         g.nodes[0]['characters'].append(npc)
@@ -74,9 +74,10 @@ def setup_dungeon(num_nodes: int, starting_character):
     return g
 
 
-def node_detailer(flags):
+def node_detailer(flags, prev_node_name: str = None):
     """
     Function to generate detailed node attributes by calling GPT with basic area information
+    :param prev_node_name: optional details of previous location, for thematic consistency/continuity
     :param flags:
     :return: The string name & description, as well as the npc (Character) of the Node
     """
@@ -97,7 +98,8 @@ def node_detailer(flags):
     response = openai.ChatCompletion.create(
         model=MODEL,
         messages=[{"role": "system", "content": Routes.CONTEXT_DUNGEON},
-                  {"role": "user", "content": f"Location Details: {str_flags}"}],
+                  {"role": "user", "content": f"Previous Location: {prev_node_name}"},
+                  {"role": "user", "content": f"Next Location Details: {str_flags}"}],
         tools=[{
             "type": "function",
             "function": {

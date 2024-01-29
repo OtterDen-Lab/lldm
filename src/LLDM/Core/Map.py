@@ -8,6 +8,7 @@ class Map:
     """
     Map Class. A Wrapper to manage a Graph. (Node/Graph by NetworkX)
     """
+
     def __init__(self, size: int):
         self._map = setup_dungeon(size, starter_character())
 
@@ -20,7 +21,7 @@ class Map:
             :return: tuple of string data of neighbor nodes and attributes
             """
             nbrs = ' '.join(str(node) for node in nx.neighbors(self._map, node))
-            attrs = self.get_attrs(node)
+            attrs = self.get_attrs_str(node)
             return f'{nbrs} | {attrs} '
 
         return '\n'.join(f'Node: {str(node)} -> {neighbors(node)}' for node in self._map.nodes)
@@ -31,7 +32,6 @@ class Map:
 
     @property
     def current_node(self):
-        print(f"Current Node Called: {self._map.graph['current_node']}")
         return self._map.graph['current_node']
 
     def get_current_characters(self):
@@ -41,8 +41,6 @@ class Map:
     def current_node(self, new_node: int):
         # Access the Node Index, NOT the attrs
         new_num = [entry[0] for entry in self._map.nodes.data()][new_node]
-        print(f'New Num: {new_num}')
-
         self._map.graph['current_node'] = new_num
 
     def set_node_attrs(self, node_index: int, key: str, value):
@@ -58,26 +56,31 @@ class Map:
             print(f'Found {destination} in neighbors. Attempting to move')
 
             # Transfer (party) characters
-            for character in self._map.nodes[destination]['characters']:
+            for character in self.get_current_characters():
                 if character.entity == "party":
-                    self._map.nodes[self.current_node]['characters'].append(character)
+                    print(f"Appending {character.name} to Node {destination}")
+                    self._map.nodes[destination]['characters'].append(character)
 
-            self.current_node = destination
+                    print(f"Removing {character.name} from Node {self.current_node}")
+                    self._map.nodes[self.current_node]['characters'].remove(character)
 
             if not self._map.nodes[destination]['flags'].visited:
                 print(f'Rendering Node...')
                 # Generate and assign fleshed-out attributes, and update flags.
-                name, description, npc = node_detailer(self._map.nodes[destination].get('flags'))
+                flags = self._map.nodes[destination].get('flags')
+                prev_node_name = self._map.nodes[self.current_node].get('name')
+                name, description, npc = node_detailer(flags, prev_node_name)
                 self._map.add_node(destination, name=f'{name}', description=f'{description}')
                 if npc is not None:
                     print(f"Added NPC:{npc.name} to node's characters")
                     self._map.nodes[destination]['characters'].append(npc)
                 self._map.nodes[destination]['flags'].visited = True
 
+            self.current_node = destination
             return self
 
         else:
-            print(f"Cannot move from [{self.current_node}] to [{destination}] . Node not adjacent.")
+            print(f"Cannot move from [{self.current_node}] to [{destination}]. Node not adjacent.")
 
     def get_relevant_locations_str(self):
         """
@@ -85,12 +88,12 @@ class Map:
         :return: returns a concatenated string of the current and adjacent nodes.
         """
         # return str(f"[Relevant Map]: \n{neighbors(node) for node in }\nCurrent Node: [{str(self.current_node)}]")
-        current = f'Node: {self.current_node} | {self.get_attrs(self.current_node)}'
-        adjacent = '\n'.join(f'Node: {self.current_node} -> {str(node)} | {self.get_attrs(node)}' for node in
+        current = f'Node: {self.current_node} | {self.get_attrs_str(self.current_node)}'
+        adjacent = '\n'.join(f'Node: {self.current_node} -> {str(node)} | {self.get_attrs_str(node)}' for node in
                              nx.neighbors(self._map, self.current_node))
         return f'[Current Node]\n{current}\n[Relevant Map]\n{adjacent}'
 
-    def get_attrs(self, node_index: int):
+    def get_attrs_str(self, node_index: int):
         """
         Data concatenate/string converter
         :param node_index: integer index of node in graph
@@ -98,3 +101,15 @@ class Map:
         """
         values_to_join = [str(value) for key, value in self._map.nodes[node_index].items() if key != 'characters']
         return ' | '.join(values_to_join)
+
+    def get_node_attrs(self, node_index: int):
+        name = self._map.nodes[node_index]['name']
+        desc = self._map.nodes[node_index]['description']
+        return name, desc
+
+    def is_node_visited(self, node_index: int):
+        flags = self._map.nodes[node_index].get('flags')
+        str_visit = "visited" if flags.visited else "unvisited"
+
+        print(f"Node {node_index} is {str_visit}")
+        return flags.visited

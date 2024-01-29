@@ -1,72 +1,65 @@
-from LLDM.Core.GPT import sdprompter, chat_complete_story
+from LLDM.Core.GPT import chat_complete_story
 from LLDM.Core.Scene import Scene, Map
 from LLDM.Core.GameLogic import Battle
 
 
-def init_scene():
-    global scene
-    scene = Scene(Map(5))
-    return scene
+class Campaign:
+    scene = None
+    image_path = None
 
+    @classmethod
+    def init_scene(cls):
+        cls.scene = Scene(Map(5))
 
-def handle_input(user_input):
-    """
-    Initial processor of user input (after being sent from the WebApp)
-    :param user_input: raw user input
-    :return: the Events to be displayed on the WebApp
-    """
-    global scene
+    @classmethod
+    def get_img(cls):
+        return str(cls.image_path) if cls.image_path is not None else None
 
-    if user_input == "END":
-        Battle._in_battle = False
-        return ["Ended Battle- Returning to Story"]
+    @classmethod
+    def get_map(cls):
+        return f'Current Node: {cls.scene.loc_map.current_node}\n{cls.scene.loc_map}'
 
-    if Battle.in_battle():
-        print("Battle Calls")
+    @classmethod
+    def get_main_character(cls):
+        for c in cls.scene.loc_map.get_current_characters():
+            if c.entity == "party":
+                return str(c)
 
-        print(f"{Battle.active_player.name} (id:{Battle.active_player.id})" + user_input)
-        Battle.current_battle.player_turn(Battle.active_player, user_input)
+    @classmethod
+    def get_new_events(cls):
+        return '\n'.join(str(event) for event in cls.scene.events)
 
-        # Resume the recursive roster loop
-        return Battle.cycle_logs()
-    else:
-        print("Story Calls")
-        response = chat_complete_story(user_input, scene)
+    @classmethod
+    def handle_input(cls, user_input):
+        """
+        Initial processor of user input (after being sent from the WebApp)
+        :param user_input: raw user input
+        :return: the Events to be displayed on the WebApp
+        """
 
-        if response:
-            scene = response.get('scene')
+        if user_input == "END":
+            Battle._in_battle = False
+            return ["Ended Battle- Returning to Story"]
 
-            global image_path
-            image_path = response.get('image')
-            return scene.events
+        if Battle.in_battle():
+            print("Battle Calls")
 
+            print(f"{Battle.active_player.name} (id:{Battle.active_player.id})" + user_input)
+            Battle.current_battle.player_turn(Battle.active_player, user_input)
 
-def main_gen_img():
-    return sdprompter("test for dead url", "test")
+            # Resume the recursive roster loop
+            return Battle.cycle_logs()
 
+        else:
+            print("Story Calls")
+            response = chat_complete_story(user_input, cls.scene)
 
-def get_img():
-    global image_path
-    return str(image_path) if image_path is not None else None
+            if response:
+                cls.scene = response.get('scene')
 
-
-def get_map():
-    global scene
-    return f'Current Node: {scene.loc_map.current_node}\n{scene.loc_map}'
-
-
-def get_main_character():
-    global scene
-    for c in scene.loc_map.get_current_characters():
-        if c.entity == "party":
-            return str(c)
-
-
-def get_new_events():
-    global scene
-    return '\n'.join(str(event) for event in scene.events)
+                cls.image_path = response.get('image')
+                return cls.scene.events
 
 
 if __name__ != '__main__':
-    image_path = None
-    scene = init_scene()
+    Campaign.init_scene()

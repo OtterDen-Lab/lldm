@@ -1,6 +1,4 @@
-﻿import openai
-import os
-import json
+﻿import json
 
 # from LLDM.Core.Scene import Scene
 # from LLDM.Core.StableDiffusion import generate, is_url_alive
@@ -14,12 +12,6 @@ from .Scene import Scene
 from LLDM.Utility import write, append, obj_to_json, Routes
 from .StableDiffusion import generate, is_url_alive
 from .gpt_tools import *
-
-# Using Sam Ogden's provided API Key for LLDM
-# noinspection SpellCheckingInspection
-openai.api_key = os.environ['GPTAPI']
-MODEL = "gpt-3.5-turbo"
-MODEL_PREVIEW = "gpt-4-1106-preview"
 
 
 # ================================ Functions: =======================================
@@ -137,10 +129,22 @@ def second_call(event: Event, scene: Scene, str_locations: str):
             resolved_events.append(item_response[1])
 
             # Generate Image of new item
-            image = sdprompter(new_item.description, title=new_item.name)
+            image = sdprompter(new_item.description, new_item.name)
 
         case "handle_movement":
-            scene.loc_map = handle_movement(target_index, scene.loc_map)
+            movement_response = handle_movement(target_index, scene.loc_map)
+            scene.loc_map = movement_response.get('game_map')
+
+            name, description = scene.loc_map.get_node_attrs(scene.loc_map.current_node)
+            event.title = f"Moving into {name}"
+            event.summary = description
+            resolved_events.append(event)
+
+            # Generate Image of location (if new location)
+            if movement_response.get('img_gen'):
+                print("Requesting Image Generation")
+                name, desc = scene.loc_map.get_node_attrs(scene.loc_map.current_node)
+                image = sdprompter(desc, name)
 
         case "handle_examine":
             # Retrieve parameters for the examine function
@@ -186,48 +190,6 @@ def second_call(event: Event, scene: Scene, str_locations: str):
     return {'scene': Scene(scene.loc_map, resolved_events), 'image': image}
 
 
-def tool_for(category=None):
-    """
-    Helper function to force use of function based on Event category.
-    :param category: Enum type of action as determined by GPT
-    :return: a snippet of json that determines tool use in a ChatCompletion call
-    """
-    event_tool_map = {
-        "Item Generation": "create_item",
-        "Movement": "handle_movement",
-        "Examine": "handle_examine",
-        "Battle": "handle_battle"
-    }
-
-    # Selecting the appropriate tool based on the event category
-    event_tool_name = event_tool_map.get(category)
-
-    # Constructing the tool dictionary
-    return {"type": "function", "function": {"name": event_tool_name}} if event_tool_name else "auto"
-
-
-def get_response_tool(messages, tools, category=None):
-    """
-    :param messages: the dialogue to be processed by GPT
-    :param tools: the functions to be made accessible to GPT
-    :param category: optional arg to force use of a specific tool
-    :return: tuple of the function name and arguments used by GPT
-    """
-    # Execute OpenAI API call
-    print("\n[OPENAI]: REQUEST SENT", end=" ")
-    response = openai.ChatCompletion.create(
-        model=MODEL,
-        messages=messages,
-        tools=tools,
-        tool_choice=tool_for(category)
-    )
-    print("| RESPONSE RECEIVED")
-
-    # Retrieve name and parameters of GPT function call
-    tool_call = response.choices[0].message.tool_calls[0]
-    return {"name": tool_call.function.name, "args": json.loads(tool_call.function.arguments)}
-
-
 def sdprompter(subject: str, title: str = None):
     """
     Function to generate images and perform file I/O to log and save them.
@@ -239,9 +201,8 @@ def sdprompter(subject: str, title: str = None):
     if not is_url_alive():
         return title
 
-    print("[SDPROMPTER]:", end=" ")
     # Execute OpenAI API call
-    print("[OPENAI]: REQUEST SENT", end=" ")
+    print("[SDPROMPTER]: OPENAI REQUEST SENT", end=" ")
     response = openai.ChatCompletion.create(
         model=MODEL,
         messages=[
@@ -254,9 +215,7 @@ def sdprompter(subject: str, title: str = None):
     # Dump Log into file
     append(Routes.PATH_LOG_SDPROMPTER, str(response))
 
-    # Forward output to prompt location for SD
-    write(Routes.PATH_SDCONFIG_PROMPT, str(response.choices[0].message.content))
-
-    # Invoke the local SD instance to create an image based on the prompt
-    print(str(response.choices[0].message.content))
-    return generate(title=title)
+    # Generate an image using the generated prompt
+    prompt = str(response.choices[0].message.content)
+    print(prompt)
+    return generate(prompt, title)

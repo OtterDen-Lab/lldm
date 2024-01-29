@@ -1,11 +1,9 @@
-# from LLDM.GPT import *
-# from LLDM.helpers.JSONControl import *
 import os
 import random
 from flask import Flask, render_template, request, url_for, jsonify
 
 from LLDM.Utility import Routes
-from main import get_main_character, main_gen_img, get_img, get_map, handle_input
+from main import Campaign
 
 
 app = Flask(__name__)
@@ -48,15 +46,8 @@ def index():
 def chat():
     """Main Content Page for the chat interface"""
     global background_image_filename
-    return render_template('chat.html', filename="Room 1.png", messages=messages, box1=get_map(),
-                           box2=get_main_character())
-
-
-@app.route('/generate_image', methods=['POST'])
-def generate_image():
-    """A debug tool test function for image generation. Ex: use when the image generator is offline"""
-    test = main_gen_img()
-    return jsonify({"image_path": test, "image_name": test})
+    return render_template('chat.html', filename="Room 1.png", messages=messages, box1=Campaign.get_map(),
+                           box2=Campaign.get_main_character())
 
 
 @app.route('/send_message', methods=['POST'])
@@ -65,21 +56,24 @@ def send_message():
     message_text = request.form['message']
     messages.append({"sender": "user", "text": message_text})
 
-    bot_responses = handle_input(message_text)
+    bot_responses = Campaign.handle_input(message_text)
     str_responses = []
     for response in bot_responses:
         messages.append({"sender": "bot", "text": str(response)})
         str_responses.append(str(response))
 
-    if get_img():
-        image_name = get_img().removesuffix(".png")
-        image_path = url_for('static', filename='images/' + get_img())
+    # Make the return json
+    json_dict = {"bot_responses": str_responses,
+                 "character_info": Campaign.get_main_character(),
+                 "map_info": Campaign.get_map()}
 
-        return jsonify({"bot_responses": str_responses, "character_info": get_main_character(), "map_info": get_map(),
-                        "image_path": image_path, "image_name": image_name})
-    return jsonify({"bot_responses": str_responses, "character_info": get_main_character(), "map_info": get_map()})
+    # If there's an image, append some more data to the dict
+    if Campaign.get_img():
+        json_dict["image_path"] = url_for('static', filename='images/' + Campaign.get_img())
+        json_dict["image_name"] = Campaign.get_img().removesuffix(".png")
+
+    return jsonify(json_dict)
 
 
 if __name__ == '__main__':
-    # app.run()
     app.run(host="0.0.0.0", port=5000)

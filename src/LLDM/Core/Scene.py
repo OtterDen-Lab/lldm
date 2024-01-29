@@ -32,6 +32,14 @@ class Event:
     def category(self):
         return self._category
 
+    @title.setter
+    def title(self, value: str):
+        self._title = value
+
+    @summary.setter
+    def summary(self, value: str):
+        self._summary = value
+
 
 class Scene(NestedFormatter):
     """

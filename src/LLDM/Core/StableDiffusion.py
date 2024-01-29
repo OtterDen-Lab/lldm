@@ -13,6 +13,14 @@ url = "http://127.0.0.1:7860"
 # url = "https://664176ef9c42434e22.gradio.live"
 
 
+# On load, set the SD model and lora
+option_payload = {
+    "sd_model_checkpoint": "aZovyaRPGArtistTools_v3VAE.safetensors [8c4042921a]",
+    "sd_lora": "more_details"
+}
+requests.post(url=f'{url}/sdapi/v1/options', json=option_payload)
+
+
 def is_url_alive():
     """
     :return: boolean representing image generator service accessibility
@@ -26,22 +34,23 @@ def is_url_alive():
         return False
 
 
-def generate(title=None):
+def generate(prompt: str, title=None):
     """
     Image Generator using an HTTP call to StableDiffusion
+    Saves a png to both Campaign dir & WebApp Static img dir
+    :param prompt: prompt for image generation (format for SD)
     :param title: optional title for filename
     :return: file path to static image
     """
     filename = title if title is not None else "output"
 
     # Read config parameters from file
-    prompt = read(PATH_SDCONFIG_PROMPT)
-    negative_prompt = read(PATH_SDCONFIG_NEGATIVE)
+    negative_prompt = read(Routes.PATH_SDCONFIG_NEGATIVE)
 
     # These are the config parameters for StableDiffusion. Bare minimum is modified.
     payload = {
         "seed": -1,
-        "prompt": "fantasy, dungeons and dragons, , " + prompt + " <lora:more_details:1> ",
+        "prompt": "fantasy, dungeons and dragons, " + prompt + " <lora:more_details:1> ",
         "steps": 50,
         "cfg_scale": 7,
         "sampler_name": "DDIM",
@@ -65,14 +74,14 @@ def generate(title=None):
         pnginfo = PngImagePlugin.PngInfo()
         pnginfo.add_text("parameters", response2.json().get("info"))
 
-        img_path = uniquify(os.path.join(PATH_OUTPUT_STABLEDIFFUSION, f"{filename}.png"))
+        # Save Image to Campaign Images
+        img_path = uniquify(os.path.join(Routes.PATH_OUTPUT_STABLEDIFFUSION, f"{filename}.png"))
         image.save(img_path, pnginfo=pnginfo)
-        # image.show()
-        static_img_path = uniquify(os.path.join(WEB_APP_IMAGES, f"{filename}.png"))
+
+        # Save Image to WebApp Static
+        static_img_path = uniquify(os.path.join(Routes.WEB_APP_IMAGES, f"{filename}.png"))
         image.save(static_img_path, pnginfo=pnginfo)
 
-        # print(f"Image Output Path: {static_img_path}")
-        # print(f"Image Filename: {os.path.basename(static_img_path)}")
         return os.path.basename(static_img_path)
 
 

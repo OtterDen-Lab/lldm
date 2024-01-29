@@ -43,7 +43,6 @@ class Routes:
     PATH_SDCONFIG_CONFIG = os.path.join(RES_SD_DIR, "Payload.txt")
 
     # Temp/Overwritten
-    PATH_SDCONFIG_PROMPT = os.path.join(RES_SD_DIR, "Prompt.txt")
     PATH_INPUT_USER = os.path.join(RESOURCES_DIR, "Input", "User_input.txt")
 
     # Campaign Directory

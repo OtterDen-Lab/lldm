@@ -5,7 +5,7 @@
     <option name="PARENT_ENVS" value="true" />
     <envs>
       <env name="PYTHONUNBUFFERED" value="1" />
-      <env name="GPTAPI" value="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" />
+      <env name="GPTAPI" value="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" />
     </envs>
     <option name="SDK_HOME" value="" />
     <option name="SDK_NAME" value="Python 3.10" />

@@ -66,22 +66,6 @@
     // Add onclick listeners for the image buttons. Generate Image is a test button that works without GPT/SD running
     document.getElementById('prev-image').addEventListener('click', () => changeImage(-1));
     document.getElementById('next-image').addEventListener('click', () => changeImage(1));
-    // document.getElementById('new-image').addEventListener('click', () => generateImage());
-
-    // Test handler for image generation when services are dead
-    function generateImage() {
-        fetch('/generate_image', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            images.push({ url: data.image_path, filename: data.image_name });
-            changeImage(1)
-        });
-    }
 
     // Function to append message to the dialogue column
     function addMessage(className, text) {
@@ -122,10 +106,12 @@
                 // The reason this is done client-side because console output server-side should also be readable.
 
                 // Info Box 1 : Map
-                document.getElementById('info-box-1').innerHTML = data.character_info.replace(/\n/g, '<br>');
+                document.getElementById('info-box-1').innerHTML = data.map_info.replace(/\n/g, '<br>');
                 // Info Box 2 : Character
-                document.getElementById('info-box-2').innerHTML = data.map_info.replace(/\n/g, '<br>');
-                // Info Box 2 : Image
+                document.getElementById('info-box-2').innerHTML = data.character_info.replace(/\n/g, '<br>');
+
+                // Info Box 3 : Image
+                console.log("Incoming Image:", data.image_name)
                 if (data.image_path) {
                     images.push({ url: data.image_path, filename: data.image_name });
                     changeImage(1)

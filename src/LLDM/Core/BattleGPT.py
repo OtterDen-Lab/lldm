@@ -180,35 +180,3 @@ def generate_conclusion(battle_events):
     print(str(response.choices[0].message.content))
     return str(response.choices[0].message.content)
 
-
-# Helper functions to reduce duplication
-def tool_for(category=None):
-    # Force use of function based on Event category. This helps reduce GPT confusion
-    event_tool_map = {
-        "Attack": "handle_attack",
-        "Wait": "handle_wait",
-        "Item": "handle_item",
-        "AI": "npc_action_description"
-    }
-
-    # Selecting the appropriate tool based on the event category
-    event_tool_name = event_tool_map.get(category)
-
-    # Constructing the tool dictionary
-    return {"type": "function", "function": {"name": event_tool_name}} if event_tool_name else "auto"
-
-
-def get_response_tool(messages, tools, category=None):
-    # Execute OpenAI API call
-    print("\n[OPENAI]: REQUEST SENT", end=" ")
-    response = openai.ChatCompletion.create(
-        model=MODEL,
-        messages=messages,
-        tools=tools,
-        tool_choice=tool_for(category)
-    )
-    print("| RESPONSE RECEIVED")
-
-    # Retrieve name and parameters of GPT function call
-    tool_call = response.choices[0].message.tool_calls[0]
-    return {"name": tool_call.function.name, "args": json.loads(tool_call.function.arguments)}
